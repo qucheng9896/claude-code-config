@@ -50,6 +50,14 @@ bash setup.sh
 cp ~/.claude/settings.json.bak ~/.claude/settings.json
 ```
 
+## 仓库内其他项目
+
+### [AutoClicker — 多步骤宏工具](src/)
+
+Windows 桌面自动化点击工具，支持多步骤宏编排、录制回放、图片识别定位与游戏级底层输入模拟。
+
+详见 [src/README.md](src/README.md)
+
 ## License
 
 MIT

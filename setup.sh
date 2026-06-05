@@ -26,6 +26,19 @@ if ! command -v claude &> /dev/null; then
 fi
 echo -e "${GREEN}[OK]${NC} Claude Code 已安装"
 
+# Check optional dependencies
+if ! command -v node &> /dev/null; then
+    echo -e "${YELLOW}[提示]${NC} 未检测到 Node.js — 状态栏 HUD 功能将不可用（不影响核心功能）"
+fi
+
+HAS_JQ=false
+if command -v jq &> /dev/null; then
+    HAS_JQ=true
+    echo -e "${GREEN}[OK]${NC} jq 已安装（支持配置合并）"
+else
+    echo -e "${YELLOW}[提示]${NC} 未安装 jq — 将使用安全合并模式"
+fi
+
 # Create .claude directory if not exists
 mkdir -p "$CLAUDE_DIR"
 
@@ -36,14 +49,9 @@ if [ -f "$SETTINGS_FILE" ]; then
     echo -e "${YELLOW}[备份]${NC} 已备份现有配置到: $BACKUP"
 fi
 
-# Check if jq is available for merging
-if command -v jq &> /dev/null; then
-    if [ -f "$SETTINGS_FILE" ]; then
+if [ -f "$SETTINGS_FILE" ]; then
+    if [ "$HAS_JQ" = true ]; then
         echo -e "${GREEN}[合并]${NC} 与现有配置合并中..."
-
-        # Read the package settings and merge into existing
-        # Preserve: env, permissions, and any user-specific settings
-        # Add/override: plugins, language, spinner, statusLine
         jq -s '
             .[0] as $existing |
             .[1] as $package |
@@ -59,12 +67,33 @@ if command -v jq &> /dev/null; then
         ' "$SETTINGS_FILE" "$PACKAGE_SETTINGS" > "$SETTINGS_FILE.tmp"
         mv "$SETTINGS_FILE.tmp" "$SETTINGS_FILE"
     else
-        echo -e "${GREEN}[安装]${NC} 写入配置..."
-        cp "$PACKAGE_SETTINGS" "$SETTINGS_FILE"
+        echo -e "${GREEN}[合并]${NC} 安全合并配置（保留你的 env、permissions 等个人设置）..."
+        # Without jq: only append missing keys from package settings, never overwrite existing ones
+        python3 -c "
+import json, sys
+with open('$SETTINGS_FILE') as f:
+    existing = json.load(f)
+with open('$PACKAGE_SETTINGS') as f:
+    package = json.load(f)
+# Only add keys that don't already exist in the user's settings
+for key, value in package.items():
+    if key not in existing:
+        existing[key] = value
+with open('$SETTINGS_FILE', 'w') as f:
+    json.dump(existing, f, indent=2, ensure_ascii=False)
+    f.write('\n')
+print('  安全合并完成')
+" 2>/dev/null || {
+            echo -e "${YELLOW}[警告]${NC} 无法安全合并（缺少 jq 和 python3），跳过覆盖以保护你的现有配置"
+            echo -e "${YELLOW}[建议]${NC} 请安装 jq 后重试: brew install jq / apt install jq / choco install jq"
+            echo ""
+            echo -e "或者手动将以下内容添加到 $SETTINGS_FILE 中:"
+            cat "$PACKAGE_SETTINGS"
+            exit 1
+        }
     fi
 else
-    echo -e "${YELLOW}[提示]${NC} 未安装 jq，将直接覆盖 settings.json"
-    echo -e "${YELLOW}[提示]${NC} 如需保留原有配置，请先安装 jq 再重新运行"
+    echo -e "${GREEN}[安装]${NC} 写入配置..."
     cp "$PACKAGE_SETTINGS" "$SETTINGS_FILE"
 fi
 
@@ -82,4 +111,5 @@ echo -e "  - 40+ 条中文使用技巧"
 echo ""
 echo -e "运行 ${GREEN}claude${NC} 启动体验"
 echo ""
-echo -e "${YELLOW}提示: 如果使用代理，请在 ~/.claude/settings.json 的 env 中配置 ANTHROPIC_BASE_URL${NC}"
+echo -e "${YELLOW}提示: 如果使用代理，请在 ~/.claude/settings.json 的 env 中配置:${NC}"
+echo -e '  "env": { "ANTHROPIC_BASE_URL": "http://你的代理地址:端口" }'

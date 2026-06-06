@@ -14,3 +14,10 @@ dist/
 # AutoClicker
 screenshots/
 *.exe
+
+# Claude Code
+.claude/settings.local.json
+docs/
+
+# Test artifacts
+test_scroll.py

@@ -1,1 +1,170 @@
-{}
+{
+    "契灵": {
+        "loop_count": 1,
+        "loop_infinite": false,
+        "random_offset": false,
+        "random_offset_px": 3,
+        "human_mode": false,
+        "wait_variance": 30,
+        "press_duration_min": 30,
+        "press_duration_max": 120,
+        "steps": [
+            {
+                "action": "image_click",
+                "params": {
+                    "image": "D:/MyProject/auto-clicker-study/src/screenshots/队伍预设.png",
+                    "timeout": 10,
+                    "confidence": 0.9,
+                    "search_region": {
+                        "x": 1365,
+                        "y": 638,
+                        "w": 98,
+                        "h": 90
+                    },
+                    "run_once": true
+                }
+            },
+            {
+                "action": "image_click",
+                "params": {
+                    "image": "D:/MyProject/auto-clicker-study/src/screenshots/契灵六道.png",
+                    "timeout": 10,
+                    "confidence": 0.9,
+                    "search_region": {
+                        "x": 1077,
+                        "y": 287,
+                        "w": 114,
+                        "h": 348
+                    },
+                    "scroll_on_miss": {
+                        "direction": "down",
+                        "amount": 1,
+                        "max_scrolls": 10,
+                        "scroll_region": {
+                            "x": 1074,
+                            "y": 289,
+                            "w": 119,
+                            "h": 348
+                        }
+                    },
+                    "run_once": true
+                }
+            },
+            {
+                "action": "image_click",
+                "params": {
+                    "image": "D:/MyProject/auto-clicker-study/src/screenshots/使用预设.png",
+                    "timeout": 10,
+                    "confidence": 0.9,
+                    "search_region": {
+                        "x": 1478,
+                        "y": 293,
+                        "w": 67,
+                        "h": 88
+                    },
+                    "run_once": true
+                }
+            },
+            {
+                "action": "conditional_branch",
+                "params": {
+                    "check_image": "D:/MyProject/auto-clicker-study/src/screenshots/确定.png",
+                    "timeout": 0.5,
+                    "search_region": {
+                        "x": 1280,
+                        "y": 491,
+                        "w": 210,
+                        "h": 114
+                    },
+                    "sub_steps": [
+                        {
+                            "action": "left_click",
+                            "params": {
+                                "x": 1373,
+                                "y": 554
+                            }
+                        }
+                    ],
+                    "else_steps": [],
+                    "run_once": true
+                }
+            },
+            {
+                "action": "conditional_branch",
+                "params": {
+                    "check_image": "D:/MyProject/auto-clicker-study/src/screenshots/出战.png",
+                    "timeout": 0.5,
+                    "search_region": {
+                        "x": 1296,
+                        "y": 576,
+                        "w": 136,
+                        "h": 61
+                    },
+                    "sub_steps": [
+                        {
+                            "action": "left_click",
+                            "params": {
+                                "x": 1366,
+                                "y": 610
+                            }
+                        }
+                    ],
+                    "else_steps": [],
+                    "run_once": true
+                }
+            },
+            {
+                "action": "image_click",
+                "params": {
+                    "image": "D:/MyProject/auto-clicker-study/src/screenshots/挑战.png",
+                    "timeout": 10,
+                    "confidence": 0.9,
+                    "search_region": {
+                        "x": 1647,
+                        "y": 607,
+                        "w": 198,
+                        "h": 198
+                    }
+                }
+            },
+            {
+                "action": "image_click",
+                "params": {
+                    "image": "D:/MyProject/auto-clicker-study/src/screenshots/结契成功.png",
+                    "timeout": 20,
+                    "confidence": 0.9,
+                    "search_region": {
+                        "rel_x": 233,
+                        "rel_y": 206,
+                        "w": 495,
+                        "h": 386,
+                        "relative": true
+                    }
+                }
+            },
+            {
+                "action": "image_click",
+                "params": {
+                    "image": "D:/MyProject/auto-clicker-study/src/screenshots/放弃结契.png",
+                    "timeout": 30,
+                    "confidence": 0.9
+                }
+            },
+            {
+                "action": "image_click",
+                "params": {
+                    "image": "D:/MyProject/auto-clicker-study/src/screenshots/点击屏幕继续.png",
+                    "timeout": 10,
+                    "confidence": 0.9,
+                    "search_region": {
+                        "rel_x": 206,
+                        "rel_y": 174,
+                        "w": 732,
+                        "h": 467,
+                        "relative": true
+                    }
+                }
+            }
+        ]
+    }
+}

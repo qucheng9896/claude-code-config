@@ -14,6 +14,10 @@ import os
 import ctypes
 import ctypes.wintypes
 
+os.environ["OPENCV_LOG_LEVEL"] = "SILENT"
+
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+
 try:
     import win32api
     import win32gui
@@ -68,6 +72,7 @@ MOUSEEVENTF_RIGHTDOWN = 0x0008
 MOUSEEVENTF_RIGHTUP = 0x0010
 MOUSEEVENTF_MIDDLEDOWN = 0x0020
 MOUSEEVENTF_MIDDLEUP = 0x0040
+MOUSEEVENTF_WHEEL = 0x0800
 KEYEVENTF_SCANCODE = 0x0008
 KEYEVENTF_KEYUP = 0x0002
 
@@ -158,6 +163,16 @@ def is_admin():
         return False
 
 
+def cv2_read_image(path):
+    """读取图片，支持中文路径"""
+    try:
+        data = np.fromfile(path, dtype=np.uint8)
+        img = cv2.imdecode(data, cv2.IMREAD_COLOR)
+        return img
+    except Exception:
+        return None
+
+
 # ===========================================================================
 # MacroStep 数据模型
 # ===========================================================================
@@ -171,23 +186,40 @@ class MacroStep:
 
     def describe(self):
         if self.action == "left_click":
-            return f"左键点击  ({self.params.get('x',0)}, {self.params.get('y',0)})"
+            desc = f"左键点击  ({self.params.get('x',0)}, {self.params.get('y',0)})"
         elif self.action == "right_click":
-            return f"右键点击  ({self.params.get('x',0)}, {self.params.get('y',0)})"
+            desc = f"右键点击  ({self.params.get('x',0)}, {self.params.get('y',0)})"
         elif self.action == "wait":
-            return f"等待  {self.params.get('duration',0)} ms"
+            desc = f"等待  {self.params.get('duration',0)} ms"
         elif self.action == "key_press":
-            return f"按键  {self.params.get('key','')}"
+            desc = f"按键  {self.params.get('key','')}"
         elif self.action == "image_click":
             name = os.path.basename(self.params.get("image", ""))
             timeout = self.params.get("timeout", 10)
-            return f"识图点击  [{name}]  超时{timeout}s"
+            conf = self.params.get("confidence", 0.90)
+            region_tag = " [区域]" if self.params.get("search_region") else ""
+            scroll_cfg = self.params.get("scroll_on_miss")
+            scroll_tag = f" [滚轮x{scroll_cfg.get('max_scrolls',0)}]" if scroll_cfg else ""
+            desc = f"识图点击  [{name}]  超时{timeout}s 精度{conf:.0%}{region_tag}{scroll_tag}"
         elif self.action == "capture_save":
             name = os.path.basename(self.params.get("path", ""))
             region = self.params.get("region", {})
             w, h = region.get("w", 0), region.get("h", 0)
-            return f"截图保存  [{name}]  {w}x{h}"
-        return "未知步骤"
+            desc = f"截图保存  [{name}]  {w}x{h}"
+        elif self.action == "conditional_branch":
+            name = os.path.basename(self.params.get("check_image", ""))
+            timeout = self.params.get("timeout", 0.5)
+            sub_count = len(self.params.get("sub_steps", []))
+            sub_info = f"{sub_count}步" if sub_count > 0 else "自动点击"
+            desc = f"条件分支  [{name}]  超时{timeout}s  {sub_info}"
+        else:
+            desc = "未知步骤"
+        if self.params.get("run_once"):
+            desc += "  [仅首次]"
+        pd = self.params.get("post_delay", 0)
+        if pd > 0:
+            desc += f"  [+{pd}ms]"
+        return desc
 
     def action_label(self):
         return {
@@ -195,6 +227,7 @@ class MacroStep:
             "wait": "等待延时", "key_press": "键盘按键",
             "image_click": "识图点击",
             "capture_save": "截图保存",
+            "conditional_branch": "条件分支",
         }.get(self.action, self.action)
 
     def to_dict(self):
@@ -213,7 +246,7 @@ class AutoClicker:
     def __init__(self, root):
         self.root = root
         self.root.title("AutoClicker - 多步骤宏工具")
-        self.root.geometry("880x680")
+        self.root.geometry("920x820")
         self.root.resizable(True, True)
         self.root.minsize(780, 600)
 
@@ -322,12 +355,17 @@ class AutoClicker:
         self.step_tree.bind("<Button-3>", self._show_step_context_menu)
         self.step_tree.bind("<Double-1>", self._on_step_double_click)
 
-        # 执行日志
+        # 执行日志（带滚动条）
         C = self._colors
-        self.step_log = tk.Text(frame, height=3, bg=C["input"], fg=C["dim"],
-                                font=("Consolas", 9), state=tk.DISABLED,
+        log_frame = ttk.Frame(frame)
+        log_frame.grid(row=1, column=0, columnspan=2, sticky="nsew", pady=(2, 2))
+        self.step_log = tk.Text(log_frame, height=10, bg=C["input"], fg=C["dim"],
+                                font=("Consolas", 10), state=tk.DISABLED,
                                 relief=tk.FLAT, borderwidth=1, highlightthickness=0)
-        self.step_log.grid(row=1, column=0, columnspan=2, sticky="ew", pady=(2, 2))
+        log_sb = ttk.Scrollbar(log_frame, orient="vertical", command=self.step_log.yview)
+        self.step_log.configure(yscrollcommand=log_sb.set)
+        self.step_log.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        log_sb.pack(side=tk.RIGHT, fill=tk.Y)
         self.step_log.tag_configure("info", foreground=C["dim"])
         self.step_log.tag_configure("success", foreground=C["success"])
         self.step_log.tag_configure("fail", foreground=C["danger"])
@@ -344,6 +382,7 @@ class AutoClicker:
             ("+ 按键", self.add_key_step),
             ("+ 截图", self.capture_and_match),
             ("+ 截图保存", self.add_capture_step),
+            ("+ 条件", self.add_conditional_branch),
             ("+ 图片", self.add_image_step),
             ("|", None),
             ("▲", self.move_step_up), ("▼", self.move_step_down),
@@ -605,10 +644,10 @@ class AutoClicker:
             self.step_log.config(state=tk.NORMAL)
             self.step_log.insert(tk.END, msg + "\n", tag)
             self.step_log.see(tk.END)
-            # 只保留最近 50 行
+            # 只保留最近 100 行
             lines = int(self.step_log.index("end-1c").split(".")[0])
-            if lines > 50:
-                self.step_log.delete("1.0", f"{lines - 50}.0")
+            if lines > 100:
+                self.step_log.delete("1.0", f"{lines - 100}.0")
             self.step_log.config(state=tk.DISABLED)
         self.root.after(0, _append)
 
@@ -726,12 +765,174 @@ class AutoClicker:
             return
         self._match_image_and_add_step(path)
 
-    def _match_image_and_add_step(self, path):
-        """添加识图点击步骤（执行时实时查找，找到才点）"""
+    def add_conditional_branch(self):
+        """添加条件分支步骤"""
+        if not CV2_AVAILABLE:
+            messagebox.showwarning("警告", "需要安装 opencv-python: pip install opencv-python")
+            return
+        path = filedialog.askopenfilename(title="选择条件图片", filetypes=[("图片", "*.png;*.jpg;*.jpeg")])
+        if not path:
+            return
+        template = cv2_read_image(path)
+        if template is None:
+            messagebox.showerror("错误", f"无法读取图片: {path}")
+            return
+
+        timeout = simpledialog.askfloat("扫描超时",
+                                        "快速扫描超时时间（秒）\n找不到则跳过此分支:",
+                                        initialvalue=0.5, minvalue=0.1, maxvalue=5.0)
+        if timeout is None:
+            timeout = 0.5
+
+        search_region = None
+        set_region = messagebox.askyesno("搜索区域", "是否限定搜索区域？\n\n是 → 在屏幕上框选\n否 → 全屏搜索")
+        if set_region:
+            search_region = self._select_region_on_screen()
+
+        sub_steps = self._collect_sub_steps_dialog()
+        if sub_steps is None:
+            return
+
+        self.steps.append(MacroStep("conditional_branch", {
+            "check_image": path,
+            "timeout": timeout,
+            "search_region": search_region,
+            "sub_steps": sub_steps,
+            "else_steps": [],
+        }))
+        self._refresh_step_list()
+        sub_count = len(sub_steps)
+        messagebox.showinfo("已添加",
+                           f"条件分支步骤已添加\n\n"
+                           f"条件图片: {os.path.basename(path)}\n"
+                           f"扫描超时: {timeout}秒\n"
+                           f"子步骤: {sub_count} 步\n\n"
+                           f"执行时快速扫描图片，找到则执行子步骤，否则跳过。")
+
+    def _collect_sub_steps_dialog(self):
+        """弹出对话框收集条件分支的子步骤列表。返回 steps list 或 None（取消）。"""
+        dialog = tk.Toplevel(self.root)
+        dialog.title("编辑子步骤")
+        dialog.geometry("460x380")
+        dialog.transient(self.root)
+        dialog.grab_set()
+
+        ttk.Label(dialog, text="条件满足时执行以下步骤:").pack(padx=8, pady=(8, 2))
+        ttk.Label(dialog, text="match = 点击识别到的位置  |  也可以截图选点", foreground="gray").pack(padx=8)
+
+        listbox = tk.Listbox(dialog, height=8)
+        listbox.pack(fill=tk.BOTH, expand=True, padx=8, pady=4)
+
+        sub_steps = []
+
+        def refresh_list():
+            listbox.delete(0, tk.END)
+            for i, s in enumerate(sub_steps):
+                a = s["action"]
+                p = s["params"]
+                if a in ("left_click", "right_click"):
+                    x, y = p.get('x', 0), p.get('y', 0)
+                    label = f"{i+1}. {'左键' if a=='left_click' else '右键'} ({x},{y})"
+                elif a == "wait":
+                    label = f"{i+1}. 等待 {p.get('duration',0)}ms"
+                elif a == "key_press":
+                    label = f"{i+1}. 按键 [{p.get('key','')}]"
+                elif a == "image_click":
+                    name = os.path.basename(p.get("image", ""))
+                    label = f"{i+1}. 识图点击 [{name}]"
+                else:
+                    label = f"{i+1}. {a}"
+                listbox.insert(tk.END, label)
+
+        def add_sub_wait():
+            ms = simpledialog.askinteger("子步骤等待", "毫秒数:", initialvalue=1000,
+                                         minvalue=10, maxvalue=600000, parent=dialog)
+            if ms:
+                sub_steps.append({"action": "wait", "params": {"duration": ms}})
+                refresh_list()
+
+        def add_sub_key():
+            key = simpledialog.askstring("子步骤按键", "按键 (如 enter, space):", parent=dialog)
+            if key:
+                sub_steps.append({"action": "key_press", "params": {"key": key.strip()}})
+                refresh_list()
+
+        def del_sub():
+            sel = listbox.curselection()
+            if sel:
+                sub_steps.pop(sel[0])
+                refresh_list()
+
+        def add_sub_click_screen(ctype):
+            """截图选点添加点击子步骤"""
+            dialog.grab_release()
+            dialog.withdraw()
+            pos = self._click_point_on_screen()
+            dialog.deiconify()
+            dialog.grab_set()
+            if pos is None:
+                return
+            action = "left_click" if ctype == "left" else "right_click"
+            if pos.get("relative"):
+                sub_steps.append({"action": action, "params": {"x": pos["rel_x"], "y": pos["rel_y"], "relative": True}})
+            else:
+                sub_steps.append({"action": action, "params": {"x": pos["x"], "y": pos["y"]}})
+            refresh_list()
+
+        def add_sub_click_match(ctype):
+            """match 坐标添加点击子步骤"""
+            action = "left_click" if ctype == "left" else "right_click"
+            sub_steps.append({"action": action, "params": {"x": "match", "y": "match"}})
+            refresh_list()
+
+        def add_sub_image_click():
+            """添加识图点击子步骤"""
+            if not CV2_AVAILABLE:
+                messagebox.showwarning("警告", "需要 opencv-python", parent=dialog)
+                return
+            path = filedialog.askopenfilename(title="选择图片", filetypes=[("图片", "*.png;*.jpg;*.jpeg")])
+            if not path:
+                return
+            timeout = simpledialog.askinteger("超时", "找不到时等待秒数:", initialvalue=5, minvalue=1, maxvalue=30, parent=dialog)
+            if timeout is None:
+                timeout = 5
+            sub_steps.append({"action": "image_click", "params": {"image": path, "timeout": timeout}})
+            refresh_list()
+
+        btn_row = ttk.Frame(dialog)
+        btn_row.pack(fill=tk.X, padx=8, pady=4)
+        ttk.Button(btn_row, text="截图 左键", command=lambda: add_sub_click_screen("left")).pack(side=tk.LEFT, padx=2)
+        ttk.Button(btn_row, text="截图 右键", command=lambda: add_sub_click_screen("right")).pack(side=tk.LEFT, padx=2)
+        ttk.Button(btn_row, text="match 左键", command=lambda: add_sub_click_match("left")).pack(side=tk.LEFT, padx=2)
+        ttk.Button(btn_row, text="match 右键", command=lambda: add_sub_click_match("right")).pack(side=tk.LEFT, padx=2)
+        ttk.Button(btn_row, text="+ 等待", command=add_sub_wait).pack(side=tk.LEFT, padx=2)
+        ttk.Button(btn_row, text="+ 按键", command=add_sub_key).pack(side=tk.LEFT, padx=2)
+        ttk.Button(btn_row, text="+ 识图", command=add_sub_image_click).pack(side=tk.LEFT, padx=2)
+        ttk.Button(btn_row, text="删除", command=del_sub).pack(side=tk.LEFT, padx=(12, 2))
+
+        result = {"value": None}
+
+        def on_ok():
+            result["value"] = list(sub_steps)  # 空列表 = 自动点击识别位置
+            dialog.destroy()
+
+        def on_cancel():
+            dialog.destroy()
+
+        bottom = ttk.Frame(dialog)
+        bottom.pack(fill=tk.X, padx=8, pady=8)
+        ttk.Button(bottom, text="确定", command=on_ok).pack(side=tk.RIGHT, padx=4)
+        ttk.Button(bottom, text="取消", command=on_cancel).pack(side=tk.RIGHT, padx=4)
+
+        dialog.wait_window()
+        return result["value"]
+
+    def _match_image_and_add_step(self, path, scope=None):
+        """添加识图点击步骤。scope 有值时直接用作搜索区域，不再询问。"""
         if not CV2_AVAILABLE:
             messagebox.showwarning("警告", "需要安装 opencv-python")
             return
-        template = cv2.imread(path)
+        template = cv2_read_image(path)
         if template is None:
             messagebox.showerror("错误", f"无法读取图片: {path}")
             return
@@ -740,37 +941,396 @@ class AutoClicker:
         if timeout is None:
             timeout = 10
 
-        self.steps.append(MacroStep("image_click", {"image": path, "timeout": timeout}))
+        # 匹配精度
+        confidence = simpledialog.askfloat("匹配精度",
+                                           "匹配精度（0.5 ~ 0.99）\n\n"
+                                           "0.95+ = 非常严格，几乎完全一致才匹配\n"
+                                           "0.85  = 较严格，适合有汉字的图片\n"
+                                           "0.70  = 宽松，允许一定差异",
+                                           initialvalue=0.90, minvalue=0.50, maxvalue=0.99)
+        if confidence is None:
+            confidence = 0.90
+
+        # 搜索区域：有 scope 直接用，没有才问
+        search_region = None
+        if scope:
+            search_region = scope
+        else:
+            set_region = messagebox.askyesno("搜索区域", "是否限定搜索区域？\n\n是 → 在屏幕上框选一个区域\n否 → 全屏搜索")
+            if set_region:
+                search_region = self._select_region_on_screen()
+
+        # 滚轮搜索配置
+        scroll_cfg = self._ask_scroll_on_miss()
+
+        params = {"image": path, "timeout": timeout, "confidence": confidence}
+        if search_region:
+            params["search_region"] = search_region
+        if scroll_cfg:
+            params["scroll_on_miss"] = scroll_cfg
+
+        self.steps.append(MacroStep("image_click", params))
         self._refresh_step_list()
-        messagebox.showinfo("已添加", f"识图点击步骤已添加\n\n图片: {os.path.basename(path)}\n超时: {timeout}秒\n\n执行时会实时查找图片，找到后才点击，然后进入下一步。")
+
+        region_info = ""
+        if search_region:
+            r = search_region
+            if r.get("relative"):
+                region_info = f"\n搜索区域: (相对 {r['rel_x']},{r['rel_y']}) {r['w']}x{r['h']}"
+            else:
+                region_info = f"\n搜索区域: ({r['x']},{r['y']}) {r['w']}x{r['h']}"
+        scroll_info = ""
+        if scroll_cfg:
+            sr = scroll_cfg.get("scroll_region", scroll_cfg)
+            if sr.get("relative"):
+                scroll_info = f"\n滚轮搜索: (相对区域) {scroll_cfg['direction']} x{scroll_cfg['amount']} 最多{scroll_cfg['max_scrolls']}次"
+            else:
+                scroll_info = f"\n滚轮搜索: {scroll_cfg['direction']} x{scroll_cfg['amount']} 最多{scroll_cfg['max_scrolls']}次"
+        messagebox.showinfo("已添加", f"识图点击步骤已添加\n\n图片: {os.path.basename(path)}\n超时: {timeout}秒{region_info}{scroll_info}")
+
+    def _resolve_region(self, region):
+        """将区域坐标转为绝对屏幕坐标。如果 region 有 relative=True，根据窗口当前位置计算。"""
+        if not region:
+            return None
+        if not region.get("relative"):
+            return region
+        # 相对窗口坐标 → 绝对坐标
+        hwnd = self.target_hwnd
+        if not hwnd or not win32gui.IsWindow(hwnd):
+            # 窗口不存在，返回原始坐标（兜底）
+            return {"x": region.get("x", 0), "y": region.get("y", 0),
+                    "w": region["w"], "h": region["h"]}
+        rect = win32gui.GetWindowRect(hwnd)
+        wx, wy = rect[0], rect[1]
+        return {"x": wx + region["rel_x"], "y": wy + region["rel_y"],
+                "w": region["w"], "h": region["h"]}
+
+    def _select_region_on_screen(self):
+        """全屏覆盖层，用户拖拽框选区域。
+        如果已绑定窗口，自动存为相对窗口坐标（窗口移动时跟随）。
+        返回 {x, y, w, h} 或 {rel_x, rel_y, w, h, relative=True} 或 None
+        """
+        # 先把绑定窗口弹到最前面
+        if self._is_bound_window():
+            try:
+                win32gui.SetForegroundWindow(self.target_hwnd)
+                time.sleep(0.2)
+            except Exception:
+                pass
+
+        self.root.withdraw()
+        time.sleep(0.3)
+
+        result = {"region": None}
+
+        overlay = tk.Toplevel()
+        overlay.attributes("-fullscreen", True)
+        overlay.attributes("-alpha", 0.3)
+        overlay.attributes("-topmost", True)
+        overlay.overrideredirect(True)
+        overlay.configure(bg="gray")
+        overlay.focus_force()
+
+        # 判断是否绑定了窗口
+        bound_hwnd = self.target_hwnd if self._is_bound_window() else None
+        hint = "（跟随窗口移动）" if bound_hwnd else "（固定屏幕坐标）"
+
+        canvas = tk.Canvas(overlay, bg="gray", highlightthickness=0, cursor="cross")
+        canvas.pack(fill=tk.BOTH, expand=True)
+
+        # 显示窗口边框提示
+        if bound_hwnd:
+            try:
+                wr = win32gui.GetWindowRect(bound_hwnd)
+                canvas.create_rectangle(wr[0], wr[1], wr[2], wr[3],
+                                         outline="#FFD700", width=2, dash=(6, 3))
+                canvas.create_text((wr[0] + wr[2]) // 2, wr[1] - 15,
+                                    text="绑定窗口", fill="#FFD700", font=("Arial", 10))
+            except Exception:
+                pass
+
+        canvas.create_text(
+            overlay.winfo_screenwidth() // 2, 30,
+            text=f"拖拽框选搜索区域  |  ESC 取消  {hint}",
+            fill="white", font=("Arial", 14))
+
+        state = {"sx": 0, "sy": 0, "rect": None}
+
+        def on_press(e):
+            state["sx"], state["sy"] = e.x, e.y
+            if state["rect"]:
+                canvas.delete(state["rect"])
+            state["rect"] = canvas.create_rectangle(e.x, e.y, e.x, e.y,
+                                                     outline="#00FF00", width=2, dash=(6, 3))
+
+        def on_drag(e):
+            if state["rect"]:
+                canvas.coords(state["rect"], state["sx"], state["sy"], e.x, e.y)
+
+        def on_release(e):
+            x1, y1 = min(state["sx"], e.x), min(state["sy"], e.y)
+            x2, y2 = max(state["sx"], e.x), max(state["sy"], e.y)
+            if x2 - x1 < 10 or y2 - y1 < 10:
+                overlay.destroy()
+                self.root.deiconify()
+                return
+            w, h = x2 - x1, y2 - y1
+            if bound_hwnd:
+                # 存为相对窗口坐标
+                wr = win32gui.GetWindowRect(bound_hwnd)
+                result["region"] = {
+                    "rel_x": x1 - wr[0], "rel_y": y1 - wr[1],
+                    "w": w, "h": h, "relative": True,
+                }
+            else:
+                result["region"] = {"x": x1, "y": y1, "w": w, "h": h}
+            overlay.destroy()
+            self.root.deiconify()
+
+        def on_esc(e):
+            overlay.destroy()
+            self.root.deiconify()
+
+        overlay.bind("<ButtonPress-1>", on_press)
+        overlay.bind("<B1-Motion>", on_drag)
+        overlay.bind("<ButtonRelease-1>", on_release)
+        overlay.bind("<Escape>", on_esc)
+
+        overlay.wait_window()
+        return result["region"]
+
+    def _click_point_on_screen(self):
+        """全屏覆盖层，用户单击选点。
+        绑定窗口时返回相对坐标 dict，否则返回绝对坐标 dict。
+        返回 {x, y} 或 {rel_x, rel_y, relative=True} 或 None
+        """
+        self.root.withdraw()
+        time.sleep(0.3)
+
+        result = {"pos": None}
+
+        bound_hwnd = self.target_hwnd if self._is_bound_window() else None
+        hint = "（跟随窗口）" if bound_hwnd else ""
+
+        overlay = tk.Toplevel()
+        overlay.attributes("-fullscreen", True)
+        overlay.attributes("-alpha", 0.3)
+        overlay.attributes("-topmost", True)
+        overlay.overrideredirect(True)
+        overlay.configure(bg="gray")
+        overlay.focus_force()
+
+        canvas = tk.Canvas(overlay, bg="gray", highlightthickness=0, cursor="cross")
+        canvas.pack(fill=tk.BOTH, expand=True)
+
+        if bound_hwnd:
+            try:
+                wr = win32gui.GetWindowRect(bound_hwnd)
+                canvas.create_rectangle(wr[0], wr[1], wr[2], wr[3],
+                                         outline="#FFD700", width=2, dash=(6, 3))
+            except Exception:
+                pass
+
+        canvas.create_text(
+            overlay.winfo_screenwidth() // 2, 30,
+            text=f"单击选择滚轮位置  |  ESC 取消  {hint}",
+            fill="white", font=("Arial", 14))
+
+        # 十字准星
+        crosshair_h = canvas.create_line(0, 0, 0, 0, fill="#00FF00", width=1)
+        crosshair_v = canvas.create_line(0, 0, 0, 0, fill="#00FF00", width=1)
+        pos_text = canvas.create_text(0, 0, fill="#00FF00", font=("Arial", 10), anchor="nw")
+
+        def on_motion(e):
+            sw = overlay.winfo_screenwidth()
+            sh = overlay.winfo_screenheight()
+            canvas.coords(crosshair_h, 0, e.y, sw, e.y)
+            canvas.coords(crosshair_v, e.x, 0, e.x, sh)
+            canvas.coords(pos_text, e.x + 10, e.y + 10)
+            canvas.itemconfig(pos_text, text=f"({e.x}, {e.y})")
+
+        def on_click(e):
+            if bound_hwnd:
+                wr = win32gui.GetWindowRect(bound_hwnd)
+                result["pos"] = {"rel_x": e.x - wr[0], "rel_y": e.y - wr[1], "relative": True}
+            else:
+                result["pos"] = {"x": e.x, "y": e.y}
+            overlay.destroy()
+            self.root.deiconify()
+
+        def on_esc(e):
+            overlay.destroy()
+            self.root.deiconify()
+
+        canvas.bind("<Motion>", on_motion)
+        canvas.bind("<Button-1>", on_click)
+        overlay.bind("<Escape>", on_esc)
+
+        overlay.wait_window()
+        return result["pos"]
+
+    def _ask_scroll_on_miss(self):
+        """询问滚轮搜索配置，返回 dict 或 None。
+        流程：框选范围 → 倒计时3秒 → 录制滚轮 → 结束
+        """
+        enable = messagebox.askyesno("滚轮搜索", "找不到图片时，是否用滚轮滚动页面来搜索？\n\n适合列表/页面中需要滚动才能看到的目标。")
+        if not enable:
+            return None
+
+        messagebox.showinfo("选择范围", "点击确定后，拖拽框选滚轮滚动的范围\n\n（通常是列表/页面的可滚动区域）")
+        region = self._select_region_on_screen()
+        if region is None:
+            return None
+
+        if not PYNPUT_AVAILABLE:
+            messagebox.showwarning("警告", "需要 pynput 来录制滚轮")
+            return None
+
+        # 计算范围中心（用于倒计时窗口定位和鼠标初始位置）
+        resolved = self._resolve_region(region) if region.get("relative") else region
+        cx = resolved["x"] + resolved["w"] // 2
+        cy = resolved["y"] + resolved["h"] // 2
+
+        # 移动鼠标到范围中心
+        ctypes.windll.user32.SetCursorPos(int(cx), int(cy))
+
+        # 录制滚轮事件
+        scroll_events = []
+
+        def on_scroll(x, y, dx, dy):
+            scroll_events.append(dy)
+
+        listener = mouse_listener.Listener(on_scroll=on_scroll)
+        listener.start()
+
+        # 确保目标窗口在前台
+        self._ensure_window_focus()
+        time.sleep(0.3)
+
+        # 小浮动倒计时窗口（不遮挡目标，鼠标穿透）
+        count_win = tk.Toplevel(self.root)
+        count_win.overrideredirect(True)
+        count_win.attributes("-topmost", True)
+        count_win.attributes("-transparentcolor", "#010101")
+        count_win.configure(bg="#010101")
+
+        win_w, win_h = 260, 120
+        sx_pos = max(0, int(cx) - win_w // 2)
+        sy_pos = max(0, int(cy) - win_h - 50)
+        count_win.geometry(f"{win_w}x{win_h}+{sx_pos}+{sy_pos}")
+
+        frame = tk.Frame(count_win, bg="#1a1a2e", bd=2, relief="ridge")
+        frame.pack(fill=tk.BOTH, expand=True)
+
+        title_label = tk.Label(frame, text="滚轮录制", bg="#1a1a2e", fg="#FFD700",
+                                font=("Microsoft YaHei UI", 10, "bold"))
+        title_label.pack(pady=(6, 0))
+
+        count_label = tk.Label(frame, text="3", bg="#1a1a2e", fg="#FFFFFF",
+                                font=("Arial", 36, "bold"))
+        count_label.pack()
+
+        status_label = tk.Label(frame, text="准备...", bg="#1a1a2e", fg="#8B949E",
+                                 font=("Microsoft YaHei UI", 9))
+        status_label.pack()
+
+        # 设置鼠标穿透
+        count_win.update_idletasks()
+        hwnd_count = int(count_win.wm_frame(), 16)
+        ex = win32gui.GetWindowLong(hwnd_count, win32con.GWL_EXSTYLE)
+        win32gui.SetWindowLong(hwnd_count, win32con.GWL_EXSTYLE, ex | 0x00000020)
+
+        # 倒计时 3-2-1
+        for i in range(3, 0, -1):
+            count_label.config(text=str(i), fg="#FFFFFF")
+            status_label.config(text="准备滚动...")
+            count_win.update()
+            time.sleep(1)
+
+        # 录制中
+        count_label.config(text="GO!", fg="#3FB950")
+        status_label.config(text="滚动鼠标滚轮！", fg="#3FB950")
+        count_win.update()
+
+        # 录制 3 秒
+        record_start = time.time()
+        while time.time() - record_start < 3:
+            remaining = 3 - (time.time() - record_start)
+            count = len(scroll_events)
+            count_label.config(text=f"{remaining:.1f}s", fg="#FFFFFF")
+            status_label.config(text=f"已检测 {count} 次滚动")
+            count_win.update()
+            time.sleep(0.05)
+
+        count_win.destroy()
+
+        listener.stop()
+
+        if not scroll_events:
+            messagebox.showwarning("未检测到", "3秒内未检测到滚轮操作，请重试")
+            return None
+
+        # 取最后一次滚动的幅度
+        dy = scroll_events[-1]
+        direction = "down" if dy < 0 else "up"
+        amount = abs(dy)
+
+        max_scrolls = simpledialog.askinteger("最大滚动次数",
+                                              f"录制完成！\n\n"
+                                              f"方向: {'向下' if direction == 'down' else '向上'}\n"
+                                              f"幅度: {amount}\n"
+                                              f"共检测到 {len(scroll_events)} 次滚动\n\n"
+                                              f"最多滚动几次？",
+                                              initialvalue=10, minvalue=1, maxvalue=50)
+        if max_scrolls is None:
+            max_scrolls = 10
+
+        cfg = {
+            "direction": direction,
+            "amount": amount,
+            "max_scrolls": max_scrolls,
+            "scroll_region": region,  # 框选的滚动范围
+        }
+        return cfg
 
     def capture_and_match(self):
         """截图 → 保存 → 立即识别"""
         if not PYAUTOGUI_AVAILABLE:
             messagebox.showwarning("警告", "需要安装 pyautogui")
             return
-        save_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "screenshots")
+        save_dir = os.path.join(SCRIPT_DIR, "screenshots")
         os.makedirs(save_dir, exist_ok=True)
+        # 先问一次范围
+        set_scope = messagebox.askyesno("框选范围", "是否先限定截图范围？\n\n是 → 先框选一个大范围\n否 → 全屏拖拽截图")
+        scope = None
+        if set_scope:
+            scope = self._select_region_on_screen()
         messagebox.showinfo("截图", "点击确定后，3 秒内请准备好。\n\n"
-                           "操作步骤：\n"
-                           "1. 按住鼠标左键拖动选择区域\n"
-                           "2. 松开鼠标完成截图\n"
-                           "3. 截图自动保存并识别")
-        self.root.after(3000, lambda: self._do_capture(save_dir))
+                           "按住鼠标左键拖动选择区域，松开完成截图。")
+        self.root.after(3000, lambda: self._do_capture(save_dir, scope))
 
     def add_capture_step(self):
         """截图选择区域 → 保存为文件 → 添加截图保存步骤"""
         if not PYAUTOGUI_AVAILABLE:
             messagebox.showwarning("警告", "需要安装 pyautogui")
             return
-        save_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "screenshots")
+        save_dir = os.path.join(SCRIPT_DIR, "screenshots")
         os.makedirs(save_dir, exist_ok=True)
+        # 先问一次范围
+        set_scope = messagebox.askyesno("框选范围", "是否先限定截图范围？\n\n是 → 先框选一个大范围\n否 → 全屏拖拽截图")
+        scope = None
+        if set_scope:
+            scope = self._select_region_on_screen()
         messagebox.showinfo("截图保存", "点击确定后，3 秒内请准备好。\n\n"
                            "按住鼠标拖动选择区域，松开后截图自动保存。")
-        self.root.after(3000, lambda: self._do_capture_save(save_dir))
+        self.root.after(3000, lambda: self._do_capture_save(save_dir, scope))
 
-    def _do_capture_save(self, save_dir):
-        """执行区域截图，保存并添加截图保存步骤"""
+    def _do_capture_save(self, save_dir, scope=None):
+        """执行区域截图，保存并添加截图保存步骤。scope 为预选的搜索区域（可选）。"""
+        # 解析为当前绝对坐标（用于界面绘制和约束）
+        scope = self._resolve_region(scope) if scope else None
+
+        # 在范围内精确截图
         self.root.withdraw()
         time.sleep(0.3)
 
@@ -784,10 +1344,21 @@ class AutoClicker:
 
         canvas = tk.Canvas(overlay, bg="gray", highlightthickness=0, cursor="cross")
         canvas.pack(fill=tk.BOTH, expand=True)
-        canvas.create_text(
-            overlay.winfo_screenwidth() // 2, 30,
-            text="按住鼠标拖动选择区域  |  ESC 取消",
-            fill="white", font=("Arial", 14))
+
+        # 显示范围边框
+        if scope:
+            sx, sy, sw, sh = scope["x"], scope["y"], scope["w"], scope["h"]
+            canvas.create_rectangle(sx, sy, sx + sw, sy + sh,
+                                     outline="#FFD700", width=3, dash=(8, 4))
+            canvas.create_text(
+                overlay.winfo_screenwidth() // 2, 30,
+                text=f"在黄色范围内拖拽截图  |  ESC 取消",
+                fill="white", font=("Arial", 14))
+        else:
+            canvas.create_text(
+                overlay.winfo_screenwidth() // 2, 30,
+                text="按住鼠标拖动选择区域  |  ESC 取消",
+                fill="white", font=("Arial", 14))
 
         state = {"sx": 0, "sy": 0, "rect": None}
 
@@ -809,6 +1380,19 @@ class AutoClicker:
                 overlay.destroy()
                 self.root.deiconify()
                 return
+
+            # 如果有范围限制，裁剪到范围内
+            if scope:
+                sx, sy, sw, sh = scope["x"], scope["y"], scope["w"], scope["h"]
+                x1 = max(x1, sx)
+                y1 = max(y1, sy)
+                x2 = min(x2, sx + sw)
+                y2 = min(y2, sy + sh)
+                if x2 - x1 < 5 or y2 - y1 < 5:
+                    overlay.destroy()
+                    self.root.deiconify()
+                    return
+
             overlay.destroy()
 
             shot = pyautogui.screenshot(region=(x1, y1, x2 - x1, y2 - y1))
@@ -834,8 +1418,11 @@ class AutoClicker:
         overlay.bind("<ButtonRelease-1>", on_release)
         overlay.bind("<Escape>", on_esc)
 
-    def _do_capture(self, save_dir):
-        """执行区域截图"""
+    def _do_capture(self, save_dir, scope=None):
+        """执行区域截图（截图+识别用）。scope 为预选的搜索区域（可选）。"""
+        scope = self._resolve_region(scope) if scope else None
+
+        # 精确截图
         self.root.withdraw()
         time.sleep(0.3)
 
@@ -850,10 +1437,19 @@ class AutoClicker:
         canvas = tk.Canvas(overlay, bg="gray", highlightthickness=0, cursor="cross")
         canvas.pack(fill=tk.BOTH, expand=True)
 
-        canvas.create_text(
-            overlay.winfo_screenwidth() // 2, 30,
-            text="按住鼠标拖动选择区域  |  ESC 取消",
-            fill="white", font=("Arial", 14))
+        if scope:
+            sx, sy, sw, sh = scope["x"], scope["y"], scope["w"], scope["h"]
+            canvas.create_rectangle(sx, sy, sx + sw, sy + sh,
+                                     outline="#FFD700", width=3, dash=(8, 4))
+            canvas.create_text(
+                overlay.winfo_screenwidth() // 2, 30,
+                text="在黄色范围内拖拽截图  |  ESC 取消",
+                fill="white", font=("Arial", 14))
+        else:
+            canvas.create_text(
+                overlay.winfo_screenwidth() // 2, 30,
+                text="按住鼠标拖动选择区域  |  ESC 取消",
+                fill="white", font=("Arial", 14))
 
         state = {"sx": 0, "sy": 0, "rect": None}
 
@@ -886,7 +1482,7 @@ class AutoClicker:
             messagebox.showinfo("截图完成",
                                f"已保存: {filepath}\n"
                                f"区域: ({x1},{y1}) - ({x2},{y2})  {x2-x1}x{y2-y1}")
-            self._match_image_and_add_step(filepath)
+            self._match_image_and_add_step(filepath, scope)
 
         def on_esc(e):
             overlay.destroy()
@@ -938,9 +1534,46 @@ class AutoClicker:
                        activebackground=self._colors["accent"], activeforeground="#FFFFFF")
         menu.add_command(label="编辑步骤", command=lambda: self._edit_step(idx))
         menu.add_separator()
+        # run_once 快捷开关
+        step = self.steps[idx]
+        ro = step.params.get("run_once", False)
+        ro_label = "☑ 仅首次执行（点击取消）" if ro else "☐ 设为仅首次执行"
+        menu.add_command(label=ro_label, command=lambda: self._toggle_run_once(idx))
+        # image_click 滚轮搜索快捷开关
+        if step.action == "image_click":
+            scroll_cfg = step.params.get("scroll_on_miss")
+            if scroll_cfg:
+                scroll_label = f"☑ 滚轮搜索（点击取消）"
+                menu.add_command(label=scroll_label, command=lambda: self._toggle_scroll_on_miss(idx))
+            else:
+                menu.add_command(label="☐ 设置滚轮搜索", command=lambda: self._toggle_scroll_on_miss(idx))
+        # 搜索区域快捷开关（image_click 和 conditional_branch）
+        if step.action in ("image_click", "conditional_branch"):
+            region = step.params.get("search_region")
+            if region:
+                if region.get("relative"):
+                    r = region
+                    menu.add_command(label=f"☑ 搜索区域 (相对 {r['rel_x']},{r['rel_y']}) {r['w']}x{r['h']}（点击取消）",
+                                     command=lambda: self._toggle_search_region(idx))
+                else:
+                    r = region
+                    menu.add_command(label=f"☑ 搜索区域 ({r['x']},{r['y']}) {r['w']}x{r['h']}（点击取消）",
+                                     command=lambda: self._toggle_search_region(idx))
+            else:
+                menu.add_command(label="☐ 框选搜索区域", command=lambda: self._toggle_search_region(idx))
+        menu.add_separator()
         menu.add_command(label="在前面插入等待", command=lambda: self._insert_wait(idx, before=True))
         menu.add_command(label="在后面插入等待", command=lambda: self._insert_wait(idx, before=False))
         menu.add_command(label="在前面插入按键", command=lambda: self._insert_key(idx, before=True))
+        menu.add_command(label="在后面插入条件分支", command=lambda: self._insert_conditional_after(idx))
+        # 执行后等待
+        pd = step.params.get("post_delay", 0)
+        if pd > 0:
+            menu.add_command(label=f"☑ 执行后等待 {pd}ms（点击取消）",
+                             command=lambda: self._set_post_delay(idx))
+        else:
+            menu.add_command(label="设置执行后等待",
+                             command=lambda: self._set_post_delay(idx))
         menu.add_separator()
         menu.add_command(label="复制步骤", command=lambda: self._copy_step(idx))
         menu.add_command(label="删除步骤", command=lambda: self._delete_at(idx))
@@ -993,6 +1626,26 @@ class AutoClicker:
             if timeout is None:
                 return
             step.params["timeout"] = timeout
+            # 匹配精度
+            conf = simpledialog.askfloat("匹配精度", "精度 (0.50~0.99):",
+                                          initialvalue=step.params.get("confidence", 0.90),
+                                          minvalue=0.50, maxvalue=0.99)
+            if conf is not None:
+                step.params["confidence"] = conf
+            # 滚轮搜索配置
+            has_scroll = step.params.get("scroll_on_miss") is not None
+            if has_scroll:
+                modify = messagebox.askyesno("滚轮搜索", "当前已启用滚轮搜索\n\n是否修改配置？\n（选否则取消滚轮搜索）")
+                if modify:
+                    cfg = self._ask_scroll_on_miss()
+                    if cfg:
+                        step.params["scroll_on_miss"] = cfg
+                else:
+                    step.params["scroll_on_miss"] = None
+            else:
+                cfg = self._ask_scroll_on_miss()
+                if cfg:
+                    step.params["scroll_on_miss"] = cfg
             messagebox.showinfo("已修改", f"超时已改为 {timeout} 秒")
 
         elif step.action == "capture_save":
@@ -1004,6 +1657,15 @@ class AutoClicker:
             if path:
                 step.params["path"] = path
                 messagebox.showinfo("已修改", f"保存路径已改为:\n{path}")
+
+        elif step.action == "conditional_branch":
+            timeout = simpledialog.askfloat("编辑扫描超时", "超时秒数:",
+                                            initialvalue=step.params.get("timeout", 0.5),
+                                            minvalue=0.1, maxvalue=5.0)
+            if timeout is None:
+                return
+            step.params["timeout"] = timeout
+            messagebox.showinfo("已修改", f"扫描超时已改为 {timeout} 秒")
 
         self._refresh_step_list()
 
@@ -1038,6 +1700,84 @@ class AutoClicker:
         if 0 <= idx < len(self.steps):
             self.steps.pop(idx)
             self._refresh_step_list()
+
+    def _toggle_run_once(self, idx):
+        """切换仅首次执行状态"""
+        if 0 <= idx < len(self.steps):
+            step = self.steps[idx]
+            step.params["run_once"] = not step.params.get("run_once", False)
+            self._refresh_step_list()
+
+    def _toggle_scroll_on_miss(self, idx):
+        """切换滚轮搜索配置"""
+        if 0 <= idx < len(self.steps):
+            step = self.steps[idx]
+            if step.params.get("scroll_on_miss"):
+                step.params["scroll_on_miss"] = None
+            else:
+                cfg = self._ask_scroll_on_miss()
+                if cfg:
+                    step.params["scroll_on_miss"] = cfg
+            self._refresh_step_list()
+
+    def _toggle_search_region(self, idx):
+        """切换搜索区域"""
+        if 0 <= idx < len(self.steps):
+            step = self.steps[idx]
+            if step.params.get("search_region"):
+                step.params["search_region"] = None
+            else:
+                region = self._select_region_on_screen()
+                if region:
+                    step.params["search_region"] = region
+            self._refresh_step_list()
+
+    def _set_post_delay(self, idx):
+        """设置/取消执行后等待"""
+        if 0 <= idx < len(self.steps):
+            step = self.steps[idx]
+            current = step.params.get("post_delay", 0)
+            if current > 0:
+                step.params["post_delay"] = 0
+            else:
+                ms = simpledialog.askinteger("执行后等待", "步骤执行完后等待多久（毫秒）？\n\n设为 0 取消等待",
+                                             initialvalue=1000, minvalue=0, maxvalue=600000)
+                if ms and ms > 0:
+                    step.params["post_delay"] = ms
+            self._refresh_step_list()
+
+    def _insert_conditional_after(self, idx):
+        """在指定步骤后面插入条件分支"""
+        if not CV2_AVAILABLE:
+            messagebox.showwarning("警告", "需要安装 opencv-python: pip install opencv-python")
+            return
+        path = filedialog.askopenfilename(title="选择条件图片", filetypes=[("图片", "*.png;*.jpg;*.jpeg")])
+        if not path:
+            return
+        template = cv2_read_image(path)
+        if template is None:
+            messagebox.showerror("错误", f"无法读取图片: {path}")
+            return
+        timeout = simpledialog.askfloat("扫描超时",
+                                        "快速扫描超时时间（秒）\n找不到则跳过此分支:",
+                                        initialvalue=0.5, minvalue=0.1, maxvalue=5.0)
+        if timeout is None:
+            timeout = 0.5
+        search_region = None
+        set_region = messagebox.askyesno("搜索区域", "是否限定搜索区域？\n\n是 → 在屏幕上框选\n否 → 全屏搜索")
+        if set_region:
+            search_region = self._select_region_on_screen()
+        sub_steps = self._collect_sub_steps_dialog()
+        if sub_steps is None:
+            return
+        self.steps.insert(idx + 1, MacroStep("conditional_branch", {
+            "check_image": path,
+            "timeout": timeout,
+            "search_region": search_region,
+            "sub_steps": sub_steps,
+            "else_steps": [],
+        }))
+        self._refresh_step_list()
 
     # ==================================================================
     #  录制
@@ -1353,6 +2093,37 @@ class AutoClicker:
         hi = max(lo + 10, self.press_duration_max.get())
         return random.randint(lo, hi) / 1000.0
 
+    def _is_bound_window(self):
+        """是否绑定了有效窗口"""
+        return (self.bind_to_window.get() and self.target_hwnd
+                and win32gui.IsWindow(self.target_hwnd))
+
+    def _resolve_scroll_point(self, scroll_cfg):
+        """解析滚轮配置中的坐标，返回绝对 (sx, sy)。"""
+        scroll_region = scroll_cfg.get("scroll_region")
+        if scroll_region:
+            sr = self._resolve_region(scroll_region) if scroll_region.get("relative") else scroll_region
+            return sr["x"] + sr["w"] // 2, sr["y"] + sr["h"] // 2
+        if scroll_cfg.get("relative"):
+            hwnd = self.target_hwnd
+            if hwnd and win32gui.IsWindow(hwnd):
+                wr = win32gui.GetWindowRect(hwnd)
+                return wr[0] + scroll_cfg.get("rel_x", 0), wr[1] + scroll_cfg.get("rel_y", 0)
+            return scroll_cfg.get("rel_x", 0), scroll_cfg.get("rel_y", 0)
+        return scroll_cfg.get("x", 0), scroll_cfg.get("y", 0)
+
+    def _random_click_in_match(self, match_x, match_y, tpl_w, tpl_h):
+        """在匹配区域内随机取点（留20%边距），并应用随机偏移。返回 (ax, ay)。"""
+        margin_x = max(2, int(tpl_w * 0.2))
+        margin_y = max(2, int(tpl_h * 0.2))
+        cx = match_x + random.randint(margin_x, tpl_w - margin_x)
+        cy = match_y + random.randint(margin_y, tpl_h - margin_y)
+        if self.random_offset_enabled.get():
+            offset = self.random_offset_px.get()
+            cx += random.randint(-offset, offset)
+            cy += random.randint(-offset, offset)
+        return cx, cy
+
     def _ensure_window_focus(self):
         """确保目标窗口在前台"""
         if self.bind_to_window.get() and self.target_hwnd:
@@ -1528,107 +2299,261 @@ class AutoClicker:
     # ==================================================================
     #  Worker 线程
     # ==================================================================
+    def _match_template(self, template, search_region=None, confidence=0.8):
+        """在屏幕（或指定区域）上查找模板图片。
+
+        Returns: (found, match_x, match_y) — 找到时返回匹配区域左上角的全屏坐标。
+        """
+        try:
+            resolved = self._resolve_region(search_region) if search_region else None
+            if resolved:
+                rx, ry = resolved["x"], resolved["y"]
+                rw, rh = resolved["w"], resolved["h"]
+                screenshot = pyautogui.screenshot(region=(rx, ry, rw, rh))
+                screen = cv2.cvtColor(np.array(screenshot), cv2.COLOR_RGB2BGR)
+                result = cv2.matchTemplate(screen, template, cv2.TM_CCOEFF_NORMED)
+                _, max_val, _, max_loc = cv2.minMaxLoc(result)
+                if max_val >= confidence:
+                    return True, rx + max_loc[0], ry + max_loc[1]
+            else:
+                screenshot = pyautogui.screenshot()
+                screen = cv2.cvtColor(np.array(screenshot), cv2.COLOR_RGB2BGR)
+                result = cv2.matchTemplate(screen, template, cv2.TM_CCOEFF_NORMED)
+                _, max_val, _, max_loc = cv2.minMaxLoc(result)
+                if max_val >= confidence:
+                    return True, max_loc[0], max_loc[1]
+        except Exception:
+            pass
+        return False, 0, 0
+
     def _execute_image_click(self, step, step_num, total):
-        """识图点击：循环查找图片 → 找到后点击 → 等待生效 → 进入下一步"""
+        """识图点击：循环查找图片 → 找不到时滚轮搜索 → 找到后点击 → 等待生效 → 进入下一步"""
         if not CV2_AVAILABLE or not PYAUTOGUI_AVAILABLE:
             self._log(f"  步骤{step_num}: 缺少 opencv/pyautogui，跳过", "fail")
             return
         image_path = step.params.get("image", "")
         timeout = step.params.get("timeout", 10)
+        search_region = step.params.get("search_region")
+        scroll_cfg = step.params.get("scroll_on_miss")
+        confidence = step.params.get("confidence", 0.90)
         name = os.path.basename(image_path)
-        template = cv2.imread(image_path)
+        template = cv2_read_image(image_path)
         if template is None:
             self._log(f"  步骤{step_num}: 无法读取图片 {name}", "fail")
             return
 
         tpl_h, tpl_w = template.shape[:2]
+        # 预解析搜索区域（避免循环内重复解析）
+        resolved_region = self._resolve_region(search_region) if search_region else None
         deadline = time.time() + timeout
         start_time = time.time()
         attempt = 0
+        scrolled = False
+        max_scrolls = scroll_cfg.get("max_scrolls", 10) if scroll_cfg else 0
 
-        self._log(f"  步骤{step_num}: 识别中 [{name}]...", "running")
+        self._log(f"  步骤{step_num}: 识别中 [{name}] 精度{confidence:.0%}...", "running")
 
         while not self.stop_event.is_set() and time.time() < deadline:
             attempt += 1
             elapsed = time.time() - start_time
             self._update_progress(f"识别中: {elapsed:.1f}s / {timeout}s (第{attempt}次)")
 
-            try:
-                screenshot = pyautogui.screenshot()
-                screen = cv2.cvtColor(np.array(screenshot), cv2.COLOR_RGB2BGR)
-                result = cv2.matchTemplate(screen, template, cv2.TM_CCOEFF_NORMED)
-                _, max_val, _, max_loc = cv2.minMaxLoc(result)
-            except Exception:
-                time.sleep(0.5)
+            found, match_x, match_y = self._match_template(template, resolved_region, confidence)
+            if not found:
+                # 找不到 → 滚轮搜索（连续滚完所有次数，再截图检测）
+                if scroll_cfg and not scrolled:
+                    scrolled = True
+                    amount = scroll_cfg.get("amount", 3)
+                    direction = scroll_cfg.get("direction", "down")
+                    clicks = amount if direction == "up" else -amount
+                    sx, sy = self._resolve_scroll_point(scroll_cfg)
+
+                    self._ensure_window_focus()
+                    ctypes.windll.user32.SetCursorPos(int(sx), int(sy))
+                    time.sleep(0.3)
+
+                    # 连续滚动 max_scrolls 次
+                    wheel_delta = clicks * 120
+                    inp = SENDINPUT()
+                    inp.type = INPUT_MOUSE
+                    inp.mi.dwFlags = MOUSEEVENTF_WHEEL
+                    inp.mi.mouseData = ctypes.c_ulong(wheel_delta & 0xFFFFFFFF)
+                    for s in range(max_scrolls):
+                        if self.stop_event.is_set():
+                            break
+                        self._log(f"  步骤{step_num}: 滚轮搜索 ({sx},{sy}) {direction} x{amount} [{s+1}/{max_scrolls}]", "warn")
+                        _send_input_array([inp])
+                        time.sleep(0.3)
+
+                    # 滚完，移走鼠标，等一下让页面稳定
+                    ctypes.windll.user32.SetCursorPos(0, 0)
+                    time.sleep(0.5)
+                    self._log(f"  步骤{step_num}: 滚轮搜索完成，重新识别...", "running")
+                else:
+                    time.sleep(0.5)
                 continue
 
-            if max_val >= 0.8:
-                # 在图片区域内随机取点（留 20% 边距，避免点到边缘）
-                margin_x = max(2, int(tpl_w * 0.2))
-                margin_y = max(2, int(tpl_h * 0.2))
-                cx = max_loc[0] + random.randint(margin_x, tpl_w - margin_x)
-                cy = max_loc[1] + random.randint(margin_y, tpl_h - margin_y)
-                self._update_progress("")
-                self._log(f"  步骤{step_num}: 识别到! {elapsed:.1f}s 第{attempt}次 置信度={max_val:.2f}", "success")
+            # 在匹配区域内随机取点并点击
+            cx, cy = self._random_click_in_match(match_x, match_y, tpl_w, tpl_h)
+            self._update_progress("")
+            self._log(f"  步骤{step_num}: 识别到! {elapsed:.1f}s 第{attempt}次", "success")
 
-                # 二次确认：等 0.3s 后再截图验证图片还在
-                time.sleep(0.3)
-                try:
-                    check_shot = pyautogui.screenshot()
-                    check_img = cv2.cvtColor(np.array(check_shot), cv2.COLOR_RGB2BGR)
-                    check_result = cv2.matchTemplate(check_img, template, cv2.TM_CCOEFF_NORMED)
-                    _, check_val, _, check_loc = cv2.minMaxLoc(check_result)
-                except Exception:
-                    check_val = 0
+            # 二次确认：等 0.3s 后再截图验证图片还在
+            time.sleep(0.3)
+            found2, _, _ = self._match_template(template, resolved_region, confidence)
+            if not found2:
+                self._log(f"  步骤{step_num}: 图片已消失（界面切换中），重新识别...", "warn")
+                continue
 
-                if check_val < 0.8:
-                    self._log(f"  步骤{step_num}: 图片已消失（界面切换中），重新识别...", "warn")
-                    continue
+            # 二次确认通过，执行点击
+            self._ensure_window_focus()
+            # 计算随机偏移
+            ax, ay = cx, cy
+            if self.random_offset_enabled.get():
+                offset = self.random_offset_px.get()
+                ax = cx + random.randint(-offset, offset)
+                ay = cy + random.randint(-offset, offset)
+                self._log(f"  步骤{step_num}: 点击 识别({cx},{cy}) → 实际({ax},{ay})", "running")
+            else:
+                self._log(f"  步骤{step_num}: 点击 ({cx},{cy})...", "running")
+            self._perform_click(ax, ay, "left")
 
-                # 二次确认通过，执行点击
-                self._ensure_window_focus()
-                # 计算随机偏移
-                ax, ay = cx, cy
-                if self.random_offset_enabled.get():
-                    offset = self.random_offset_px.get()
-                    ax = cx + random.randint(-offset, offset)
-                    ay = cy + random.randint(-offset, offset)
-                    self._log(f"  步骤{step_num}: 点击 识别({cx},{cy}) → 实际({ax},{ay})", "running")
-                else:
-                    self._log(f"  步骤{step_num}: 点击 ({cx},{cy})...", "running")
-                self._perform_click(ax, ay, "left")
+            # 等待点击生效：检测图片是否消失
+            click_confirmed = False
+            for wait_i in range(6):  # 最多等 3 秒
+                time.sleep(0.5)
+                found3, _, _ = self._match_template(template, resolved_region, confidence)
+                if not found3:
+                    click_confirmed = True
+                    break
 
-                # 等待点击生效：检测图片是否消失
-                click_confirmed = False
-                for wait_i in range(6):  # 最多等 3 秒
-                    time.sleep(0.5)
-                    try:
-                        verify_shot = pyautogui.screenshot()
-                        verify_img = cv2.cvtColor(np.array(verify_shot), cv2.COLOR_RGB2BGR)
-                        verify_result = cv2.matchTemplate(verify_img, template, cv2.TM_CCOEFF_NORMED)
-                        _, verify_val, _, _ = cv2.minMaxLoc(verify_result)
-                    except Exception:
-                        verify_val = 0
+            if click_confirmed:
+                self._log(f"  步骤{step_num}: 点击成功 ✓ 界面已响应", "success")
+            else:
+                self._log(f"  步骤{step_num}: 点击已发送（图片仍在，可能需等待）", "warn")
 
-                    if verify_val < 0.8:
-                        click_confirmed = True
-                        break
-
-                if click_confirmed:
-                    self._log(f"  步骤{step_num}: 点击成功 ✓ 界面已响应", "success")
-                else:
-                    self._log(f"  步骤{step_num}: 点击已发送（图片仍在，可能需等待）", "warn")
-
-                self._update_progress("")
-                self._log(f"  步骤{step_num}: 执行下一步 →", "info")
-                return
-
-            time.sleep(0.5)
+            self._update_progress("")
+            self._log(f"  步骤{step_num}: 执行下一步 →", "info")
+            return
 
         elapsed = time.time() - start_time
         self._update_progress("")
         self._log(f"  步骤{step_num}: 未识别 ({elapsed:.1f}s {attempt}次尝试)", "fail")
         self._log(f"  步骤{step_num}: 执行下一步 →", "info")
+
+    def _execute_conditional_branch(self, step, step_num, total):
+        """条件分支：快速扫描图片 → 找到则执行子步骤 → 否则跳过"""
+        if not CV2_AVAILABLE or not PYAUTOGUI_AVAILABLE:
+            self._log(f"  步骤{step_num}: 缺少 opencv/pyautogui，跳过条件分支", "fail")
+            return
+
+        check_image = step.params.get("check_image", "")
+        timeout = step.params.get("timeout", 0.5)
+        search_region = step.params.get("search_region")
+        sub_steps = step.params.get("sub_steps", [])
+        confidence = step.params.get("confidence", 0.80)
+        name = os.path.basename(check_image)
+
+        template = cv2_read_image(check_image)
+        if template is None:
+            self._log(f"  步骤{step_num}: 条件分支 无法读取图片 [{name}]", "fail")
+            return
+
+        tpl_h, tpl_w = template.shape[:2]
+        self._log(f"  步骤{step_num}: 条件检查 [{name}]...", "running")
+
+        found, match_x, match_y = False, 0, 0
+        deadline = time.time() + timeout
+        while not self.stop_event.is_set() and time.time() < deadline:
+            found, match_x, match_y = self._match_template(template, search_region, confidence)
+            if found:
+                break
+            time.sleep(0.1)
+
+        if not found:
+            self._log(f"  步骤{step_num}: 条件不满足 [{name}] → 跳过", "info")
+            self._log(f"  步骤{step_num}: 执行下一步 →", "info")
+            return
+
+        # 计算识别位置中心（全屏坐标）
+        match_cx = match_x + tpl_w // 2
+        match_cy = match_y + tpl_h // 2
+        self._log(f"  步骤{step_num}: 条件满足 [{name}] → 执行子步骤", "success")
+
+        # 没配子步骤时，自动点击识别位置
+        if not sub_steps:
+            cx, cy = self._random_click_in_match(match_x, match_y, tpl_w, tpl_h)
+            self._ensure_window_focus()
+            self._perform_click(cx, cy, "left")
+            self._log(f"  步骤{step_num}: 点击识别位置 ({cx},{cy}) ✓", "success")
+            self._log(f"  步骤{step_num}: 条件分支执行完成 →", "info")
+            return
+
+        for sub_idx, sub in enumerate(sub_steps):
+            if self.stop_event.is_set():
+                break
+            sub_action = sub.get("action", "")
+            sub_params = sub.get("params", {})
+            sub_label = sub_idx + 1
+
+            # 解析坐标：match / 相对窗口 / 绝对
+            sx = sub_params.get("x", 0)
+            sy = sub_params.get("y", 0)
+            if sub_params.get("relative"):
+                hwnd = self.target_hwnd
+                if hwnd and win32gui.IsWindow(hwnd):
+                    wr = win32gui.GetWindowRect(hwnd)
+                    sx = wr[0] + sx
+                    sy = wr[1] + sy
+            if sx == "match":
+                sx = match_cx
+            if sy == "match":
+                sy = match_cy
+
+            self._log(f"  步骤{step_num}.{sub_label}: {sub_action}", "running")
+
+            if sub_action in ("left_click", "right_click"):
+                click_type = "left" if sub_action == "left_click" else "right"
+                ax, ay = sx, sy
+                if self.random_offset_enabled.get():
+                    offset = self.random_offset_px.get()
+                    ax = sx + random.randint(-offset, offset)
+                    ay = sy + random.randint(-offset, offset)
+                self._ensure_window_focus()
+                self._perform_click(ax, ay, click_type)
+                self._log(f"  步骤{step_num}.{sub_label}: 点击 ({sx},{sy}) ✓", "success")
+
+            elif sub_action == "wait":
+                duration = sub_params.get("duration", 0)
+                if self.human_mode.get():
+                    variance = self.wait_variance.get() / 100.0
+                    lo = int(duration * (1 - variance))
+                    hi = int(duration * (1 + variance))
+                    duration = random.randint(max(10, lo), max(20, hi))
+                self._log(f"  步骤{step_num}.{sub_label}: 等待 {duration}ms", "warn")
+                wait_deadline = time.time() + duration / 1000.0
+                while time.time() < wait_deadline and not self.stop_event.is_set():
+                    time.sleep(0.1)
+                self._log(f"  步骤{step_num}.{sub_label}: 等待完成 ✓", "success")
+
+            elif sub_action == "key_press":
+                key_str = sub_params.get("key", "")
+                if self.use_game_mode.get():
+                    self._send_key_scancode(key_str)
+                else:
+                    parts = key_str.split("+")
+                    if len(parts) > 1 and PYAUTOGUI_AVAILABLE:
+                        pyautogui.hotkey(*parts)
+                    elif PYAUTOGUI_AVAILABLE:
+                        pyautogui.press(key_str)
+                self._log(f"  步骤{step_num}.{sub_label}: 按键 [{key_str}] ✓", "success")
+
+            elif sub_action == "image_click":
+                # 子步骤识图点击
+                sub_step = MacroStep("image_click", sub_params)
+                self._execute_image_click(sub_step, f"{step_num}.{sub_label}", total)
+
+        self._log(f"  步骤{step_num}: 条件分支执行完成 →", "info")
 
     def _execute_step(self, step, step_num, total):
         if step.action in ("left_click", "right_click"):
@@ -1709,6 +2634,9 @@ class AutoClicker:
             self._log(f"  步骤{step_num}: 按键完成 ✓", "success")
             self._log(f"  步骤{step_num}: 执行下一步 →", "info")
 
+        elif step.action == "conditional_branch":
+            self._execute_conditional_branch(step, step_num, total)
+
     def _send_key_scancode(self, key_str):
         user32 = ctypes.windll.user32
         parts = key_str.lower().split("+")
@@ -1753,10 +2681,21 @@ class AutoClicker:
                 for i, step in enumerate(snapshot):
                     if self.stop_event.is_set():
                         break
+                    # run_once: 第二轮及之后跳过
+                    if loop_idx > 0 and step.params.get("run_once"):
+                        self._log(f"  步骤{i + 1}: 跳过（仅首次执行）", "info")
+                        continue
                     with self._lock:
                         self.current_step_idx = i
                     self.root.after(0, lambda v=i: self.step_label.config(text=f"步骤: {v + 1}/{total}"))
                     self._execute_step(step, i + 1, total)
+                    # 执行后等待
+                    post_delay = step.params.get("post_delay", 0)
+                    if post_delay > 0:
+                        self._log(f"  步骤{i + 1}: 等待 {post_delay}ms", "warn")
+                        deadline = time.time() + post_delay / 1000.0
+                        while time.time() < deadline and not self.stop_event.is_set():
+                            time.sleep(0.1)
 
                 loop_idx += 1
 
@@ -1764,7 +2703,7 @@ class AutoClicker:
 
             self.root.after(0, self._on_finished)
         except Exception as e:
-            self.root.after(0, lambda: self._on_error(str(e)))
+            self.root.after(0, lambda e=e: self._on_error(str(e)))
 
     def _on_finished(self):
         self._reset_ui()
@@ -1874,6 +2813,7 @@ class AutoClicker:
             messagebox.showwarning("警告", "请输入配置名称")
             return
         if name in self.configs:
+            self._fix_image_paths(self.configs[name])
             self.set_config(self.configs[name])
             messagebox.showinfo("成功", f"配置 '{name}' 已加载")
         else:
@@ -1923,6 +2863,36 @@ class AutoClicker:
         except Exception as e:
             messagebox.showerror("导出失败", str(e))
 
+    def _fix_image_paths(self, data):
+        """修复导入配置中的图片路径（文件存在但路径不匹配时自动修正）"""
+        screenshots_dir = os.path.join(SCRIPT_DIR, "screenshots")
+        for step_data in data.get("steps", []):
+            params = step_data.get("params", {})
+            self._fix_single_path(params, "image", screenshots_dir)
+            self._fix_single_path(params, "check_image", screenshots_dir)
+            # 子步骤里的图片路径
+            for sub in params.get("sub_steps", []):
+                self._fix_single_path(sub.get("params", {}), "image", screenshots_dir)
+
+    def _fix_single_path(self, params, key, screenshots_dir):
+        """修复单个图片路径字段"""
+        old_path = params.get(key, "")
+        if not old_path or not old_path.lower().endswith((".png", ".jpg", ".jpeg")):
+            return
+        # 原路径存在，不用修
+        if os.path.exists(old_path):
+            return
+        filename = os.path.basename(old_path)
+        # 尝试1: screenshots 目录下
+        candidate = os.path.join(screenshots_dir, filename)
+        if os.path.exists(candidate):
+            params[key] = candidate
+            return
+        # 尝试2: 脚本目录下
+        candidate = os.path.join(SCRIPT_DIR, filename)
+        if os.path.exists(candidate):
+            params[key] = candidate
+
     def import_from_file(self):
         """从文件导入步骤"""
         path = filedialog.askopenfilename(
@@ -1934,6 +2904,8 @@ class AutoClicker:
         try:
             with open(path, "r", encoding="utf-8") as f:
                 data = json.load(f)
+            # 修复图片路径
+            self._fix_image_paths(data)
             self.set_config(data)
             step_count = len(data.get("steps", []))
             messagebox.showinfo("导入成功",

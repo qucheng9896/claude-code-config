@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wygl.dao.VisitorDao">
+
+    <resultMap id="resultMap" type="Visitor">
+        <id property="id" column="id"/>
+        <result property="name" column="name"/>
+        <result property="phone" column="phone"/>
+        <result property="ownerId" column="owner_id"/>
+        <result property="houseId" column="house_id"/>
+        <result property="reserveTime" column="reserve_time"/>
+        <result property="accessMethod" column="access_method"/>
+        <result property="status" column="status"/>
+        <result property="remark" column="remark"/>
+        <result property="createTime" column="create_time"/>
+        <result property="ownerName" column="owner_name"/>
+        <result property="houseAddress" column="house_address"/>
+    </resultMap>
+
+    <select id="findById" resultMap="resultMap">
+        SELECT v.*, o.name AS owner_name,
+               CONCAT(b.building_name, '-', h.room_no) AS house_address
+        FROM t_visitor v
+        LEFT JOIN t_owner o ON v.owner_id = o.id
+        LEFT JOIN t_house h ON v.house_id = h.id
+        LEFT JOIN t_building b ON h.building_id = b.id
+        WHERE v.id = #{id}
+    </select>
+
+    <select id="findPage" resultMap="resultMap">
+        SELECT v.*, o.name AS owner_name,
+               CONCAT(b.building_name, '-', h.room_no) AS house_address
+        FROM t_visitor v
+        LEFT JOIN t_owner o ON v.owner_id = o.id
+        LEFT JOIN t_house h ON v.house_id = h.id
+        LEFT JOIN t_building b ON h.building_id = b.id
+        <where>
+            <if test="queryString != null and queryString != ''">
+                AND (v.name LIKE CONCAT('%', #{queryString}, '%')
+                OR v.phone LIKE CONCAT('%', #{queryString}, '%'))
+            </if>
+        </where>
+        ORDER BY v.create_time DESC
+    </select>
+
+    <insert id="insert" parameterType="Visitor" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO t_visitor (name, phone, owner_id, house_id, reserve_time, access_method, status, remark, create_time)
+        VALUES (#{name}, #{phone}, #{ownerId}, #{houseId}, #{reserveTime}, #{accessMethod}, #{status}, #{remark}, NOW())
+    </insert>
+
+    <update id="update" parameterType="Visitor">
+        UPDATE t_visitor
+        <set>
+            <if test="status != null">status = #{status},</if>
+            <if test="remark != null">remark = #{remark},</if>
+        </set>
+        WHERE id = #{id}
+    </update>
+
+    <delete id="delete" parameterType="int">
+        DELETE FROM t_visitor WHERE id = #{id}
+    </delete>
+
+</mapper>

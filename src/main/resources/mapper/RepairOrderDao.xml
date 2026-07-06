@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wygl.dao.RepairOrderDao">
+
+    <resultMap id="resultMap" type="RepairOrder">
+        <id property="id" column="id"/>
+        <result property="orderNo" column="order_no"/>
+        <result property="reporter" column="reporter"/>
+        <result property="houseId" column="house_id"/>
+        <result property="issueType" column="issue_type"/>
+        <result property="urgency" column="urgency"/>
+        <result property="description" column="description"/>
+        <result property="workerId" column="worker_id"/>
+        <result property="workerName" column="worker_name"/>
+        <result property="dispatchTime" column="dispatch_time"/>
+        <result property="finishTime" column="finish_time"/>
+        <result property="evaluation" column="evaluation"/>
+        <result property="status" column="status"/>
+        <result property="remark" column="remark"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateTime" column="update_time"/>
+    </resultMap>
+
+    <select id="findById" resultMap="resultMap">
+        SELECT * FROM t_repair_order WHERE id = #{id}
+    </select>
+
+    <select id="findPage" resultMap="resultMap">
+        SELECT * FROM t_repair_order
+        <where>
+            <if test="queryString != null and queryString != ''">
+                AND (order_no LIKE CONCAT('%', #{queryString}, '%')
+                OR reporter LIKE CONCAT('%', #{queryString}, '%'))
+            </if>
+        </where>
+        ORDER BY create_time DESC
+    </select>
+
+    <insert id="insert" parameterType="RepairOrder" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO t_repair_order (order_no, reporter, house_id, issue_type, urgency, description, status, create_time)
+        VALUES (#{orderNo}, #{reporter}, #{houseId}, #{issueType}, #{urgency}, #{description}, 0, NOW())
+    </insert>
+
+    <update id="update" parameterType="RepairOrder">
+        UPDATE t_repair_order
+        <set>
+            <if test="workerId != null">worker_id = #{workerId},</if>
+            <if test="workerName != null">worker_name = #{workerName},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="dispatchTime != null">dispatch_time = #{dispatchTime},</if>
+            <if test="finishTime != null">finish_time = #{finishTime},</if>
+            <if test="evaluation != null">evaluation = #{evaluation},</if>
+        </set>
+        WHERE id = #{id}
+    </update>
+
+    <delete id="delete" parameterType="int">
+        DELETE FROM t_repair_order WHERE id = #{id}
+    </delete>
+
+</mapper>

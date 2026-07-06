@@ -1,0 +1,43 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>车位管理 - 物业管理系统</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/common.css">
+</head>
+<body>
+<div class="toast" id="toast"></div>
+<div class="admin-layout">
+  <div id="sidebar-placeholder"></div>
+  <main class="main-content">
+    <div class="topbar"><div class="topbar-title">车位管理</div><div class="topbar-user"><span>欢迎，<strong>管理员</strong></span><div class="topbar-avatar">A</div></div></div>
+    <div class="page-body">
+      <div class="stats">
+        <div class="stat-card"><div class="stat-card-icon bg-blue"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2" stroke-linecap="round"><rect x="1" y="4" width="22" height="16" rx="2"/><path d="M1 10h22"/><path d="M7 15h.01"/><path d="M17 15h.01"/></svg></div><div class="stat-card-value">580</div><div class="stat-card-label">车位总数</div></div>
+        <div class="stat-card"><div class="stat-card-icon bg-green"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2" stroke-linecap="round"><path d="M12 2v20M2 12h20"/></svg></div><div class="stat-card-value">120</div><div class="stat-card-label">充电桩车位</div></div>
+        <div class="stat-card"><div class="stat-card-icon bg-amber"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#d97706" stroke-width="2" stroke-linecap="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/></svg></div><div class="stat-card-value">496</div><div class="stat-card-label">月租车位</div></div>
+        <div class="stat-card"><div class="stat-card-icon bg-purple"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#7c3aed" stroke-width="2" stroke-linecap="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/></svg></div><div class="stat-card-value">85.5%</div><div class="stat-card-label">出租率</div></div>
+      </div>
+      <div class="toolbar"><div class="toolbar-left"><div class="search-group"><input type="text" class="search-input" placeholder="搜索车位编号"><select class="filter-select"><option value="">全部类型</option><option>地下车位</option><option>地面车位</option><option>充电桩车位</option></select><select class="filter-select"><option value="">全部状态</option><option>产权</option><option>租赁</option><option>空闲</option></select><button class="btn btn-ghost">搜索</button></div></div><button class="btn btn-primary">+ 新增车位</button></div>
+      <div class="data-card"><table><thead><tr><th>车位编号</th><th>区域</th><th>类型</th><th>面积</th><th>业主</th><th>当前租户</th><th>月租</th><th>状态</th><th>操作</th></tr></thead><tbody>
+        <tr data-idx="0"><td>B1-A001</td><td>B1-A区</td><td>地下车位</td><td>12.5㎡</td><td>物业</td><td>王大明</td><td>¥300</td><td><span class="tag tag-ok">租赁</span></td><td class="action-btns"><button class="btn-icon">查看</button><button class="btn-icon">编辑</button></td></tr>
+        <tr data-idx="1"><td>B1-A002</td><td>B1-A区</td><td>充电桩车位</td><td>14.0㎡</td><td>物业</td><td>李小红</td><td>¥350</td><td><span class="tag tag-ok">租赁</span></td><td class="action-btns"><button class="btn-icon">查看</button><button class="btn-icon">编辑</button></td></tr>
+        <tr data-idx="2"><td>B1-B058</td><td>B1-B区</td><td>地下车位</td><td>12.5㎡</td><td>王大明</td><td>—</td><td>—</td><td><span class="tag tag-info">产权</span></td><td class="action-btns"><button class="btn-icon">查看</button><button class="btn-icon">编辑</button></td></tr>
+        <tr data-idx="3"><td>G-012</td><td>G区</td><td>地面车位</td><td>12.0㎡</td><td>物业</td><td>—</td><td>—</td><td><span class="tag tag-empty">空闲</span></td><td class="action-btns"><button class="btn-icon">出租</button><button class="btn-icon">编辑</button></td></tr>
+      </tbody></table><div class="table-footer"><span class="table-footer-info">显示 1-4 条，共 580 个车位</span><div class="pagination"><button class="page-btn disabled">‹</button><button class="page-btn active">1</button><button class="page-btn">2</button><button class="page-btn">›</button></div></div></div>
+    </div>
+  </main>
+</div>
+<script src="../js/sidebar.js"></script><script src="../js/page-common.js"></script><script>initPage({name:'车位管理',hashActions:{add:function(){showToast('打开新增车位弹窗')}});</script><script>initSidebar('parking:list');</script>
+<div class="modal-overlay" id="editModal"><div class="modal"><h3>编辑信息</h3><div class="form-group"><label>名称 *</label><input type="text" class="form-input" placeholder="请输入"></div><div class="form-group"><label>备注</label><textarea class="form-input" rows="3" placeholder="备注信息"></textarea></div><div class="modal-footer"><button class="btn btn-ghost" onclick="closeModal('edit')">取消</button><button class="btn btn-primary">保存修改</button></div></div></div>
+</body>
+</html>
+
+
+
+
+
+
+

@@ -1,0 +1,53 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>公告通知 - 物业管理系统</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/common.css">
+</head>
+<body>
+<div class="toast" id="toast"></div>
+<div class="admin-layout">
+  <div id="sidebar-placeholder"></div>
+  <main class="main-content">
+    <div class="topbar"><div class="topbar-title">社区服务</div><div class="topbar-user"><span>欢迎，<strong>管理员</strong></span><div class="topbar-avatar">A</div></div></div>
+    <div class="page-body">
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px;">
+        <div class="stat-card"><div class="stat-card-icon bg-blue"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2" stroke-linecap="round"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg></div><div class="stat-card-value">48</div><div class="stat-card-label">公告总数</div></div>
+        <div class="stat-card"><div class="stat-card-icon bg-green"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2" stroke-linecap="round"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/></svg></div><div class="stat-card-value">12</div><div class="stat-card-label">节假日福利</div></div>
+        <div class="stat-card"><div class="stat-card-icon bg-amber"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#d97706" stroke-width="2" stroke-linecap="round"><path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3zm7-13h2.67A2.31 2.31 0 0 1 22 4v7a2.31 2.31 0 0 1-2.33 2H17"/></svg></div><div class="stat-card-value">35</div><div class="stat-card-label">投诉建议</div></div>
+        <div class="stat-card"><div class="stat-card-icon bg-purple"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#7c3aed" stroke-width="2" stroke-linecap="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></div><div class="stat-card-value">6</div><div class="stat-card-label">在线投票</div></div>
+      </div>
+
+      <div class="toolbar"><div class="toolbar-left">
+        <div style="display:flex;gap:8px;">
+          <button class="btn btn-primary" style="background:var(--accent);">公告通知</button>
+          <button class="btn btn-ghost">节假日福利</button>
+          <button class="btn btn-ghost">投诉建议</button>
+          <button class="btn btn-ghost">在线投票</button>
+        </div>
+      </div>
+      <button class="btn btn-primary">+ 发布公告</button></div>
+
+      <div class="data-card"><table><thead><tr><th>标题</th><th>类型</th><th>发布范围</th><th>已读/总数</th><th>发布日期</th><th>操作</th></tr></thead><tbody>
+        <tr data-idx="0"><td><strong>关于2025年春节放假及安全检查的通知</strong></td><td><span class="tag tag-info">通知</span></td><td>全体业主</td><td>420/520人</td><td>2025-01-20</td><td class="action-btns"><button class="btn-icon">查看</button><button class="btn-icon">编辑</button><button class="btn-icon btn-icon-danger">删除</button></td></tr>
+        <tr data-idx="1"><td><strong>春节期间物业费优惠及门禁时间调整公告</strong></td><td><span class="tag tag-info">公告</span></td><td>全体业主+租户</td><td>380/610人</td><td>2025-01-18</td><td class="action-btns"><button class="btn-icon">查看</button><button class="btn-icon">编辑</button></td></tr>
+        <tr data-idx="2"><td><strong>元宵节猜灯谜活动 & 汤圆福利发放</strong></td><td><span class="tag tag-confirm">福利</span></td><td>全体住户</td><td>256/610人</td><td>2025-01-15</td><td class="action-btns"><button class="btn-icon">查看</button><button class="btn-icon">编辑</button></td></tr>
+        <tr data-idx="3"><td><strong>关于调整小区绿化方案的投票</strong></td><td><span class="tag tag-paid">投票</span></td><td>全体业主</td><td>198/520人</td><td>2025-01-10</td><td class="action-btns"><button class="btn-icon">查看</button><button class="btn-icon">统计</button></td></tr>
+      </tbody></table><div class="table-footer"><span class="table-footer-info">显示 1-4 条，共 48 条公告</span><div class="pagination"><button class="page-btn disabled">‹</button><button class="page-btn active">1</button><button class="page-btn">2</button><button class="page-btn">›</button></div></div></div>
+    </div>
+  </main>
+</div>
+<script src="../js/sidebar.js"></script><script src="../js/page-common.js"></script><script>initPage({name:'社区服务',hashActions:{holiday:function(){showToast('节假日福利管理')},complaint:function(){showToast('投诉建议处理')}});</script><script>initSidebar('notice:list');</script>
+<div class="modal-overlay" id="editModal"><div class="modal"><h3>编辑信息</h3><div class="form-group"><label>名称 *</label><input type="text" class="form-input" placeholder="请输入"></div><div class="form-group"><label>备注</label><textarea class="form-input" rows="3" placeholder="备注信息"></textarea></div><div class="modal-footer"><button class="btn btn-ghost" onclick="closeModal('edit')">取消</button><button class="btn btn-primary">保存修改</button></div></div></div>
+</body>
+</html>
+
+
+
+
+
+
+

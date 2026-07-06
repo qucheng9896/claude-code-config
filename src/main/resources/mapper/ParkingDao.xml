@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wygl.dao.ParkingDao">
+
+    <resultMap id="resultMap" type="Parking">
+        <id property="id" column="id"/>
+        <result property="parkingNo" column="parking_no"/>
+        <result property="area" column="area"/>
+        <result property="type" column="type"/>
+        <result property="size" column="size"/>
+        <result property="ownerId" column="owner_id"/>
+        <result property="tenantId" column="tenant_id"/>
+        <result property="monthlyRent" column="monthly_rent"/>
+        <result property="status" column="status"/>
+        <result property="remark" column="remark"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateTime" column="update_time"/>
+    </resultMap>
+
+    <select id="findById" resultMap="resultMap">
+        SELECT * FROM t_parking WHERE id = #{id}
+    </select>
+
+    <select id="findPage" resultMap="resultMap">
+        SELECT * FROM t_parking
+        <where>
+            <if test="queryString != null and queryString != ''">
+                AND (parking_no LIKE CONCAT('%', #{queryString}, '%')
+                OR area LIKE CONCAT('%', #{queryString}, '%'))
+            </if>
+        </where>
+        ORDER BY parking_no
+    </select>
+
+    <insert id="insert" parameterType="Parking" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO t_parking (parking_no, area, type, size, owner_id, tenant_id, monthly_rent, status, remark, create_time)
+        VALUES (#{parkingNo}, #{area}, #{type}, #{size}, #{ownerId}, #{tenantId}, #{monthlyRent}, #{status}, #{remark}, NOW())
+    </insert>
+
+    <update id="update" parameterType="Parking">
+        UPDATE t_parking
+        <set>
+            <if test="area != null">area = #{area},</if>
+            <if test="type != null">type = #{type},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="remark != null">remark = #{remark},</if>
+        </set>
+        WHERE id = #{id}
+    </update>
+
+    <delete id="delete" parameterType="int">
+        DELETE FROM t_parking WHERE id = #{id}
+    </delete>
+
+</mapper>

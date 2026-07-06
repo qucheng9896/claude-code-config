@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wygl.dao.ShopDao">
+
+    <resultMap id="resultMap" type="Shop">
+        <id property="id" column="id"/>
+        <result property="shopNo" column="shop_no"/>
+        <result property="area" column="area"/>
+        <result property="ownerId" column="owner_id"/>
+        <result property="tenantId" column="tenant_id"/>
+        <result property="monthlyRent" column="monthly_rent"/>
+        <result property="businessScope" column="business_scope"/>
+        <result property="status" column="status"/>
+        <result property="remark" column="remark"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateTime" column="update_time"/>
+        <result property="ownerName" column="owner_name"/>
+        <result property="tenantName" column="tenant_name"/>
+    </resultMap>
+
+    <select id="findById" resultMap="resultMap">
+        SELECT s.*, o.name AS owner_name, t.name AS tenant_name
+        FROM t_shop s
+        LEFT JOIN t_owner o ON s.owner_id = o.id
+        LEFT JOIN t_tenant t ON s.tenant_id = t.id
+        WHERE s.id = #{id}
+    </select>
+
+    <select id="findPage" resultMap="resultMap">
+        SELECT s.*, o.name AS owner_name, t.name AS tenant_name
+        FROM t_shop s
+        LEFT JOIN t_owner o ON s.owner_id = o.id
+        LEFT JOIN t_tenant t ON s.tenant_id = t.id
+        <where>
+            <if test="queryString != null and queryString != ''">
+                AND (s.shop_no LIKE CONCAT('%', #{queryString}, '%')
+                OR t.name LIKE CONCAT('%', #{queryString}, '%'))
+            </if>
+        </where>
+        ORDER BY s.shop_no
+    </select>
+
+    <insert id="insert" parameterType="Shop" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO t_shop (shop_no, area, owner_id, tenant_id, monthly_rent, business_scope, status, remark, create_time)
+        VALUES (#{shopNo}, #{area}, #{ownerId}, #{tenantId}, #{monthlyRent}, #{businessScope}, #{status}, #{remark}, NOW())
+    </insert>
+
+    <update id="update" parameterType="Shop">
+        UPDATE t_shop
+        <set>
+            <if test="area != null">area = #{area},</if>
+            <if test="tenantId != null">tenant_id = #{tenantId},</if>
+            <if test="monthlyRent != null">monthly_rent = #{monthlyRent},</if>
+            <if test="businessScope != null">business_scope = #{businessScope},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="remark != null">remark = #{remark},</if>
+        </set>
+        WHERE id = #{id}
+    </update>
+
+    <delete id="delete" parameterType="int">
+        DELETE FROM t_shop WHERE id = #{id}
+    </delete>
+
+</mapper>

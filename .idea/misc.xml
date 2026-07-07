@@ -3,6 +3,7 @@
   <component name="EditMigrationStateService">
     <option name="migrationStatus" value="COMPLETED" />
   </component>
+  <component name="ExternalStorageConfigurationManager" enabled="true" />
   <component name="FrameworkDetectionExcludesConfiguration">
     <file type="web" url="file://$PROJECT_DIR$" />
   </component>
@@ -13,5 +14,5 @@
       </list>
     </option>
   </component>
-  <component name="ProjectRootManager" version="2" project-jdk-name="17" project-jdk-type="JavaSDK" />
+  <component name="ProjectRootManager" version="2" languageLevel="JDK_13" default="false" project-jdk-name="corretto-1.8" project-jdk-type="JavaSDK" />
 </project>

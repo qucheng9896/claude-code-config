@@ -8,6 +8,8 @@ import com.wygl.result.PageResult;
 import com.wygl.service.BaseService;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.util.List;
+
 public abstract class BaseServiceImpl<T> implements BaseService<T> {
 
     @Autowired
@@ -24,8 +26,12 @@ public abstract class BaseServiceImpl<T> implements BaseService<T> {
             queryPageBean.setQueryString(null);
         }
         PageHelper.startPage(queryPageBean.getCurrentPage(), queryPageBean.getPageSize());
-        Page<T> page = baseDao.findPage(queryPageBean.getQueryString());
-        return new PageResult(page.getTotal(), page.getResult());
+        List<T> list = baseDao.findPage(queryPageBean.getQueryString(), queryPageBean.getStatus(), queryPageBean.getType());
+        if (list instanceof Page) {
+            Page<T> page = (Page<T>) list;
+            return new PageResult(page.getTotal(), page.getResult());
+        }
+        return new PageResult((long) list.size(), list);
     }
 
     @Override

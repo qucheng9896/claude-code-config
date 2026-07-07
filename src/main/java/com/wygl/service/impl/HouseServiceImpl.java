@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class HouseServiceImpl extends BaseServiceImpl<House> implements IHouseService {
@@ -21,7 +22,6 @@ public class HouseServiceImpl extends BaseServiceImpl<House> implements IHouseSe
         if (houseDao.countByBuildingRoom(house.getBuildingId(), house.getRoomNo()) > 0) {
             throw new BusinessException(MessageConstant.HOUSE_EXISTS);
         }
-        house.setStatus(1);
         houseDao.insert(house);
     }
 
@@ -36,5 +36,10 @@ public class HouseServiceImpl extends BaseServiceImpl<House> implements IHouseSe
     @Override
     public List<House> findVacant() {
         return houseDao.findByStatus(0);
+    }
+
+    @Override
+    public Map<String, Object> getStats() {
+        return houseDao.selectStats();
     }
 }

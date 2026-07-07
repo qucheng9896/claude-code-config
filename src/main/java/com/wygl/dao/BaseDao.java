@@ -1,6 +1,5 @@
 package com.wygl.dao;
 
-import com.github.pagehelper.Page;
 import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
@@ -9,7 +8,7 @@ public interface BaseDao<T> {
 
     T findById(@Param("id") Integer id);
 
-    Page<T> findPage(@Param("queryString") String queryString);
+    List<T> findPage(@Param("queryString") String queryString, @Param("status") Integer status, @Param("type") String type);
 
     void insert(T entity);
 

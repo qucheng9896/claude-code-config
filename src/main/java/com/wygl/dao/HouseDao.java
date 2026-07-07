@@ -4,6 +4,7 @@ import com.wygl.pojo.House;
 import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
+import java.util.Map;
 
 public interface HouseDao extends BaseDao<House> {
 
@@ -12,4 +13,6 @@ public interface HouseDao extends BaseDao<House> {
     int countUnpaidByHouseId(@Param("houseId") Integer houseId);
 
     List<House> findByStatus(@Param("status") Integer status);
+
+    Map<String, Object> selectStats();
 }

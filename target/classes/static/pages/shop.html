@@ -1,0 +1,242 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>商铺管理 - 物业管理系统</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/common.css">
+</head>
+<body>
+<div class="toast" id="toast"></div>
+<div class="admin-layout">
+  <div id="sidebar-placeholder"></div>
+  <main class="main-content">
+    <div class="topbar"><div class="topbar-title">商铺管理</div><div class="topbar-user"><span>欢迎，<strong>管理员</strong></span><div class="topbar-avatar">A</div></div></div>
+    <div class="page-body">
+      <div class="stats" id="shopStats">
+        <div class="stat-card"><div class="stat-card-icon bg-blue"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2" stroke-linecap="round"><path d="M3 21h18M5 21V7l8-4 8 4v14"/></svg></div><div class="stat-card-value" id="s-total">-</div><div class="stat-card-label">商铺总数</div></div>
+        <div class="stat-card"><div class="stat-card-icon bg-green"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2" stroke-linecap="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/></svg></div><div class="stat-card-value" id="s-rented">-</div><div class="stat-card-label">已出租</div></div>
+        <div class="stat-card"><div class="stat-card-icon bg-amber"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#d97706" stroke-width="2" stroke-linecap="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div><div class="stat-card-value" id="s-rent">-</div><div class="stat-card-label">月租金总额</div></div>
+        <div class="stat-card"><div class="stat-card-icon bg-purple"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#7c3aed" stroke-width="2" stroke-linecap="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/></svg></div><div class="stat-card-value" id="s-rate">-</div><div class="stat-card-label">出租率</div></div>
+      </div>
+      <div class="toolbar">
+        <div class="toolbar-left">
+          <div class="search-group">
+            <input type="text" class="search-input" id="searchInput" placeholder="搜索商铺编号、租户">
+            <button class="btn btn-ghost" id="btnSearch">搜索</button>
+          </div>
+          <select class="form-input" id="filterStatus" style="width:auto;margin-left:8px;">
+            <option value="">全部状态</option>
+            <option value="1">在租</option>
+            <option value="0">空置</option>
+          </select>
+        </div>
+        <button class="btn btn-primary" id="btnAdd">+ 新增商铺</button>
+      </div>
+      <div class="data-card">
+        <table>
+          <thead><tr><th>ID</th><th>商铺编号</th><th>面积(㎡)</th><th>业主</th><th>当前租户</th><th>月租金</th><th>经营范围</th><th>状态</th><th>操作</th></tr></thead>
+          <tbody id="shopTbody"></tbody>
+        </table>
+        <div class="table-footer">
+          <span class="table-footer-info" id="tableInfo">加载中...</span>
+          <div class="pagination" id="pagination"></div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<div class="modal-overlay" id="formModal">
+  <div class="modal">
+    <h3 id="modalTitle">新增商铺</h3>
+    <input type="hidden" id="f-id">
+    <div class="form-group"><label>商铺编号 *</label><input type="text" class="form-input" id="f-no" placeholder="如：S1F-001"></div>
+    <div class="form-group"><label>面积(㎡) *</label><input type="number" step="0.01" class="form-input" id="f-area" placeholder="如：120.00"></div>
+    <div class="form-group"><label>业主</label>
+      <select class="form-input" id="f-owner"><option value="">-- 无 --</option></select>
+    </div>
+    <div class="form-group"><label>租户</label>
+      <select class="form-input" id="f-tenant"><option value="">-- 无 --</option></select>
+    </div>
+    <div class="form-group"><label>月租金</label><input type="number" step="0.01" class="form-input" id="f-rent" placeholder="如：5800"></div>
+    <div class="form-group"><label>经营范围</label><input type="text" class="form-input" id="f-scope" placeholder="如：便利店"></div>
+    <div class="form-group"><label>状态</label>
+      <select class="form-input" id="f-status"><option value="0">空置</option><option value="1">在租</option></select>
+    </div>
+    <div class="form-group"><label>备注</label><textarea class="form-input" id="f-remark" rows="2" placeholder="备注信息"></textarea></div>
+    <div class="modal-footer"><button class="btn btn-ghost" onclick="closeModal('form')">取消</button><button class="btn btn-primary" id="btnSave">保存</button></div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/axios@1.6.2/dist/axios.min.js"></script>
+<script src="../js/axios-config.js"></script>
+<script src="../js/sidebar.js"></script>
+<script>
+var currentPage = 1, pageSize = 10, totalPages = 1;
+
+function showToast(msg, type) {
+  var el = document.getElementById('toast');
+  if (!el) return;
+  el.textContent = msg;
+  el.className = 'toast show toast-' + (type || 'success');
+  clearTimeout(el._timer);
+  el._timer = setTimeout(function() { el.className = 'toast toast-' + (type || 'success'); }, 3000);
+}
+
+function loadOwners() {
+  return axios.post('/owner/findPage', { currentPage: 1, pageSize: 999, queryString: '' }).then(function(res) {
+    var opts = '<option value="">-- 无 --</option>';
+    res.data.rows.forEach(function(o) { opts += '<option value="' + o.id + '">' + escapeHtml(o.name) + '</option>'; });
+    document.getElementById('f-owner').innerHTML = opts;
+  });
+}
+
+function loadTenants() {
+  return axios.post('/tenant/findPage', { currentPage: 1, pageSize: 999, queryString: '' }).then(function(res) {
+    var opts = '<option value="">-- 无 --</option>';
+    res.data.rows.forEach(function(t) { opts += '<option value="' + t.id + '">' + escapeHtml(t.name) + '</option>'; });
+    document.getElementById('f-tenant').innerHTML = opts;
+  });
+}
+
+function loadList(page) {
+  currentPage = page || 1;
+  var queryString = document.getElementById('searchInput').value.trim();
+  var statusVal = document.getElementById('filterStatus').value;
+  axios.post('/shop/findPage', {
+    currentPage: currentPage,
+    pageSize: pageSize,
+    queryString: queryString,
+    status: statusVal !== '' ? parseInt(statusVal) : null
+  }).then(function(res) {
+    renderTable(res.data.rows);
+    totalPages = Math.ceil(res.data.total / pageSize) || 1;
+    renderPagination(document.getElementById('tableInfo'), res.data.total);
+    loadStats();
+  }).catch(function() { showToast('加载失败', 'error'); });
+}
+
+function renderTable(list) {
+  var tbody = document.getElementById('shopTbody');
+  if (!list || list.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;color:#94a3b8;padding:40px">暂无数据</td></tr>';
+    return;
+  }
+  var html = '';
+  list.forEach(function(s) {
+    var statusTag = s.status == 1 ? '<span class="tag tag-ok">在租</span>' : '<span class="tag tag-empty">空置</span>';
+    html += '<tr>';
+    html += '<td>' + s.id + '</td>';
+    html += '<td><strong>' + escapeHtml(s.shopNo) + '</strong></td>';
+    html += '<td>' + (s.area || '-') + '</td>';
+    html += '<td>' + escapeHtml(s.ownerName || '-') + '</td>';
+    html += '<td>' + escapeHtml(s.tenantName || '-') + '</td>';
+    html += '<td>' + (s.monthlyRent ? '¥' + s.monthlyRent : '-') + '</td>';
+    html += '<td>' + escapeHtml(s.businessScope || '-') + '</td>';
+    html += '<td>' + statusTag + '</td>';
+    html += '<td class="action-btns">';
+    html += '<button class="btn-icon btn-edit" data-id="' + s.id + '">编辑</button>';
+    html += '<button class="btn-icon btn-icon-danger btn-del" data-id="' + s.id + '">删除</button>';
+    html += '</td></tr>';
+  });
+  tbody.innerHTML = html;
+  tbody.querySelectorAll('.btn-edit').forEach(function(btn) { btn.addEventListener('click', function() { openEdit(this.dataset.id); }); });
+  tbody.querySelectorAll('.btn-del').forEach(function(btn) { btn.addEventListener('click', function() { doDelete(this.dataset.id); }); });
+}
+
+function renderPagination(infoEl, total) {
+  if (total === 0) { infoEl.textContent = '暂无数据'; document.getElementById('pagination').innerHTML = ''; return; }
+  infoEl.textContent = '显示第 ' + ((currentPage - 1) * pageSize + 1) + '-' + Math.min(currentPage * pageSize, total) + ' 条，共 ' + total + ' 条';
+  var pag = document.getElementById('pagination');
+  var html = '<button class="page-btn' + (currentPage <= 1 ? ' disabled' : '') + '" data-page="' + (currentPage - 1) + '">‹</button>';
+  for (var p = 1; p <= totalPages; p++) html += '<button class="page-btn' + (p === currentPage ? ' active' : '') + '" data-page="' + p + '">' + p + '</button>';
+  html += '<button class="page-btn' + (currentPage >= totalPages ? ' disabled' : '') + '" data-page="' + (currentPage + 1) + '">›</button>';
+  pag.innerHTML = html;
+  pag.querySelectorAll('.page-btn').forEach(function(btn) {
+    btn.addEventListener('click', function() { var pg = parseInt(this.dataset.page); if (pg >= 1 && pg <= totalPages) loadList(pg); });
+  });
+}
+
+function loadStats() {
+  axios.get('/shop/stats').then(function(res) {
+    if (res.flag) {
+      var d = res.data;
+      document.getElementById('s-total').textContent = d.total || 0;
+      document.getElementById('s-rented').textContent = d.rented || 0;
+      var rent = parseFloat(d.totalRent) || 0;
+      document.getElementById('s-rent').textContent = '¥' + (rent >= 1000 ? (rent / 1000).toFixed(1) + 'K' : rent.toFixed(0));
+      document.getElementById('s-rate').textContent = d.total > 0 ? (d.rented * 100 / d.total).toFixed(1) + '%' : '0%';
+    }
+  });
+}
+
+function openAdd() {
+  document.getElementById('modalTitle').textContent = '新增商铺';
+  document.getElementById('f-id').value = '';
+  document.getElementById('f-no').value = '';
+  document.getElementById('f-area').value = '';
+  document.getElementById('f-owner').value = '';
+  document.getElementById('f-tenant').value = '';
+  document.getElementById('f-rent').value = '';
+  document.getElementById('f-scope').value = '';
+  document.getElementById('f-status').value = '0';
+  document.getElementById('f-remark').value = '';
+  document.getElementById('formModal').classList.add('show');
+}
+
+function openEdit(id) {
+  axios.get('/shop/findById/' + id).then(function(res) {
+    var s = res.data;
+    document.getElementById('modalTitle').textContent = '编辑商铺';
+    document.getElementById('f-id').value = s.id;
+    document.getElementById('f-no').value = s.shopNo || '';
+    document.getElementById('f-area').value = s.area || '';
+    document.getElementById('f-owner').value = s.ownerId || '';
+    document.getElementById('f-tenant').value = s.tenantId || '';
+    document.getElementById('f-rent').value = s.monthlyRent || '';
+    document.getElementById('f-scope').value = s.businessScope || '';
+    document.getElementById('f-status').value = s.status != null ? s.status : '0';
+    document.getElementById('f-remark').value = s.remark || '';
+    document.getElementById('formModal').classList.add('show');
+  });
+}
+
+function doSave() {
+  var id = document.getElementById('f-id').value;
+  var data = {
+    shopNo: document.getElementById('f-no').value.trim(),
+    area: parseFloat(document.getElementById('f-area').value) || 0,
+    ownerId: parseInt(document.getElementById('f-owner').value) || null,
+    tenantId: parseInt(document.getElementById('f-tenant').value) || null,
+    monthlyRent: parseFloat(document.getElementById('f-rent').value) || 0,
+    businessScope: document.getElementById('f-scope').value.trim(),
+    status: parseInt(document.getElementById('f-status').value),
+    remark: document.getElementById('f-remark').value.trim()
+  };
+  if (!data.shopNo) { showToast('请填写商铺编号', 'error'); return; }
+  var promise = id ? axios.put('/shop/edit', Object.assign({id: parseInt(id)}, data)) : axios.post('/shop/add', data);
+  promise.then(function() { showToast(id ? '修改成功' : '新增成功'); closeModal('form'); loadList(currentPage); }).catch(function() {});
+}
+
+function doDelete(id) {
+  if (!confirm('确认删除该商铺吗？此操作不可恢复。')) return;
+  axios.delete('/shop/delete/' + id).then(function() { showToast('删除成功'); loadList(currentPage); }).catch(function() {});
+}
+
+function closeModal(name) { document.getElementById(name + 'Modal').classList.remove('show'); }
+function escapeHtml(s) { return s ? s.toString().replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;') : '-'; }
+
+document.getElementById('btnAdd').addEventListener('click', openAdd);
+document.getElementById('btnSave').addEventListener('click', doSave);
+document.getElementById('btnSearch').addEventListener('click', function() { loadList(1); });
+document.getElementById('searchInput').addEventListener('keydown', function(e) { if (e.key === 'Enter') loadList(1); });
+document.getElementById('filterStatus').addEventListener('change', function() { loadList(1); });
+document.getElementById('formModal').addEventListener('click', function(e) { if (e.target === this) this.classList.remove('show'); });
+
+Promise.all([loadOwners(), loadTenants()]).then(function() { loadList(1); }).catch(function() {});
+initSidebar('shop:list');
+</script>
+</body>
+</html>

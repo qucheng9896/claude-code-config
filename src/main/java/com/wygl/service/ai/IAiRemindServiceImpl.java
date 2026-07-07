@@ -37,7 +37,7 @@ public class IAiRemindServiceImpl implements IAiRemindService {
                 .mapToDouble(p -> p.getAmount().doubleValue()).sum();
         long maxOverdueDays = overduePayments.stream()
                 .mapToLong(p -> ChronoUnit.DAYS.between(
-                        p.getDueDate().toLocalDate(), LocalDate.now()))
+                        p.getDueDate().toInstant().atZone(java.time.ZoneId.systemDefault()).toLocalDate(), LocalDate.now()))
                 .max().orElse(0);
 
         StringBuilder detail = new StringBuilder();

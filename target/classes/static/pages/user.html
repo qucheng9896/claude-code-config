@@ -1,0 +1,224 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>用户管理 - 物业管理系统</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/common.css">
+</head>
+<body>
+<div class="toast" id="toast"></div>
+<div class="admin-layout">
+  <div id="sidebar-placeholder"></div>
+  <main class="main-content">
+    <div class="topbar"><div class="topbar-title">用户管理</div><div class="topbar-user"><span>欢迎，<strong>管理员</strong></span><div class="topbar-avatar">A</div></div></div>
+    <div class="page-body">
+      <div class="stats" id="userStats">
+        <div class="stat-card"><div class="stat-card-icon bg-green"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2" stroke-linecap="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div><div class="stat-card-value" id="s-total">-</div><div class="stat-card-label">用户总数</div></div>
+        <div class="stat-card"><div class="stat-card-icon bg-amber"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#d97706" stroke-width="2" stroke-linecap="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div><div class="stat-card-value" id="s-admin">-</div><div class="stat-card-label">管理员</div></div>
+        <div class="stat-card"><div class="stat-card-icon bg-blue"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2" stroke-linecap="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg></div><div class="stat-card-value" id="s-normal">-</div><div class="stat-card-label">正常用户</div></div>
+        <div class="stat-card"><div class="stat-card-icon bg-purple"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#7c3aed" stroke-width="2" stroke-linecap="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/></svg></div><div class="stat-card-value" id="s-disabled">-</div><div class="stat-card-label">已停用</div></div>
+      </div>
+      <div class="toolbar">
+        <div class="toolbar-left">
+          <div class="search-group">
+            <input type="text" class="search-input" id="searchInput" placeholder="搜索用户名、姓名">
+            <button class="btn btn-ghost" id="btnSearch">搜索</button>
+          </div>
+          <select class="form-input" id="filterRole" style="width:auto;margin-left:8px;">
+            <option value="">全部角色</option>
+            <option value="1">管理员</option>
+            <option value="2">业主</option>
+            <option value="3">租户</option>
+          </select>
+          <select class="form-input" id="filterStatus" style="width:auto;margin-left:8px;">
+            <option value="">全部状态</option>
+            <option value="1">正常</option>
+            <option value="0">停用</option>
+          </select>
+        </div>
+        <button class="btn btn-primary" id="btnAdd">+ 新增用户</button>
+      </div>
+      <div class="data-card">
+        <table>
+          <thead><tr><th>ID</th><th>用户名</th><th>姓名</th><th>手机号</th><th>角色</th><th>状态</th><th>创建时间</th><th>操作</th></tr></thead>
+          <tbody id="userTbody"></tbody>
+        </table>
+        <div class="table-footer">
+          <span class="table-footer-info" id="tableInfo">加载中...</span>
+          <div class="pagination" id="pagination"></div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<div class="modal-overlay" id="formModal">
+  <div class="modal">
+    <h3 id="modalTitle">新增用户</h3>
+    <input type="hidden" id="f-id">
+    <div class="form-group"><label>用户名 *</label><input type="text" class="form-input" id="f-username" placeholder="请输入用户名"></div>
+    <div class="form-group"><label>密码 *</label><input type="password" class="form-input" id="f-password" placeholder="请输入密码"></div>
+    <div class="form-group"><label>姓名 *</label><input type="text" class="form-input" id="f-name" placeholder="请输入姓名"></div>
+    <div class="form-group"><label>手机号</label><input type="text" class="form-input" id="f-phone" placeholder="请输入手机号"></div>
+    <div class="form-group"><label>邮箱</label><input type="text" class="form-input" id="f-email" placeholder="请输入邮箱"></div>
+    <div class="form-group"><label>角色</label>
+      <select class="form-input" id="f-role"><option value="1">管理员</option><option value="2">业主</option><option value="3">租户</option></select>
+    </div>
+    <div class="form-group"><label>状态</label>
+      <select class="form-input" id="f-status"><option value="1">正常</option><option value="0">停用</option></select>
+    </div>
+    <div class="modal-footer"><button class="btn btn-ghost" onclick="closeModal('form')">取消</button><button class="btn btn-primary" id="btnSave">保存</button></div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/axios@1.6.2/dist/axios.min.js"></script>
+<script src="../js/axios-config.js"></script>
+<script src="../js/sidebar.js"></script>
+<script>
+var currentPage = 1, pageSize = 10, totalPages = 1;
+
+function showToast(msg, type) {
+  var el = document.getElementById('toast');
+  if (!el) return;
+  el.textContent = msg;
+  el.className = 'toast show toast-' + (type || 'success');
+  clearTimeout(el._timer);
+  el._timer = setTimeout(function() { el.className = 'toast toast-' + (type || 'success'); }, 3000);
+}
+
+function loadList(page) {
+  currentPage = page || 1;
+  var queryString = document.getElementById('searchInput').value.trim();
+  var role = document.getElementById('filterRole').value;
+  var status = document.getElementById('filterStatus').value;
+  if (role) queryString = queryString ? queryString + ' ' + role : role;
+  if (status) queryString = queryString ? queryString + ' ' + status : status;
+  axios.post('/user/findPage', { currentPage: currentPage, pageSize: pageSize, queryString: queryString }).then(function(res) {
+    renderTable(res.data.rows);
+    totalPages = Math.ceil(res.data.total / pageSize) || 1;
+    renderPagination(document.getElementById('tableInfo'), res.data.total);
+    loadStats();
+  }).catch(function() { showToast('加载失败', 'error'); });
+}
+
+function renderTable(list) {
+  var tbody = document.getElementById('userTbody');
+  if (!list || list.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:#94a3b8;padding:40px">暂无数据</td></tr>';
+    return;
+  }
+  var html = '';
+  list.forEach(function(u) {
+    var statusTag = u.status == 1 ? '<span class="tag tag-ok">正常</span>' : '<span class="tag tag-off">停用</span>';
+    var roleName = u.roleName || (u.roleId == 1 ? '管理员' : (u.roleId == 2 ? '业主' : '租户'));
+    html += '<tr>';
+    html += '<td>' + u.id + '</td>';
+    html += '<td><strong>' + escapeHtml(u.username) + '</strong></td>';
+    html += '<td>' + escapeHtml(u.name || '-') + '</td>';
+    html += '<td>' + escapeHtml(u.phone || '-') + '</td>';
+    html += '<td>' + roleName + '</td>';
+    html += '<td>' + statusTag + '</td>';
+    html += '<td>' + (u.createTime ? u.createTime.substr(0, 10) : '-') + '</td>';
+    html += '<td class="action-btns">';
+    html += '<button class="btn-icon btn-edit" data-id="' + u.id + '">编辑</button>';
+    if (u.roleId != 1) html += '<button class="btn-icon btn-icon-danger btn-del" data-id="' + u.id + '">删除</button>';
+    html += '</td></tr>';
+  });
+  tbody.innerHTML = html;
+  tbody.querySelectorAll('.btn-edit').forEach(function(btn) { btn.addEventListener('click', function() { openEdit(this.dataset.id); }); });
+  tbody.querySelectorAll('.btn-del').forEach(function(btn) { btn.addEventListener('click', function() { doDelete(this.dataset.id); }); });
+}
+
+function renderPagination(infoEl, total) {
+  infoEl.textContent = '显示第 ' + ((currentPage - 1) * pageSize + 1) + '-' + Math.min(currentPage * pageSize, total) + ' 条，共 ' + total + ' 条';
+  var pag = document.getElementById('pagination');
+  var html = '<button class="page-btn' + (currentPage <= 1 ? ' disabled' : '') + '" data-page="' + (currentPage - 1) + '">‹</button>';
+  for (var p = 1; p <= totalPages; p++) html += '<button class="page-btn' + (p === currentPage ? ' active' : '') + '" data-page="' + p + '">' + p + '</button>';
+  html += '<button class="page-btn' + (currentPage >= totalPages ? ' disabled' : '') + '" data-page="' + (currentPage + 1) + '">›</button>';
+  pag.innerHTML = html;
+  pag.querySelectorAll('.page-btn').forEach(function(btn) {
+    btn.addEventListener('click', function() { var pg = parseInt(this.dataset.page); if (pg >= 1 && pg <= totalPages) loadList(pg); });
+  });
+}
+
+function loadStats() {
+  axios.post('/user/findPage', { currentPage: 1, pageSize: 9999, queryString: '' }).then(function(res) {
+    var list = res.data.rows;
+    document.getElementById('s-total').textContent = list.length;
+    document.getElementById('s-admin').textContent = list.filter(function(u) { return u.roleId == 1; }).length;
+    document.getElementById('s-normal').textContent = list.filter(function(u) { return u.status == 1; }).length;
+    document.getElementById('s-disabled').textContent = list.filter(function(u) { return u.status == 0; }).length;
+  });
+}
+
+function openAdd() {
+  document.getElementById('modalTitle').textContent = '新增用户';
+  document.getElementById('f-id').value = '';
+  document.getElementById('f-username').value = '';
+  document.getElementById('f-password').value = '';
+  document.getElementById('f-name').value = '';
+  document.getElementById('f-phone').value = '';
+  document.getElementById('f-email').value = '';
+  document.getElementById('f-role').value = '2';
+  document.getElementById('f-status').value = '1';
+  document.getElementById('formModal').classList.add('show');
+}
+
+function openEdit(id) {
+  axios.get('/user/findById/' + id).then(function(res) {
+    var u = res.data;
+    document.getElementById('modalTitle').textContent = '编辑用户';
+    document.getElementById('f-id').value = u.id;
+    document.getElementById('f-username').value = u.username || '';
+    document.getElementById('f-password').value = '';
+    document.getElementById('f-name').value = u.name || '';
+    document.getElementById('f-phone').value = u.phone || '';
+    document.getElementById('f-email').value = u.email || '';
+    document.getElementById('f-role').value = u.roleId || '2';
+    document.getElementById('f-status').value = u.status != null ? u.status : '1';
+    document.getElementById('formModal').classList.add('show');
+  });
+}
+
+function doSave() {
+  var id = document.getElementById('f-id').value;
+  var data = {
+    username: document.getElementById('f-username').value.trim(),
+    name: document.getElementById('f-name').value.trim(),
+    phone: document.getElementById('f-phone').value.trim(),
+    email: document.getElementById('f-email').value.trim(),
+    roleId: parseInt(document.getElementById('f-role').value),
+    status: parseInt(document.getElementById('f-status').value)
+  };
+  var pwd = document.getElementById('f-password').value;
+  if (!data.username) { showToast('请填写用户名', 'error'); return; }
+  if (!data.name) { showToast('请填写姓名', 'error'); return; }
+  if (!id && !pwd) { showToast('请填写密码', 'error'); return; }
+  if (pwd) data.password = pwd;
+  var promise = id ? axios.put('/user/edit', Object.assign({id: parseInt(id)}, data)) : axios.post('/user/add', data);
+  promise.then(function() { showToast(id ? '修改成功' : '新增成功'); closeModal('form'); loadList(currentPage); }).catch(function() {});
+}
+
+function doDelete(id) {
+  if (!confirm('确认删除该用户吗？此操作不可恢复。')) return;
+  axios.delete('/user/delete/' + id).then(function() { showToast('删除成功'); loadList(currentPage); }).catch(function() {});
+}
+
+function closeModal(name) { document.getElementById(name + 'Modal').classList.remove('show'); }
+function escapeHtml(s) { return s ? s.toString().replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;') : '-'; }
+
+document.getElementById('btnAdd').addEventListener('click', openAdd);
+document.getElementById('btnSave').addEventListener('click', doSave);
+document.getElementById('btnSearch').addEventListener('click', function() { loadList(1); });
+document.getElementById('searchInput').addEventListener('keydown', function(e) { if (e.key === 'Enter') loadList(1); });
+document.getElementById('filterRole').addEventListener('change', function() { loadList(1); });
+document.getElementById('filterStatus').addEventListener('change', function() { loadList(1); });
+document.getElementById('formModal').addEventListener('click', function(e) { if (e.target === this) this.classList.remove('show'); });
+
+loadList(1);
+initSidebar('user:list');
+</script>
+</body>
+</html>

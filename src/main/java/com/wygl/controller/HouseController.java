@@ -20,4 +20,9 @@ public class HouseController extends BaseController<House> {
         List<House> list = houseService.findVacant();
         return new Result(true, "查询成功", list);
     }
+
+    @GetMapping("/stats")
+    public Result stats() {
+        return new Result(true, "查询成功", houseService.getStats());
+    }
 }

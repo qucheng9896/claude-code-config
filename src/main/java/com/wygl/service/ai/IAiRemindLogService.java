@@ -4,6 +4,8 @@ import com.wygl.pojo.AiRemindLog;
 import com.wygl.dto.QueryPageBean;
 import com.wygl.result.PageResult;
 
+import java.util.List;
+
 /**
  * AI催缴记录服务接口
  */

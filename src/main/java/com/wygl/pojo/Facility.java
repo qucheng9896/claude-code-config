@@ -13,6 +13,7 @@ public class Facility implements Serializable {
     private Date lastCheck;
     private Date nextCheck;
     private Integer status;
+    private String remark;
     private Date createTime;
 
     public Integer getId() { return id; }
@@ -35,4 +36,6 @@ public class Facility implements Serializable {
     public void setStatus(Integer status) { this.status = status; }
     public Date getCreateTime() { return createTime; }
     public void setCreateTime(Date createTime) { this.createTime = createTime; }
+    public String getRemark() { return remark; }
+    public void setRemark(String remark) { this.remark = remark; }
 }

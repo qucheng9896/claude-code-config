@@ -1,14 +1,18 @@
 package com.wygl.interceptor;
 
-import com.wygl.constant.MessageConstant;
-import com.wygl.exception.BusinessException;
 import com.wygl.util.JwtUtil;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.http.MediaType;
 import org.springframework.web.servlet.HandlerInterceptor;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.util.HashMap;
+import java.util.Map;
 
 public class AuthInterceptor implements HandlerInterceptor {
+
+    private static final ObjectMapper mapper = new ObjectMapper();
 
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
@@ -20,12 +24,12 @@ public class AuthInterceptor implements HandlerInterceptor {
 
         String authHeader = request.getHeader("Authorization");
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            throw new BusinessException(MessageConstant.TOKEN_MISSING);
+            return writeError(response, 401, "请先登录");
         }
 
         String token = authHeader.substring(7);
         if (!JwtUtil.validateToken(token)) {
-            throw new BusinessException(MessageConstant.TOKEN_INVALID);
+            return writeError(response, 401, "Token已过期，请重新登录");
         }
 
         request.setAttribute("userId", JwtUtil.getUserId(token));
@@ -33,5 +37,16 @@ public class AuthInterceptor implements HandlerInterceptor {
         request.setAttribute("role", JwtUtil.getRole(token));
 
         return true;
+    }
+
+    private boolean writeError(HttpServletResponse response, int status, String message) throws Exception {
+        response.setStatus(status);
+        response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+        response.setCharacterEncoding("UTF-8");
+        Map<String, Object> result = new HashMap<>();
+        result.put("flag", false);
+        result.put("message", message);
+        response.getWriter().write(mapper.writeValueAsString(result));
+        return false;
     }
 }

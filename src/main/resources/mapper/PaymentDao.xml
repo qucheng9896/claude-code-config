@@ -26,16 +26,17 @@
 
     <select id="findPage" resultMap="paymentResultMap">
         SELECT p.*, t.name AS tenant_name, o.name AS owner_name,
-               CONCAT(h.building_no, '-', h.room_no) AS house_address
+               CONCAT(b.building_name, '-', h.room_no) AS house_address
         FROM t_payment p
         LEFT JOIN t_tenant t ON p.tenant_id = t.id
         LEFT JOIN t_owner o ON p.owner_id = o.id
         LEFT JOIN t_house h ON p.house_id = h.id
+        LEFT JOIN t_building b ON h.building_id = b.id
         <where>
             <if test="queryString != null and queryString != ''">
                 AND (t.name LIKE CONCAT('%', #{queryString}, '%')
                 OR p.bill_no LIKE CONCAT('%', #{queryString}, '%')
-                OR h.building_no LIKE CONCAT('%', #{queryString}, '%'))
+                OR b.building_name LIKE CONCAT('%', #{queryString}, '%'))
             </if>
         </where>
         ORDER BY p.create_time DESC
@@ -43,41 +44,45 @@
 
     <select id="findById" resultMap="paymentResultMap">
         SELECT p.*, t.name AS tenant_name, o.name AS owner_name,
-               CONCAT(h.building_no, '-', h.room_no) AS house_address
+               CONCAT(b.building_name, '-', h.room_no) AS house_address
         FROM t_payment p
         LEFT JOIN t_tenant t ON p.tenant_id = t.id
         LEFT JOIN t_owner o ON p.owner_id = o.id
         LEFT JOIN t_house h ON p.house_id = h.id
+        LEFT JOIN t_building b ON h.building_id = b.id
         WHERE p.id = #{id}
     </select>
 
     <select id="findByStatus" resultMap="paymentResultMap">
         SELECT p.*, t.name AS tenant_name, o.name AS owner_name,
-               CONCAT(h.building_no, '-', h.room_no) AS house_address
+               CONCAT(b.building_name, '-', h.room_no) AS house_address
         FROM t_payment p
         LEFT JOIN t_tenant t ON p.tenant_id = t.id
         LEFT JOIN t_owner o ON p.owner_id = o.id
         LEFT JOIN t_house h ON p.house_id = h.id
+        LEFT JOIN t_building b ON h.building_id = b.id
         WHERE p.pay_status = #{status}
     </select>
 
     <select id="findOverdue" resultMap="paymentResultMap">
         SELECT p.*, t.name AS tenant_name, o.name AS owner_name,
-               CONCAT(h.building_no, '-', h.room_no) AS house_address
+               CONCAT(b.building_name, '-', h.room_no) AS house_address
         FROM t_payment p
         LEFT JOIN t_tenant t ON p.tenant_id = t.id
         LEFT JOIN t_owner o ON p.owner_id = o.id
         LEFT JOIN t_house h ON p.house_id = h.id
+        LEFT JOIN t_building b ON h.building_id = b.id
         WHERE p.pay_status = 3
     </select>
 
     <select id="findOverdueByOwnerId" resultMap="paymentResultMap">
         SELECT p.*, t.name AS tenant_name, o.name AS owner_name,
-               CONCAT(h.building_no, '-', h.room_no) AS house_address
+               CONCAT(b.building_name, '-', h.room_no) AS house_address
         FROM t_payment p
         LEFT JOIN t_tenant t ON p.tenant_id = t.id
         LEFT JOIN t_owner o ON p.owner_id = o.id
         LEFT JOIN t_house h ON p.house_id = h.id
+        LEFT JOIN t_building b ON h.building_id = b.id
         WHERE p.pay_status = 3 AND p.owner_id = #{ownerId}
     </select>
 

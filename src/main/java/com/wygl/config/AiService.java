@@ -3,7 +3,7 @@ package com.wygl.config;
 import okhttp3.*;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.node.ObjectNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
@@ -36,9 +36,13 @@ public class AiService {
         try {
             ObjectNode body = mapper.createObjectNode();
             body.put("model", MODEL);
-            body.putArray("messages")
-                .addObject().put("role", "system").put("content", "你是物业管理AI助手，生成友好催缴通知，不超过100字。")
-                .addObject().put("role", "user").put("content", prompt);
+            com.fasterxml.jackson.databind.node.ArrayNode messages = body.putArray("messages");
+            ObjectNode sysMsg = messages.addObject();
+            sysMsg.put("role", "system");
+            sysMsg.put("content", "你是物业管理AI助手，生成友好催缴通知，不超过100字。");
+            ObjectNode userMsg = messages.addObject();
+            userMsg.put("role", "user");
+            userMsg.put("content", prompt);
             body.put("max_tokens", 200);
             body.put("temperature", 0.7);
 

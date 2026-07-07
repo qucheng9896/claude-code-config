@@ -15,6 +15,7 @@ public class MessageConstant {
     public static final String DELETE_SUCCESS = "删除成功";
 
     public static final String USERNAME_EXISTS = "该用户名已存在";
+    public static final String PARKING_NO_EXISTS = "该车位编号已存在";
     public static final String PHONE_EXISTS = "该手机号已注册";
     public static final String HOUSE_EXISTS = "该房屋已存在";
     public static final String BILL_EXISTS = "该周期账单已存在";

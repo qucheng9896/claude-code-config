@@ -52,4 +52,24 @@
         DELETE FROM t_building WHERE id = #{id}
     </delete>
 
+    <select id="selectHouseStats" resultType="map">
+        SELECT
+            b.id,
+            b.building_name AS buildingName,
+            COUNT(h.id) AS houseCount,
+            SUM(CASE WHEN h.status = 1 THEN 1 ELSE 0 END) AS occupiedCount
+        FROM t_building b
+        LEFT JOIN t_house h ON h.building_id = b.id
+        GROUP BY b.id, b.building_name
+        ORDER BY b.id
+    </select>
+
+    <select id="countAllHouses" resultType="int">
+        SELECT COUNT(*) FROM t_house
+    </select>
+
+    <select id="countOccupiedHouses" resultType="int">
+        SELECT COUNT(*) FROM t_house WHERE status = 1
+    </select>
+
 </mapper>

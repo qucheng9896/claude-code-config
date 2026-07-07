@@ -35,8 +35,12 @@ public class IAiRemindLogServiceImpl implements IAiRemindLogService {
             queryPageBean.setQueryString(null);
         }
         PageHelper.startPage(queryPageBean.getCurrentPage(), queryPageBean.getPageSize());
-        Page<AiRemindLog> page = aiRemindLogDao.findPage(queryPageBean.getQueryString());
-        return new PageResult(page.getTotal(), page.getResult());
+        List<AiRemindLog> list = aiRemindLogDao.findPage(queryPageBean.getQueryString());
+        if (list instanceof Page) {
+            Page<AiRemindLog> page = (Page<AiRemindLog>) list;
+            return new PageResult(page.getTotal(), page.getResult());
+        }
+        return new PageResult((long) list.size(), list);
     }
 
     @Override

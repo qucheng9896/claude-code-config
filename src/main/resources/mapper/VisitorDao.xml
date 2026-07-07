@@ -22,8 +22,8 @@
         SELECT v.*, o.name AS owner_name,
                CONCAT(b.building_name, '-', h.room_no) AS house_address
         FROM t_visitor v
-        LEFT JOIN t_owner o ON v.owner_id = o.id
         LEFT JOIN t_house h ON v.house_id = h.id
+        LEFT JOIN t_owner o ON v.owner_id = o.id
         LEFT JOIN t_building b ON h.building_id = b.id
         WHERE v.id = #{id}
     </select>
@@ -32,8 +32,8 @@
         SELECT v.*, o.name AS owner_name,
                CONCAT(b.building_name, '-', h.room_no) AS house_address
         FROM t_visitor v
-        LEFT JOIN t_owner o ON v.owner_id = o.id
         LEFT JOIN t_house h ON v.house_id = h.id
+        LEFT JOIN t_owner o ON v.owner_id = o.id
         LEFT JOIN t_building b ON h.building_id = b.id
         <where>
             <if test="queryString != null and queryString != ''">

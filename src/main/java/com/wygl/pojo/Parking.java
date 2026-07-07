@@ -14,7 +14,9 @@ public class Parking implements Serializable {
     private Integer tenantId;
     private BigDecimal monthlyRent;
     private Integer status;
+    private String remark;
     private Date createTime;
+    private Date updateTime;
 
     private String ownerName;
     private String tenantName;
@@ -37,8 +39,12 @@ public class Parking implements Serializable {
     public void setMonthlyRent(BigDecimal monthlyRent) { this.monthlyRent = monthlyRent; }
     public Integer getStatus() { return status; }
     public void setStatus(Integer status) { this.status = status; }
+    public String getRemark() { return remark; }
+    public void setRemark(String remark) { this.remark = remark; }
     public Date getCreateTime() { return createTime; }
     public void setCreateTime(Date createTime) { this.createTime = createTime; }
+    public Date getUpdateTime() { return updateTime; }
+    public void setUpdateTime(Date updateTime) { this.updateTime = updateTime; }
     public String getOwnerName() { return ownerName; }
     public void setOwnerName(String ownerName) { this.ownerName = ownerName; }
     public String getTenantName() { return tenantName; }

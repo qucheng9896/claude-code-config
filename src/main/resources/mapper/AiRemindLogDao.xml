@@ -23,10 +23,11 @@
 
     <select id="findPage" resultMap="aiRemindLogResultMap">
         SELECT l.*, t.name AS tenant_name,
-               CONCAT(h.building_no, '-', h.room_no) AS house_address
+               CONCAT(b.building_name, '-', h.room_no) AS house_address
         FROM t_ai_remind_log l
         LEFT JOIN t_tenant t ON l.tenant_id = t.id
         LEFT JOIN t_house h ON l.house_id = h.id
+        LEFT JOIN t_building b ON h.building_id = b.id
         <where>
             <if test="queryString != null and queryString != ''">
                 AND (t.name LIKE CONCAT('%', #{queryString}, '%'))
@@ -37,10 +38,11 @@
 
     <select id="findPending" resultMap="aiRemindLogResultMap">
         SELECT l.*, t.name AS tenant_name,
-               CONCAT(h.building_no, '-', h.room_no) AS house_address
+               CONCAT(b.building_name, '-', h.room_no) AS house_address
         FROM t_ai_remind_log l
         LEFT JOIN t_tenant t ON l.tenant_id = t.id
         LEFT JOIN t_house h ON l.house_id = h.id
+        LEFT JOIN t_building b ON h.building_id = b.id
         WHERE l.send_status = 0
         ORDER BY l.create_time DESC
     </select>

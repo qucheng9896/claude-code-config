@@ -12,6 +12,7 @@ public class Visitor implements Serializable {
     private Date reserveTime;
     private String accessMethod;
     private Integer status;
+    private String remark;
     private Date createTime;
 
     private String ownerName;
@@ -35,6 +36,8 @@ public class Visitor implements Serializable {
     public void setStatus(Integer status) { this.status = status; }
     public Date getCreateTime() { return createTime; }
     public void setCreateTime(Date createTime) { this.createTime = createTime; }
+    public String getRemark() { return remark; }
+    public void setRemark(String remark) { this.remark = remark; }
     public String getOwnerName() { return ownerName; }
     public void setOwnerName(String ownerName) { this.ownerName = ownerName; }
     public String getHouseAddress() { return houseAddress; }

@@ -55,7 +55,7 @@ public class PaymentServiceImpl extends BaseServiceImpl<Payment> implements IPay
             payment.setFeeType(dto.getFeeType());
             payment.setAmount(dto.getUnitPrice().multiply(house.getArea()));
             payment.setPeriod(dto.getPeriod());
-            payment.setDueDate(LocalDate.parse(dto.getPeriod() + "-01").plusMonths(1).minusDays(1));
+            payment.setDueDate(java.sql.Date.valueOf(LocalDate.parse(dto.getPeriod() + "-01").plusMonths(1).minusDays(1)));
             payment.setPayStatus(0);
             bills.add(payment);
         }

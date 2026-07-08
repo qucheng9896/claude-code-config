@@ -1,10 +1,10 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>缴费管理 - 物业管理系统</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@500&amp;display=swap" rel="stylesheet">
   <link rel="stylesheet" href="../css/common.css">
 </head>
 <body>
@@ -14,85 +14,45 @@
   <main class="main-content">
     <div class="topbar"><div class="topbar-title">缴费管理</div><div class="topbar-user"><span>欢迎，<strong>管理员</strong></span><div class="topbar-avatar">A</div></div></div>
     <div class="page-body">
-      <div class="stats">
-        <div class="stat-card"><div class="stat-card-icon bg-green"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2" stroke-linecap="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div><div class="stat-card-value">¥128,450</div><div class="stat-card-label">本月已收缴</div></div>
-        <div class="stat-card"><div class="stat-card-icon bg-blue"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2" stroke-linecap="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></div><div class="stat-card-value">96.2%</div><div class="stat-card-label">缴费完成率</div></div>
-        <div class="stat-card"><div class="stat-card-icon bg-amber"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#d97706" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div><div class="stat-card-value">42</div><div class="stat-card-label">待确认账单</div></div>
-        <div class="stat-card"><div class="stat-card-icon bg-rose"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2" stroke-linecap="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></div><div class="stat-card-value">¥18,620</div><div class="stat-card-label">待缴/逾期金额</div></div>
+      <div class="stats" id="paymentStats">
+        <div class="stat-card"><div class="stat-card-value" id="s-paid">-</div><div class="stat-card-label">已收缴金额</div></div>
+        <div class="stat-card"><div class="stat-card-value" id="s-rate">-</div><div class="stat-card-label">缴费完成率</div></div>
+        <div class="stat-card"><div class="stat-card-value" id="s-unpaid">-</div><div class="stat-card-label">未缴/逾期</div></div>
+        <div class="stat-card"><div class="stat-card-value" id="s-total">-</div><div class="stat-card-label">账单总数</div></div>
       </div>
       <div class="toolbar">
-        <div class="toolbar-left"><div class="search-group"><input type="text" class="search-input" placeholder="搜索租户、楼栋或账单"><select class="filter-select"><option value="">全部类型</option><option>物业费</option><option>水电费</option><option>停车费</option><option>租金</option></select><select class="filter-select"><option value="">全部状态</option><option value="3">逾期</option><option value="0">未缴</option><option value="1">已缴</option><option value="2">已确认</option></select><button class="btn btn-ghost">搜索</button></div></div>
-        <div class="toolbar-right">
-          <button class="btn btn-primary" style="background:linear-gradient(135deg,#7c3aed,#6366f1);box-shadow:0 2px 8px rgba(124,58,237,0.3);" onclick="openAiRemindModal()">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-right:4px;"><path d="M12 2a3 3 0 0 0-3 3v1a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>AI智能催缴
-          </button>
-          <button class="btn btn-primary">⚡ 批量生成账单</button>
-        </div>
+        <div class="toolbar-left"><div class="search-group"><input type="text" class="search-input" id="searchInput" placeholder="搜索"><button class="btn btn-ghost" id="btnSearch">搜索</button></div></div>
+        <button class="btn btn-primary" id="btnAdd">+ 新增</button>
       </div>
-      <div class="data-card"><table><thead><tr><th>账单编号</th><th>租户</th><th>房屋</th><th>类型</th><th>金额</th><th>周期</th><th>状态</th><th>操作</th></tr></thead><tbody>
-        <tr data-idx="0"><td>BILL2501001</td><td>陈租客</td><td>1-1001</td><td>物业费</td><td>¥268.50</td><td>2025-01</td><td><span class="tag tag-confirm">已确认</span></td><td class="action-btns"><button class="btn-icon btn-icon-danger">删除</button></td></tr>
-        <tr data-idx="1"><td>BILL2501002</td><td>陈租客</td><td>1-1001</td><td>水电费</td><td>¥156.80</td><td>2025-01</td><td><span class="tag tag-paid">已缴</span></td><td class="action-btns"><button class="btn-icon">确认</button><button class="btn-icon btn-icon-danger">删除</button></td></tr>
-        <tr class="overdue-row"><td>BILL2501004</td><td>陈租客</td><td>1-1001</td><td>停车费</td><td>¥150.00</td><td>2025-01</td><td><span class="tag tag-overdue">逾期</span></td><td class="action-btns"><button class="btn-icon" style="border-color:#7c3aed;color:#7c3aed;" onclick="openAiRemindSingle('BILL2501004')">AI催缴</button><button class="btn-icon btn-icon-danger">删除</button></td></tr>
-        <tr class="overdue-row"><td>BILL2501005</td><td>刘租客</td><td>2-301</td><td>水电费</td><td>¥224.60</td><td>2025-01</td><td><span class="tag tag-overdue">逾期</span></td><td class="action-btns"><button class="btn-icon" style="border-color:#7c3aed;color:#7c3aed;" onclick="openAiRemindSingle('BILL2501005')">AI催缴</button><button class="btn-icon btn-icon-danger">删除</button></td></tr>
-        <tr data-idx="2"><td>BILL2501003</td><td>刘租客</td><td>2-301</td><td>物业费</td><td>¥360.00</td><td>2025-01</td><td><span class="tag tag-confirm">已确认</span></td><td class="action-btns"><button class="btn-icon btn-icon-danger">删除</button></td></tr>
-      </tbody></table><div class="table-footer"><span class="table-footer-info">显示 1-5 条，共 186 条（<span style="color:#dc2626;">2 条逾期</span>）</span><div class="pagination"><button class="page-btn disabled">‹</button><button class="page-btn active">1</button><button class="page-btn">2</button><button class="page-btn">›</button></div></div></div>
+      <div class="data-card"><table><thead><tr><th>账单编号</th><th>租户</th><th>房屋</th><th>类型</th><th>金额</th><th>周期</th><th>状态</th><th>操作</th></tr></thead><tbody id="paymentTbody"></tbody></table>
+        <div class="table-footer"><span class="table-footer-info" id="tableInfo">加载中...</span><div class="pagination" id="pagination"></div></div>
+      </div>
     </div>
   </main>
 </div>
-
-<!-- AI催缴弹窗 -->
-<div class="modal-overlay" id="aiRemindModal"><div class="modal" style="width:600px;">
-  <h3><span style="font-size:11px;font-weight:600;padding:2px 8px;border-radius:100px;background:linear-gradient(135deg,#7c3aed,#6366f1);color:white;">AI</span> 智能催缴</h3>
-  <p class="modal-subtitle">系统自动分析逾期账单，AI生成个性化催缴消息</p>
-  <div style="margin-bottom:20px;">
-    <div style="font-size:13px;font-weight:600;color:#334155;margin-bottom:10px;">逾期租户列表</div>
-    <div style="display:flex;flex-direction:column;gap:8px;">
-      <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:#fff5f5;border:1px solid #fecaca;border-radius:8px;">
-        <div><strong>陈租客</strong> <span style="font-size:12px;color:#64748b;">1-1001 停车费</span></div>
-        <div style="display:flex;align-items:center;gap:12px;"><span style="font-family:'JetBrains Mono',monospace;color:#dc2626;font-weight:600;">¥150.00</span><span style="font-size:11px;color:#94a3b8;">逾期15天</span><button class="btn btn-ghost" style="padding:4px 10px;font-size:12px;" onclick="selectForAiRemind('陈租客',150,15)">选择</button></div>
-      </div>
-      <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:#fff5f5;border:1px solid #fecaca;border-radius:8px;">
-        <div><strong>刘租客</strong> <span style="font-size:12px;color:#64748b;">2-301 水电费</span></div>
-        <div style="display:flex;align-items:center;gap:12px;"><span style="font-family:'JetBrains Mono',monospace;color:#dc2626;font-weight:600;">¥224.60</span><span style="font-size:11px;color:#94a3b8;">逾期12天</span><button class="btn btn-ghost" style="padding:4px 10px;font-size:12px;" onclick="selectForAiRemind('刘租客',224.6,12)">选择</button></div>
-      </div>
-    </div>
-  </div>
-  <div style="border-top:1px solid #e2e8f0;padding-top:20px;">
-    <div style="font-size:13px;font-weight:600;color:#334155;margin-bottom:10px;">催缴消息预览</div>
-    <div class="ai-msg-preview" id="aiMsgPreview"><span class="ai-msg-loading">← 选择左侧租户后点击下方"生成催缴消息"</span></div>
-    <div style="display:flex;gap:10px;margin-top:12px;"><button class="btn btn-ghost" id="btnAiGen" onclick="generateAiRemind()" disabled>🤖 生成消息</button><button class="btn btn-primary" id="btnAiSend" onclick="sendAiRemind()" style="background:linear-gradient(135deg,#7c3aed,#6366f1);" disabled>📤 确认发送</button></div>
-  </div>
-  <div class="modal-footer" style="margin-top:20px;"><button class="btn btn-ghost" onclick="closeModal('aiRemind')">关闭</button></div>
+<div class="modal-overlay" id="formModal"><div class="modal"><h3 id="modalTitle">新增</h3><input type="hidden" id="f-id"><div class="form-group"><label>账单编号 *</label><input type="text" class="form-input" id="f-no"></div><div class="form-group"><label>租户</label><select class="form-input" id="f-tenant"><option value="">请选择</option></select></div><div class="form-group"><label>房屋</label><select class="form-input" id="f-house"><option value="">请选择</option></select></div><div class="form-group"><label>费用类型</label><select class="form-input" id="f-type"><option value="物业费">物业费</option><option value="水电费">水电费</option><option value="停车费">停车费</option></select></div><div class="form-group"><label>金额 *</label><input type="number" step="0.01" class="form-input" id="f-amount"></div><div class="form-group"><label>费用周期</label><input type="text" class="form-input" id="f-period"></div><div class="form-group"><label>状态</label><select class="form-input" id="f-status"><option value="0">未缴</option><option value="1">已缴</option><option value="2">已确认</option><option value="3">逾期</option></select></div>
+  <div class="modal-footer"><button class="btn btn-ghost" onclick="closeModal('form')">取消</button><button class="btn btn-primary" id="btnSave">保存</button></div>
 </div></div>
-
-<!-- 生成账单弹窗 -->
-<div class="modal-overlay" id="genModal"><div class="modal">
-  <h3>批量生成账单</h3><p class="modal-subtitle">为指定周期自动生成所有已入住房屋的账单</p>
-  <div class="form-group"><label>费用类型 *</label><select class="form-input"><option>物业费</option><option>水电费</option><option>停车费</option><option>租金</option></select></div>
-  <div class="form-group"><label>费用周期 *</label><input type="month" class="form-input"></div>
-  <div class="form-group"><label>单价（元/㎡/月）*</label><input type="number" class="form-input" step="0.01" placeholder="如：3.00"></div>
-  <div class="form-hint">将为所有<strong>已入住</strong>房屋生成账单，已存在的账单自动跳过（防重复）</div>
-  <div class="modal-footer"><button class="btn btn-ghost" onclick="closeModal('gen')">取消</button><button class="btn btn-primary">确认生成</button></div>
-</div></div>
-
-<script src="../js/sidebar.js"></script><script src="../js/page-common.js"></script><script>initPage({name:'收费管理',hashActions:{generate:function(){showToast('打开批量生成弹窗')},ai:function(){openAiRemindModal()}});</script><script>
+<script src="https://cdn.jsdelivr.net/npm/axios@1.6.2/dist/axios.min.js"></script>
+<script src="../js/axios-config.js"></script>
+<script src="../js/sidebar.js"></script>
+<script>
+var currentPage = 1, pageSize = 10, totalPages = 1;
+function showToast(msg) { var el = document.getElementById('toast'); if (!el) return; el.textContent = msg; el.className = 'toast show'; setTimeout(function() { el.className = 'toast'; }, 3000); }
+function loadList(page) { currentPage = page || 1; var q = document.getElementById('searchInput').value.trim(); axios.post('/payment/findPage', { currentPage: currentPage, pageSize: pageSize, queryString: q }).then(function(res) { renderTable(res.data.rows); totalPages = Math.ceil(res.data.total / pageSize) || 1; renderPagination(document.getElementById('tableInfo'), res.data.total); loadStats(); }); }
+function renderTable(list) { var tb = document.getElementById('paymentTbody'); if (!list || !list.length) { tb.innerHTML = '<tr><td colspan="10" style="text-align:center;color:#94a3b8;padding:40px">暂无数据</td></tr>'; return; } var h = ''; list.forEach(function(x) { h += '<tr><td>' + x.id + '</td><td><strong>' + escapeHtml(x.name || x.title || '-') + '</strong></td><td>' + escapeHtml(x.status == 1 ? '<span class="tag tag-ok">正常</span>' : '<span class="tag tag-off">停用</span>') + '</td><td class="action-btns"><button class="btn-icon btn-edit" data-id="' + x.id + '">编辑</button><button class="btn-icon btn-icon-danger btn-del" data-id="' + x.id + '">删除</button></td></tr>'; }); tb.innerHTML = h; tb.querySelectorAll('.btn-edit').forEach(function(b) { b.addEventListener('click', function() { openEdit(this.dataset.id); }); }); tb.querySelectorAll('.btn-del').forEach(function(b) { b.addEventListener('click', function() { doDelete(this.dataset.id); }); }); }
+function renderPagination(e, t) { e.textContent = '显示第' + ((currentPage-1)*pageSize+1) + '-' + Math.min(currentPage*pageSize, t) + ' 条，共 ' + t + ' 条'; var p = document.getElementById('pagination'), h = '<button class="page-btn' + (currentPage<=1?' disabled':'') + '" data-page="' + (currentPage-1) + '">\u2039</button>'; for (var i=1;i<=totalPages;i++) h += '<button class="page-btn'+(i===currentPage?' active':'')+'" data-page="'+i+'">'+i+'</button>'; h += '<button class="page-btn'+(currentPage>=totalPages?' disabled':'')+'" data-page="'+(currentPage+1)+'">\u203a</button>'; p.innerHTML = h; p.querySelectorAll('.page-btn').forEach(function(b) { b.addEventListener('click', function() { var pg=parseInt(this.dataset.page); if(pg>=1&&pg<=totalPages) loadList(pg); }); }); }
+function loadStats() { axios.post('/payment/findPage', {currentPage:1,pageSize:9999,queryString:''}).then(function(res){document.getElementById('s-total').textContent=res.data.rows.length;}); }
+function openAdd() { document.getElementById('modalTitle').textContent='新增'; document.getElementById('f-id').value=''; document.getElementById('formModal').classList.add('show'); }
+function openEdit(id) { axios.get('/payment/findById/' + id).then(function(res) { document.getElementById('modalTitle').textContent='编辑'; document.getElementById('f-id').value=res.data.id; document.getElementById('formModal').classList.add('show'); }); }
+function doSave() { var id=document.getElementById('f-id').value; var data={}; var p=id?axios.put('/payment/edit',Object.assign({id:parseInt(id)},data)):axios.post('/payment/add',data); p.then(function(){showToast(id?'修改成功':'新增成功');closeModal('form');loadList(currentPage);}); }
+function doDelete(id) { if(!confirm('确认删除吗？'))return; axios.delete('/payment/delete/'+id).then(function(){showToast('删除成功');loadList(currentPage);}); }
+function closeModal(n) { document.getElementById(n+'Modal').classList.remove('show'); }
+function escapeHtml(s) { return s ? String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;') : '-'; }
+document.getElementById('btnAdd').addEventListener('click',openAdd); document.getElementById('btnSave').addEventListener('click',doSave); document.getElementById('btnSearch').addEventListener('click',function(){loadList(1);}); document.getElementById('searchInput').addEventListener('keydown',function(e){if(e.key==='Enter')loadList(1);}); document.getElementById('formModal').addEventListener('click',function(e){if(e.target===this)this.classList.remove('show');});
+loadList(1);
 initSidebar('payment:list');
-var aiOwner=null, aiMsg=null;
-function closeModal(n){document.getElementById(n+'Modal').classList.remove('show');}
-function openAiRemindModal(){document.getElementById('aiRemindModal').classList.add('show');}
-function openAiRemindSingle(id){selectForAiRemind('陈租客',150,15);openAiRemindModal();} // TODO: 根据id查询业主信息
-function selectForAiRemind(name,amount,days){aiOwner={name:name,amount:amount,days:days};document.getElementById('btnAiGen').disabled=false;document.getElementById('btnAiSend').disabled=true;document.getElementById('aiMsgPreview').innerHTML='<span class="ai-msg-loading">已选择：<strong>'+name+'</strong>，逾期 ¥'+amount+'，'+days+'天</span>';}
-function generateAiRemind(){if(!aiOwner)return;var p=document.getElementById('aiMsgPreview');p.innerHTML='<span class="ai-msg-loading">AI 正在生成催缴消息...</span>';setTimeout(function(){aiMsg=aiOwner.name+' 您好，您有账单逾期未缴，总金额 ¥'+aiOwner.amount.toFixed(2)+'，已逾期 '+aiOwner.days+' 天。请尽快登录系统或到物业处缴纳，以免影响信用记录。如有疑问请联系物业客服。感谢配合！';p.textContent=aiMsg;document.getElementById('btnAiSend').disabled=false;},1200);}
-function sendAiRemind(){if(!aiMsg)return;alert('催缴消息已发送给 '+aiOwner.name);document.getElementById('btnAiSend').disabled=true;aiOwner=null;aiMsg=null;}
-document.querySelectorAll('.modal-overlay').forEach(function(m){m.addEventListener('click',function(e){if(e.target===this)this.classList.remove('show');});});
+
 </script>
-<div class="modal-overlay" id="editModal"><div class="modal"><h3>编辑账单</h3><div class="form-group"><label>金额 *</label><input type="number" class="form-input" step="0.01" placeholder="请输入金额"></div><div class="form-group"><label>备注</label><textarea class="form-input" rows="3" placeholder="备注信息"></textarea></div><div class="modal-footer"><button class="btn btn-ghost" onclick="closeModal('edit')">取消</button><button class="btn btn-primary">保存修改</button></div></div></div>
 </body>
 </html>
-
-
-
-
-
-
-

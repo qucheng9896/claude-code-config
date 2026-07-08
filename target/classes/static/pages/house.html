@@ -1,10 +1,10 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>住宅管理 - 物业管理系统</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@500&amp;display=swap" rel="stylesheet">
+  <title>房屋管理 - 物业管理系统</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="../css/common.css">
 </head>
 <body>
@@ -12,46 +12,31 @@
 <div class="admin-layout">
   <div id="sidebar-placeholder"></div>
   <main class="main-content">
-    <div class="topbar"><div class="topbar-title">住宅管理</div><div class="topbar-user"><span>欢迎，<strong>管理员</strong></span><div class="topbar-avatar">A</div></div></div>
+    <div class="topbar"><div class="topbar-title">房屋管理</div><div class="topbar-user"><span>欢迎，<strong>管理员</strong></span><div class="topbar-avatar">A</div></div></div>
     <div class="page-body">
-      <div class="stats" id="houseStats">
-        <div class="stat-card"><div class="stat-card-value" id="s-total">-</div><div class="stat-card-label">房屋总数</div></div>
-        <div class="stat-card"><div class="stat-card-value" id="s-occupied">-</div><div class="stat-card-label">已入住</div></div>
-        <div class="stat-card"><div class="stat-card-value" id="s-vacant">-</div><div class="stat-card-label">空置</div></div>
+      <div class="stats">
+        <div class="stat-card"><div class="stat-card-icon bg-blue"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2" stroke-linecap="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg></div><div class="stat-card-value">203</div><div class="stat-card-label">房屋总数</div></div>
+        <div class="stat-card"><div class="stat-card-icon bg-green"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2" stroke-linecap="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg></div><div class="stat-card-value">189</div><div class="stat-card-label">已入住</div></div>
+        <div class="stat-card"><div class="stat-card-icon bg-purple"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#7c3aed" stroke-width="2" stroke-linecap="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg></div><div class="stat-card-value">14</div><div class="stat-card-label">空置</div></div>
+        <div class="stat-card"><div class="stat-card-icon bg-amber"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#d97706" stroke-width="2" stroke-linecap="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg></div><div class="stat-card-value">12</div><div class="stat-card-label">楼栋数量</div></div>
       </div>
-      <div class="toolbar">
-        <div class="toolbar-left"><div class="search-group"><input type="text" class="search-input" id="searchInput" placeholder="搜索"><button class="btn btn-ghost" id="btnSearch">搜索</button></div></div>
-        <button class="btn btn-primary" id="btnAdd">+ 新增</button>
-      </div>
-      <div class="data-card"><table><thead><tr><th>ID</th><th>楼栋</th><th>房间号</th><th>面积</th><th>户型</th><th>业主</th><th>租户</th><th>状态</th><th>操作</th></tr></thead><tbody id="houseTbody"></tbody></table>
-        <div class="table-footer"><span class="table-footer-info" id="tableInfo">加载中...</span><div class="pagination" id="pagination"></div></div>
-      </div>
+      <div class="toolbar"><div class="toolbar-left"><div class="search-group"><input type="text" class="search-input" placeholder="搜索楼栋、房间号"><button class="btn btn-ghost">搜索</button></div></div><button class="btn btn-primary">+ 新增房屋</button></div>
+      <div class="data-card"><table><thead><tr><th>ID</th><th>楼栋</th><th>房间号</th><th>面积(㎡)</th><th>业主</th><th>租户</th><th>状态</th><th>操作</th></tr></thead><tbody>
+        <tr data-idx="0"><td>1</td><td><strong>1栋</strong></td><td>1001</td><td>89.50</td><td>王大明</td><td>陈租客</td><td><span class="tag tag-ok">已入住</span></td><td class="action-btns"><button class="btn-icon">编辑</button><button class="btn-icon btn-icon-danger">删除</button></td></tr>
+        <tr data-idx="1"><td>2</td><td><strong>1栋</strong></td><td>1002</td><td>95.20</td><td>王大明</td><td>—</td><td><span class="tag tag-empty">空置</span></td><td class="action-btns"><button class="btn-icon">编辑</button><button class="btn-icon btn-icon-danger">删除</button></td></tr>
+        <tr data-idx="2"><td>3</td><td><strong>2栋</strong></td><td>301</td><td>120.00</td><td>李小红</td><td>刘租客</td><td><span class="tag tag-ok">已入住</span></td><td class="action-btns"><button class="btn-icon">编辑</button><button class="btn-icon btn-icon-danger">删除</button></td></tr>
+      </tbody></table><div class="table-footer"><span class="table-footer-info">显示 1-3 条，共 203 条</span><div class="pagination"><button class="page-btn disabled">‹</button><button class="page-btn active">1</button><button class="page-btn">2</button><button class="page-btn">›</button></div></div></div>
     </div>
   </main>
 </div>
-<div class="modal-overlay" id="formModal"><div class="modal"><h3 id="modalTitle">新增</h3><input type="hidden" id="f-id"><div class="form-group"><label>楼栋 *</label><select class="form-input" id="f-building"></select></div><div class="form-group"><label>房间号 *</label><input type="text" class="form-input" id="f-room"></div><div class="form-group"><label>面积(㎡) *</label><input type="number" step="0.01" class="form-input" id="f-area"></div><div class="form-group"><label>户型</label><input type="text" class="form-input" id="f-type"></div><div class="form-group"><label>业主</label><select class="form-input" id="f-owner"><option value="">-- 无 --</option></select></div><div class="form-group"><label>租户</label><select class="form-input" id="f-tenant"><option value="">-- 无 --</option></select></div><div class="form-group"><label>状态</label><select class="form-input" id="f-status"><option value="0">空置</option><option value="1">已入住</option></select></div>
-  <div class="modal-footer"><button class="btn btn-ghost" onclick="closeModal('form')">取消</button><button class="btn btn-primary" id="btnSave">保存</button></div>
-</div></div>
-<script src="https://cdn.jsdelivr.net/npm/axios@1.6.2/dist/axios.min.js"></script>
-<script src="../js/axios-config.js"></script>
-<script src="../js/sidebar.js"></script>
-<script>
-var currentPage = 1, pageSize = 10, totalPages = 1;
-function showToast(msg) { var el = document.getElementById('toast'); if (!el) return; el.textContent = msg; el.className = 'toast show'; setTimeout(function() { el.className = 'toast'; }, 3000); }
-function loadList(page) { currentPage = page || 1; var q = document.getElementById('searchInput').value.trim(); axios.post('/house/findPage', { currentPage: currentPage, pageSize: pageSize, queryString: q }).then(function(res) { renderTable(res.data.rows); totalPages = Math.ceil(res.data.total / pageSize) || 1; renderPagination(document.getElementById('tableInfo'), res.data.total); loadStats(); }); }
-function renderTable(list) { var tb = document.getElementById('houseTbody'); if (!list || !list.length) { tb.innerHTML = '<tr><td colspan="10" style="text-align:center;color:#94a3b8;padding:40px">暂无数据</td></tr>'; return; } var h = ''; list.forEach(function(x) { h += '<tr><td>' + x.id + '</td><td><strong>' + escapeHtml(x.name || x.title || '-') + '</strong></td><td>' + escapeHtml(x.status == 1 ? '<span class="tag tag-ok">正常</span>' : '<span class="tag tag-off">停用</span>') + '</td><td class="action-btns"><button class="btn-icon btn-edit" data-id="' + x.id + '">编辑</button><button class="btn-icon btn-icon-danger btn-del" data-id="' + x.id + '">删除</button></td></tr>'; }); tb.innerHTML = h; tb.querySelectorAll('.btn-edit').forEach(function(b) { b.addEventListener('click', function() { openEdit(this.dataset.id); }); }); tb.querySelectorAll('.btn-del').forEach(function(b) { b.addEventListener('click', function() { doDelete(this.dataset.id); }); }); }
-function renderPagination(e, t) { e.textContent = '显示第' + ((currentPage-1)*pageSize+1) + '-' + Math.min(currentPage*pageSize, t) + ' 条，共 ' + t + ' 条'; var p = document.getElementById('pagination'), h = '<button class="page-btn' + (currentPage<=1?' disabled':'') + '" data-page="' + (currentPage-1) + '">\u2039</button>'; for (var i=1;i<=totalPages;i++) h += '<button class="page-btn'+(i===currentPage?' active':'')+'" data-page="'+i+'">'+i+'</button>'; h += '<button class="page-btn'+(currentPage>=totalPages?' disabled':'')+'" data-page="'+(currentPage+1)+'">\u203a</button>'; p.innerHTML = h; p.querySelectorAll('.page-btn').forEach(function(b) { b.addEventListener('click', function() { var pg=parseInt(this.dataset.page); if(pg>=1&&pg<=totalPages) loadList(pg); }); }); }
-function loadStats() { axios.post('/house/findPage', {currentPage:1,pageSize:9999,queryString:''}).then(function(res){document.getElementById('s-total').textContent=res.data.rows.length;}); }
-function openAdd() { document.getElementById('modalTitle').textContent='新增'; document.getElementById('f-id').value=''; document.getElementById('formModal').classList.add('show'); }
-function openEdit(id) { axios.get('/house/findById/' + id).then(function(res) { document.getElementById('modalTitle').textContent='编辑'; document.getElementById('f-id').value=res.data.id; document.getElementById('formModal').classList.add('show'); }); }
-function doSave() { var id=document.getElementById('f-id').value; var data={}; var p=id?axios.put('/house/edit',Object.assign({id:parseInt(id)},data)):axios.post('/house/add',data); p.then(function(){showToast(id?'修改成功':'新增成功');closeModal('form');loadList(currentPage);}); }
-function doDelete(id) { if(!confirm('确认删除吗？'))return; axios.delete('/house/delete/'+id).then(function(){showToast('删除成功');loadList(currentPage);}); }
-function closeModal(n) { document.getElementById(n+'Modal').classList.remove('show'); }
-function escapeHtml(s) { return s ? String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;') : '-'; }
-document.getElementById('btnAdd').addEventListener('click',openAdd); document.getElementById('btnSave').addEventListener('click',doSave); document.getElementById('btnSearch').addEventListener('click',function(){loadList(1);}); document.getElementById('searchInput').addEventListener('keydown',function(e){if(e.key==='Enter')loadList(1);}); document.getElementById('formModal').addEventListener('click',function(e){if(e.target===this)this.classList.remove('show');});
-loadList(1);
-initSidebar('house:list');
-
-</script>
+<script src="../js/sidebar.js"></script><script src="../js/page-common.js"></script><script>initPage({name:'住宅管理',hashActions:{add:function(){showToast('打开新增房屋弹窗')},vacant:function(){showToast('筛选空置房屋')},type:function(){showToast('户型统计')}});</script><script>initSidebar('house:list');</script>
+<div class="modal-overlay" id="editModal"><div class="modal"><h3>编辑信息</h3><div class="form-group"><label>名称 *</label><input type="text" class="form-input" placeholder="请输入"></div><div class="form-group"><label>备注</label><textarea class="form-input" rows="3" placeholder="备注信息"></textarea></div><div class="modal-footer"><button class="btn btn-ghost" onclick="closeModal('edit')">取消</button><button class="btn btn-primary">保存修改</button></div></div></div>
 </body>
 </html>
+
+
+
+
+
+
+

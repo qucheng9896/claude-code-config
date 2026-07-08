@@ -1,0 +1,43 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>用户管理 - 物业管理系统</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/common.css">
+</head>
+<body>
+<div class="toast" id="toast"></div>
+<div class="admin-layout">
+  <div id="sidebar-placeholder"></div>
+  <main class="main-content">
+    <div class="topbar"><div class="topbar-title">用户管理</div><div class="topbar-user"><span>欢迎，<strong>管理员</strong></span><div class="topbar-avatar">A</div></div></div>
+    <div class="page-body">
+      <div class="stats">
+        <div class="stat-card"><div class="stat-card-icon bg-green"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2" stroke-linecap="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div><div class="stat-card-value">161</div><div class="stat-card-label">用户总数</div></div>
+        <div class="stat-card"><div class="stat-card-icon bg-amber"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#d97706" stroke-width="2" stroke-linecap="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div><div class="stat-card-value">5</div><div class="stat-card-label">管理员</div></div>
+        <div class="stat-card"><div class="stat-card-icon bg-blue"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2" stroke-linecap="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg></div><div class="stat-card-value">156</div><div class="stat-card-label">业主/租户用户</div></div>
+        <div class="stat-card"><div class="stat-card-icon bg-purple"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#7c3aed" stroke-width="2" stroke-linecap="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/></svg></div><div class="stat-card-value">3</div><div class="stat-card-label">待激活</div></div>
+      </div>
+      <div class="toolbar"><div class="toolbar-left"><div class="search-group"><input type="text" class="search-input" placeholder="搜索用户名、姓名"><select class="filter-select"><option value="">全部角色</option><option>管理员</option><option>业主</option><option>租户</option></select><button class="btn btn-ghost">搜索</button></div></div><button class="btn btn-primary">+ 新增用户</button></div>
+      <div class="data-card"><table><thead><tr><th>ID</th><th>用户名</th><th>姓名</th><th>手机号</th><th>角色</th><th>关联人员</th><th>状态</th><th>操作</th></tr></thead><tbody>
+        <tr data-idx="0"><td>1</td><td><strong>admin</strong></td><td>系统管理员</td><td>139****0000</td><td><span class="tag tag-admin">管理员</span></td><td>—</td><td><span class="tag tag-ok">正常</span></td><td class="action-btns"><button class="btn-icon">编辑</button></td></tr>
+        <tr data-idx="1"><td>2</td><td><strong>wdming</strong></td><td>王大明</td><td>138****0001</td><td><span class="tag tag-owner">业主</span></td><td>王大明</td><td><span class="tag tag-ok">正常</span></td><td class="action-btns"><button class="btn-icon">编辑</button><button class="btn-icon btn-icon-danger">删除</button></td></tr>
+        <tr data-idx="2"><td>3</td><td><strong>czke1</strong></td><td>陈租客</td><td>139****0011</td><td><span class="tag tag-info">租户</span></td><td>陈租客</td><td><span class="tag tag-ok">正常</span></td><td class="action-btns"><button class="btn-icon">编辑</button><button class="btn-icon btn-icon-danger">删除</button></td></tr>
+        <tr data-idx="3"><td>4</td><td><strong>lzke2</strong></td><td>刘租客</td><td>139****0012</td><td><span class="tag tag-info">租户</span></td><td>刘租客</td><td><span class="tag tag-off">停用</span></td><td class="action-btns"><button class="btn-icon">编辑</button><button class="btn-icon btn-icon-danger">删除</button></td></tr>
+      </tbody></table><div class="table-footer"><span class="table-footer-info">显示 1-4 条，共 161 条</span><div class="pagination"><button class="page-btn disabled">‹</button><button class="page-btn active">1</button><button class="page-btn">2</button><button class="page-btn">›</button></div></div></div>
+    </div>
+  </main>
+</div>
+<script src="../js/sidebar.js"></script><script src="../js/page-common.js"></script><script>initPage({name:'系统管理',hashActions:{add:function(){showToast('打开新建用户弹窗')},role:function(){showToast('角色管理')},log:function(){showToast('操作日志')}});</script><script>initSidebar('user:list');</script>
+<div class="modal-overlay" id="editModal"><div class="modal"><h3>编辑信息</h3><div class="form-group"><label>名称 *</label><input type="text" class="form-input" placeholder="请输入"></div><div class="form-group"><label>备注</label><textarea class="form-input" rows="3" placeholder="备注信息"></textarea></div><div class="modal-footer"><button class="btn btn-ghost" onclick="closeModal('edit')">取消</button><button class="btn btn-primary">保存修改</button></div></div></div>
+</body>
+</html>
+
+
+
+
+
+
+

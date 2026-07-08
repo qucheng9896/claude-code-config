@@ -1,0 +1,43 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>商铺管理 - 物业管理系统</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/common.css">
+</head>
+<body>
+<div class="toast" id="toast"></div>
+<div class="admin-layout">
+  <div id="sidebar-placeholder"></div>
+  <main class="main-content">
+    <div class="topbar"><div class="topbar-title">商铺管理</div><div class="topbar-user"><span>欢迎，<strong>管理员</strong></span><div class="topbar-avatar">A</div></div></div>
+    <div class="page-body">
+      <div class="stats">
+        <div class="stat-card"><div class="stat-card-icon bg-blue"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2" stroke-linecap="round"><path d="M3 21h18M5 21V7l8-4 8 4v14"/></svg></div><div class="stat-card-value">36</div><div class="stat-card-label">商铺总数</div></div>
+        <div class="stat-card"><div class="stat-card-icon bg-green"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2" stroke-linecap="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/></svg></div><div class="stat-card-value">31</div><div class="stat-card-label">已出租</div></div>
+        <div class="stat-card"><div class="stat-card-icon bg-amber"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#d97706" stroke-width="2" stroke-linecap="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div><div class="stat-card-value">¥95K</div><div class="stat-card-label">月租金总额</div></div>
+        <div class="stat-card"><div class="stat-card-icon bg-purple"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#7c3aed" stroke-width="2" stroke-linecap="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/></svg></div><div class="stat-card-value">86.1%</div><div class="stat-card-label">出租率</div></div>
+      </div>
+      <div class="toolbar"><div class="toolbar-left"><div class="search-group"><input type="text" class="search-input" placeholder="搜索商铺编号、租户"><select class="filter-select"><option value="">全部状态</option><option>在租</option><option>空置</option><option>自用</option></select><button class="btn btn-ghost">搜索</button></div></div><button class="btn btn-primary">+ 新增商铺</button></div>
+      <div class="data-card"><table><thead><tr><th>商铺编号</th><th>面积(㎡)</th><th>业主</th><th>当前租户</th><th>月租金</th><th>经营范围</th><th>状态</th><th>操作</th></tr></thead><tbody>
+        <tr data-idx="0"><td>S1F-001</td><td>120.00</td><td>物业自持</td><td>便利超市</td><td>¥5,800</td><td>便利店</td><td><span class="tag tag-ok">在租</span></td><td class="action-btns"><button class="btn-icon">合同</button><button class="btn-icon">编辑</button></td></tr>
+        <tr data-idx="1"><td>S1F-002</td><td>85.50</td><td>物业自持</td><td>鑫鑫餐饮</td><td>¥4,200</td><td>餐饮</td><td><span class="tag tag-ok">在租</span></td><td class="action-btns"><button class="btn-icon">合同</button><button class="btn-icon">编辑</button></td></tr>
+        <tr data-idx="2"><td>S1F-003</td><td>200.00</td><td>王大明</td><td>—</td><td>—</td><td>—</td><td><span class="tag tag-empty">空置</span></td><td class="action-btns"><button class="btn-icon">招商</button><button class="btn-icon">编辑</button></td></tr>
+        <tr data-idx="3"><td>S2F-001</td><td>60.00</td><td>李小红</td><td>鲜丰水果</td><td>¥3,600</td><td>水果生鲜</td><td><span class="tag tag-ok">在租</span></td><td class="action-btns"><button class="btn-icon">合同</button><button class="btn-icon">编辑</button></td></tr>
+      </tbody></table><div class="table-footer"><span class="table-footer-info">显示 1-4 条，共 36 间商铺</span><div class="pagination"><button class="page-btn disabled">‹</button><button class="page-btn active">1</button><button class="page-btn">›</button></div></div></div>
+    </div>
+  </main>
+</div>
+<script src="../js/sidebar.js"></script><script src="../js/page-common.js"></script><script>initPage({name:'商铺管理',hashActions:{add:function(){showToast('打开新增商铺弹窗')}});</script><script>initSidebar('shop:list');</script>
+<div class="modal-overlay" id="editModal"><div class="modal"><h3>编辑信息</h3><div class="form-group"><label>名称 *</label><input type="text" class="form-input" placeholder="请输入"></div><div class="form-group"><label>备注</label><textarea class="form-input" rows="3" placeholder="备注信息"></textarea></div><div class="modal-footer"><button class="btn btn-ghost" onclick="closeModal('edit')">取消</button><button class="btn btn-primary">保存修改</button></div></div></div>
+</body>
+</html>
+
+
+
+
+
+
+

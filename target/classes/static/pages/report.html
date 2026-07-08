@@ -93,22 +93,6 @@
     </div>
   </main>
 </div>
-<script src="https://cdn.jsdelivr.net/npm/axios@1.6.2/dist/axios.min.js"></script>
-<script src="../js/axios-config.js"></script>
-<script src="../js/sidebar.js"></script>
-<script src="../js/page-common.js"></script>
-<script>
-initSidebar('report:payment');
-axios.get('/dashboard/payment').then(function(res) {
-  if (res.flag) {
-    var d = res.data;
-    var cards = document.querySelectorAll('.stats .stat-card-value');
-    if (cards[0]) cards[0].textContent = '¥' + ((d.totalPaidAmount || 0) / 1000).toFixed(0) + 'K';
-    if (cards[1]) cards[1].textContent = (d.paymentRate || '0%');
-    if (cards[2]) cards[2].textContent = '¥' + ((d.totalOverdueAmount || 0) / 1000).toFixed(1) + 'K';
-    if (cards[3]) cards[3].textContent = d.totalBills || 0;
-  }
-}).catch(function() {});
-</script>
+<script src="../js/sidebar.js"></script><script src="../js/page-common.js"></script><script>initPage({name:'收缴明细表',hashActions:{export:function(){exportCSV()},rental:function(){showToast('租赁统计报表')},year:function(){showToast('年度汇总报表')}}});</script><script>initSidebar('report:payment');</script>
 </body>
 </html>

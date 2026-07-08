@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>公共设施 - 物业管理系统</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@500&amp;display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="../css/common.css">
 </head>
 <body>
@@ -14,44 +14,24 @@
   <main class="main-content">
     <div class="topbar"><div class="topbar-title">公共设施</div><div class="topbar-user"><span>欢迎，<strong>管理员</strong></span><div class="topbar-avatar">A</div></div></div>
     <div class="page-body">
-      <div class="stats" id="facilityStats">
-        <div class="stat-card"><div class="stat-card-value" id="s-total">-</div><div class="stat-card-label">设施总数</div></div>
-        <div class="stat-card"><div class="stat-card-value" id="s-normal">-</div><div class="stat-card-label">正常</div></div>
-        <div class="stat-card"><div class="stat-card-value" id="s-repair">-</div><div class="stat-card-label">需维修</div></div>
+      <div class="stats">
+        <div class="stat-card"><div class="stat-card-icon bg-blue"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2" stroke-linecap="round"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M12 12h.01"/></svg></div><div class="stat-card-value">36</div><div class="stat-card-label">电梯总数</div></div>
+        <div class="stat-card"><div class="stat-card-icon bg-green"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2" stroke-linecap="round"><path d="M12 2v20M2 12h20"/></svg></div><div class="stat-card-value">8</div><div class="stat-card-label">配电房</div></div>
+        <div class="stat-card"><div class="stat-card-icon bg-amber"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#d97706" stroke-width="2" stroke-linecap="round"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg></div><div class="stat-card-value">12</div><div class="stat-card-label">水泵房</div></div>
+        <div class="stat-card"><div class="stat-card-icon bg-purple"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#7c3aed" stroke-width="2" stroke-linecap="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/></svg></div><div class="stat-card-value">15,600㎡</div><div class="stat-card-label">绿化面积</div></div>
       </div>
-      <div class="toolbar">
-        <div class="toolbar-left"><div class="search-group"><input type="text" class="search-input" id="searchInput" placeholder="搜索"><button class="btn btn-ghost" id="btnSearch">搜索</button></div></div>
-        <button class="btn btn-primary" id="btnAdd">+ 新增</button>
-      </div>
-      <div class="data-card"><table><thead><tr><th>ID</th><th>设施名称</th><th>类型</th><th>位置</th><th>数量/面积</th><th>维护负责人</th><th>上次检修</th><th>下次检修</th><th>状态</th><th>操作</th></tr></thead><tbody id="facilityTbody"></tbody></table>
-        <div class="table-footer"><span class="table-footer-info" id="tableInfo">加载中...</span><div class="pagination" id="pagination"></div></div>
-      </div>
+      <div class="toolbar"><div class="toolbar-left"><div class="search-group"><input type="text" class="search-input" placeholder="搜索设施名称、位置"><select class="filter-select"><option value="">全部类型</option><option>电梯</option><option>配电房</option><option>水泵房</option><option>消防设施</option><option>绿化区域</option><option>道路/围墙</option></select><select class="filter-select"><option value="">全部状态</option><option>正常</option><option>需维修</option><option>检修中</option></select><button class="btn btn-ghost">搜索</button></div></div><button class="btn btn-primary">+ 新增设施</button></div>
+      <div class="data-card"><table><thead><tr><th>设施名称</th><th>类型</th><th>位置</th><th>数量/面积</th><th>维护负责人</th><th>上次检修</th><th>下次检修</th><th>状态</th><th>操作</th></tr></thead><tbody>
+        <tr data-idx="0"><td>1栋电梯A</td><td><span class="tag tag-info">电梯</span></td><td>1栋1单元</td><td>2台(1000kg)</td><td>张师傅</td><td>2025-01-01</td><td>2025-02-01</td><td><span class="tag tag-ok">正常</span></td><td class="action-btns"><button class="btn-icon">检查</button><button class="btn-icon">编辑</button></td></tr>
+        <tr data-idx="1"><td>1栋电梯B</td><td><span class="tag tag-info">电梯</span></td><td>1栋2单元</td><td>2台(1000kg)</td><td>张师傅</td><td>2025-01-01</td><td>2025-02-01</td><td><span class="tag tag-confirm">需维修</span></td><td class="action-btns"><button class="btn-icon">报修</button><button class="btn-icon">编辑</button></td></tr>
+        <tr data-idx="2"><td>1号配电房</td><td><span class="tag tag-owner">配电房</span></td><td>B1层东侧</td><td>1间(80㎡)</td><td>李电工</td><td>2024-12-15</td><td>2025-03-15</td><td><span class="tag tag-ok">正常</span></td><td class="action-btns"><button class="btn-icon">巡检</button><button class="btn-icon">编辑</button></td></tr>
+        <tr data-idx="3"><td>消防泵房</td><td><span class="tag tag-confirm">水泵房</span></td><td>B2层西侧</td><td>1间(60㎡)</td><td>王师傅</td><td>2024-12-20</td><td>2025-03-20</td><td><span class="tag tag-off">检修中</span></td><td class="action-btns"><button class="btn-icon">查看</button></td></tr>
+        <tr data-idx="4"><td>中央绿化带</td><td><span class="tag tag-paid">绿化区域</span></td><td>小区中央</td><td>8,200㎡</td><td>绿化工-赵</td><td>2025-01-05</td><td>2025-01-12</td><td><span class="tag tag-ok">正常</span></td><td class="action-btns"><button class="btn-icon">养护</button><button class="btn-icon">编辑</button></td></tr>
+        <tr data-idx="5"><td>北门道闸</td><td><span class="tag tag-overdue">道路/围墙</span></td><td>北大门</td><td>2套</td><td>物业-安保</td><td>2025-01-02</td><td>2025-04-02</td><td><span class="tag tag-ok">正常</span></td><td class="action-btns"><button class="btn-icon">检修</button><button class="btn-icon">编辑</button></td></tr>
+      </tbody></table><div class="table-footer"><span class="table-footer-info">显示 1-6 条，共 128 条设施记录</span><div class="pagination"><button class="page-btn disabled">‹</button><button class="page-btn active">1</button><button class="page-btn">2</button><button class="page-btn">›</button></div></div></div>
     </div>
   </main>
 </div>
-<div class="modal-overlay" id="formModal"><div class="modal"><h3 id="modalTitle">新增</h3><input type="hidden" id="f-id"><div class="form-group"><label>设施名称 *</label><input type="text" class="form-input" id="f-name"></div><div class="form-group"><label>类型</label><select class="form-input" id="f-type"><option value="电梯">电梯</option><option value="配电房">配电房</option><option value="水泵房">水泵房</option><option value="消防设施">消防设施</option><option value="绿化区域">绿化区域</option><option value="道路/围墙">道路/围墙</option></select></div><div class="form-group"><label>位置</label><input type="text" class="form-input" id="f-location"></div><div class="form-group"><label>数量/面积</label><input type="text" class="form-input" id="f-quantity"></div><div class="form-group"><label>维护负责人</label><input type="text" class="form-input" id="f-maintainer"></div><div class="form-group"><label>上次检修</label><input type="date" class="form-input" id="f-last"></div><div class="form-group"><label>下次检修</label><input type="date" class="form-input" id="f-next"></div><div class="form-group"><label>状态</label><select class="form-input" id="f-status"><option value="1">正常</option><option value="2">需维修</option><option value="3">检修中</option></select></div>
-  <div class="modal-footer"><button class="btn btn-ghost" onclick="closeModal('form')">取消</button><button class="btn btn-primary" id="btnSave">保存</button></div>
-</div></div>
-<script src="https://cdn.jsdelivr.net/npm/axios@1.6.2/dist/axios.min.js"></script>
-<script src="../js/axios-config.js"></script>
-<script src="../js/sidebar.js"></script>
-<script>
-var currentPage = 1, pageSize = 10, totalPages = 1;
-function showToast(msg) { var el = document.getElementById('toast'); if (!el) return; el.textContent = msg; el.className = 'toast show'; setTimeout(function() { el.className = 'toast'; }, 3000); }
-function loadList(page) { currentPage = page || 1; var q = document.getElementById('searchInput').value.trim(); axios.post('/facility/findPage', { currentPage: currentPage, pageSize: pageSize, queryString: q }).then(function(res) { renderTable(res.data.rows); totalPages = Math.ceil(res.data.total / pageSize) || 1; renderPagination(document.getElementById('tableInfo'), res.data.total); loadStats(); }); }
-function renderTable(list) { var tb = document.getElementById('facilityTbody'); if (!list || !list.length) { tb.innerHTML = '<tr><td colspan="10" style="text-align:center;color:#94a3b8;padding:40px">暂无数据</td></tr>'; return; } var h = ''; list.forEach(function(x) { h += '<tr><td>' + x.id + '</td><td><strong>' + escapeHtml(x.name || x.title || '-') + '</strong></td><td>' + escapeHtml(x.status == 1 ? '<span class="tag tag-ok">正常</span>' : '<span class="tag tag-off">停用</span>') + '</td><td class="action-btns"><button class="btn-icon btn-edit" data-id="' + x.id + '">编辑</button><button class="btn-icon btn-icon-danger btn-del" data-id="' + x.id + '">删除</button></td></tr>'; }); tb.innerHTML = h; tb.querySelectorAll('.btn-edit').forEach(function(b) { b.addEventListener('click', function() { openEdit(this.dataset.id); }); }); tb.querySelectorAll('.btn-del').forEach(function(b) { b.addEventListener('click', function() { doDelete(this.dataset.id); }); }); }
-function renderPagination(e, t) { e.textContent = '显示第' + ((currentPage-1)*pageSize+1) + '-' + Math.min(currentPage*pageSize, t) + ' 条，共 ' + t + ' 条'; var p = document.getElementById('pagination'), h = '<button class="page-btn' + (currentPage<=1?' disabled':'') + '" data-page="' + (currentPage-1) + '">\u2039</button>'; for (var i=1;i<=totalPages;i++) h += '<button class="page-btn'+(i===currentPage?' active':'')+'" data-page="'+i+'">'+i+'</button>'; h += '<button class="page-btn'+(currentPage>=totalPages?' disabled':'')+'" data-page="'+(currentPage+1)+'">\u203a</button>'; p.innerHTML = h; p.querySelectorAll('.page-btn').forEach(function(b) { b.addEventListener('click', function() { var pg=parseInt(this.dataset.page); if(pg>=1&&pg<=totalPages) loadList(pg); }); }); }
-function loadStats() { axios.post('/facility/findPage', {currentPage:1,pageSize:9999,queryString:''}).then(function(res){document.getElementById('s-total').textContent=res.data.rows.length;}); }
-function openAdd() { document.getElementById('modalTitle').textContent='新增'; document.getElementById('f-id').value=''; document.getElementById('formModal').classList.add('show'); }
-function openEdit(id) { axios.get('/facility/findById/' + id).then(function(res) { document.getElementById('modalTitle').textContent='编辑'; document.getElementById('f-id').value=res.data.id; document.getElementById('formModal').classList.add('show'); }); }
-function doSave() { var id=document.getElementById('f-id').value; var data={}; var p=id?axios.put('/facility/edit',Object.assign({id:parseInt(id)},data)):axios.post('/facility/add',data); p.then(function(){showToast(id?'修改成功':'新增成功');closeModal('form');loadList(currentPage);}); }
-function doDelete(id) { if(!confirm('确认删除吗？'))return; axios.delete('/facility/delete/'+id).then(function(){showToast('删除成功');loadList(currentPage);}); }
-function closeModal(n) { document.getElementById(n+'Modal').classList.remove('show'); }
-function escapeHtml(s) { return s ? String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;') : '-'; }
-document.getElementById('btnAdd').addEventListener('click',openAdd); document.getElementById('btnSave').addEventListener('click',doSave); document.getElementById('btnSearch').addEventListener('click',function(){loadList(1);}); document.getElementById('searchInput').addEventListener('keydown',function(e){if(e.key==='Enter')loadList(1);}); document.getElementById('formModal').addEventListener('click',function(e){if(e.target===this)this.classList.remove('show');});
-loadList(1);
-initSidebar('facility:list');
-
-</script>
+<script src="../js/sidebar.js"></script><script src="../js/page-common.js"></script><script>initPage({name:'公共设施',hashActions:{add:function(){showToast('打开新增设施弹窗')}}});</script><script>initSidebar('facility:list');</script>
 </body>
 </html>

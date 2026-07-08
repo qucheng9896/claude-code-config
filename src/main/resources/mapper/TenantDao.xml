@@ -31,6 +31,7 @@
                 AND (name LIKE CONCAT('%', #{queryString}, '%')
                 OR phone LIKE CONCAT('%', #{queryString}, '%'))
             </if>
+            <if test="status != null">AND t_tenant.status = #{status}</if>
         </where>
         ORDER BY create_time DESC
     </select>

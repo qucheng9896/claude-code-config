@@ -15,29 +15,125 @@
     <div class="topbar"><div class="topbar-title">访客管理</div><div class="topbar-user"><span>欢迎，<strong>管理员</strong></span><div class="topbar-avatar">A</div></div></div>
     <div class="page-body">
       <div class="stats">
-        <div class="stat-card"><div class="stat-card-icon bg-blue"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2" stroke-linecap="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg></div><div class="stat-card-value">28</div><div class="stat-card-label">今日访客</div></div>
-        <div class="stat-card"><div class="stat-card-icon bg-green"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2" stroke-linecap="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></div><div class="stat-card-value">15</div><div class="stat-card-label">已核验</div></div>
-        <div class="stat-card"><div class="stat-card-icon bg-amber"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#d97706" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div><div class="stat-card-value">8</div><div class="stat-card-label">待核验</div></div>
-        <div class="stat-card"><div class="stat-card-icon bg-purple"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#7c3aed" stroke-width="2" stroke-linecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div><div class="stat-card-value">52</div><div class="stat-card-label">本周预约</div></div>
+        <div class="stat-card"><div class="stat-card-icon bg-blue"></div><div class="stat-card-value" id="s-total">-</div><div class="stat-card-label">访客总数</div></div>
+        <div class="stat-card"><div class="stat-card-icon bg-green"></div><div class="stat-card-value" id="s-verified">-</div><div class="stat-card-label">已核验</div></div>
+        <div class="stat-card"><div class="stat-card-icon bg-amber"></div><div class="stat-card-value" id="s-pending">-</div><div class="stat-card-label">待核验</div></div>
+        <div class="stat-card"><div class="stat-card-icon bg-purple"></div><div class="stat-card-value" id="s-expired">-</div><div class="stat-card-label">已过期</div></div>
       </div>
-      <div class="toolbar"><div class="toolbar-left"><div class="search-group"><input type="text" class="search-input" placeholder="搜索访客姓名、手机号"><select class="filter-select"><option value="">全部状态</option><option>待核验</option><option>已核验</option><option>已过期</option></select><button class="btn btn-ghost">搜索</button></div></div></div>
-      <div class="data-card"><table><thead><tr><th>访客姓名</th><th>联系电话</th><th>被访业主</th><th>被访房屋</th><th>预约时间</th><th>通行方式</th><th>状态</th><th>操作</th></tr></thead><tbody>
-        <tr data-idx="0"><td>张先生</td><td>139****1234</td><td>王大明</td><td>1-1001</td><td>2025-01-08 14:00</td><td>临时密码</td><td><span class="tag tag-ok">已核验</span></td><td class="action-btns"><button class="btn-icon">查看</button></td></tr>
-        <tr data-idx="1"><td>李女士</td><td>138****5678</td><td>李小红</td><td>2-301</td><td>2025-01-08 16:30</td><td>人脸授权</td><td><span class="tag tag-info">待核验</span></td><td class="action-btns"><button class="btn-icon">核验</button><button class="btn-icon">取消</button></td></tr>
-        <tr data-idx="2"><td>王师傅</td><td>137****9012</td><td>陈租客</td><td>1-1001</td><td>2025-01-08 09:00</td><td>临时密码</td><td><span class="tag tag-ok">已核验</span></td><td class="action-btns"><button class="btn-icon">查看</button></td></tr>
-        <tr data-idx="3"><td>赵快递</td><td>136****3456</td><td>刘租户</td><td>2-301</td><td>2025-01-07 10:00</td><td>临时密码</td><td><span class="tag tag-off">已过期</span></td><td class="action-btns"><button class="btn-icon">查看</button></td></tr>
-      </tbody></table><div class="table-footer"><span class="table-footer-info">显示 1-4 条，今日共 28 位访客</span><div class="pagination"><button class="page-btn disabled">‹</button><button class="page-btn active">1</button><button class="page-btn">›</button></div></div></div>
+      <div class="toolbar"><div class="toolbar-left"><div class="search-group"><input type="text" class="search-input" id="searchInput" placeholder="搜索访客姓名、手机号"><select class="filter-select" id="filterStatus"><option value="">全部状态</option><option value="0">待核验</option><option value="1">已核验</option><option value="2">已过期</option></select><button class="btn btn-ghost" id="btnSearch">搜索</button></div></div><button class="btn btn-primary" id="btnAdd">+ 登记访客</button></div>
+      <div class="data-card"><table><thead><tr><th>ID</th><th>访客姓名</th><th>联系电话</th><th>被访业主</th><th>被访房屋</th><th>预约时间</th><th>通行方式</th><th>状态</th><th>操作</th></tr></thead><tbody id="visitorTbody"></tbody></table>
+        <div class="table-footer"><span class="table-footer-info" id="tableInfo">加载中...</span><div class="pagination" id="pagination"></div></div>
+      </div>
     </div>
   </main>
 </div>
-<script src="../js/sidebar.js"></script><script src="../js/page-common.js"></script><script>initPage({name:'访客管理',hashActions:{reserve:function(){showToast('打开访客预约弹窗')}});</script><script>initSidebar('visitor:list');</script>
-<div class="modal-overlay" id="editModal"><div class="modal"><h3>编辑信息</h3><div class="form-group"><label>名称 *</label><input type="text" class="form-input" placeholder="请输入"></div><div class="form-group"><label>备注</label><textarea class="form-input" rows="3" placeholder="备注信息"></textarea></div><div class="modal-footer"><button class="btn btn-ghost" onclick="closeModal('edit')">取消</button><button class="btn btn-primary">保存修改</button></div></div></div>
+<div class="modal-overlay" id="formModal"><div class="modal"><h3 id="modalTitle">登记访客</h3><input type="hidden" id="f-id">
+  <div class="form-group"><label>访客姓名 *</label><input type="text" class="form-input" id="f-name" placeholder="请输入访客姓名"></div>
+  <div class="form-group"><label>联系电话 *</label><input type="text" class="form-input" id="f-phone" placeholder="请输入联系电话"></div>
+  <div class="form-group"><label>被访业主ID</label><input type="number" class="form-input" id="f-ownerId" placeholder="请输入业主ID"></div>
+  <div class="form-group"><label>被访房屋ID</label><input type="number" class="form-input" id="f-houseId" placeholder="请输入房屋ID"></div>
+  <div class="form-group"><label>预约时间</label><input type="datetime-local" class="form-input" id="f-reserveTime"></div>
+  <div class="form-group"><label>通行方式</label><select class="form-input" id="f-accessMethod"><option value="临时密码">临时密码</option><option value="人脸授权">人脸授权</option><option value="身份证">身份证</option></select></div>
+  <div class="form-group"><label>状态</label><select class="form-input" id="f-status"><option value="0">待核验</option><option value="1">已核验</option><option value="2">已过期</option></select></div>
+  <div class="form-group"><label>备注</label><input type="text" class="form-input" id="f-remark" placeholder="备注信息"></div>
+  <div class="modal-footer"><button class="btn btn-ghost" onclick="closeModal('form')">取消</button><button class="btn btn-primary" id="btnSave">保存</button></div>
+</div></div>
+<script src="https://cdn.jsdelivr.net/npm/axios@1.6.2/dist/axios.min.js"></script>
+<script src="../js/axios-config.js"></script>
+<script src="../js/sidebar.js"></script>
+<script>
+var currentPage = 1, pageSize = 10, totalPages = 1;
+function showToast(msg) { var el = document.getElementById("toast"); if (!el) return; el.textContent = msg; el.className = "toast show"; setTimeout(function() { el.className = "toast"; }, 3000); }
+function loadList(page) {
+  currentPage = page || 1;
+  var q = document.getElementById("searchInput").value.trim();
+  var status = document.getElementById("filterStatus").value;
+  var params = { currentPage: currentPage, pageSize: pageSize, queryString: q };
+  if (status) params.status = parseInt(status);
+  axios.post("/visitor/findPage", params).then(function(res) {
+    renderTable(res.data.rows);
+    totalPages = Math.ceil(res.data.total / pageSize) || 1;
+    document.getElementById("tableInfo").textContent = "显示第" + ((currentPage-1)*pageSize+1) + "-" + Math.min(currentPage*pageSize, res.data.total) + " 条，共 " + res.data.total + " 条";
+    renderPagination();
+    loadStats();
+  });
+}
+function renderTable(list) {
+  var tb = document.getElementById("visitorTbody");
+  if (!list || !list.length) { tb.innerHTML = "<tr><td colspan=\"9\" style=\"text-align:center;color:#94a3b8;padding:40px\">暂无数据</td></tr>"; return; }
+  var h = "";
+  list.forEach(function(v) {
+    var statusMap = { "0": "<span class='tag tag-info'>待核验</span>", "1": "<span class='tag tag-ok'>已核验</span>", "2": "<span class='tag tag-off'>已过期</span>" };
+    h += "<tr><td>" + v.id + "</td><td><strong>" + (v.name || "-") + "</strong></td><td>" + (v.phone || "-") + "</td><td>" + (v.ownerName || "-") + "</td><td>" + (v.houseAddress || "-") + "</td><td>" + (v.reserveTime || "-") + "</td><td>" + (v.accessMethod || "-") + "</td><td>" + (statusMap[v.status] || "-") + "</td><td class='action-btns'><button class='btn-icon btn-edit' data-id='" + v.id + "'>编辑</button><button class='btn-icon btn-icon-danger btn-del' data-id='" + v.id + "'>删除</button></td></tr>";
+  });
+  tb.innerHTML = h;
+  tb.querySelectorAll(".btn-edit").forEach(function(b) { b.addEventListener("click", function() { openEdit(this.dataset.id); }); });
+  tb.querySelectorAll(".btn-del").forEach(function(b) { b.addEventListener("click", function() { doDelete(this.dataset.id); }); });
+}
+function renderPagination() {
+  var p = document.getElementById("pagination");
+  var h = "<button class='page-btn" + (currentPage<=1?" disabled":"") + "' data-page='" + (currentPage-1) + "'>‹</button>";
+  for (var i=1;i<=totalPages;i++) h += "<button class='page-btn"+(i===currentPage?" active":"")+"' data-page='"+i+"'>"+i+"</button>";
+  h += "<button class='page-btn"+(currentPage>=totalPages?" disabled":"")+"' data-page='"+(currentPage+1)+"'>›</button>";
+  p.innerHTML = h;
+  p.querySelectorAll(".page-btn").forEach(function(b) { b.addEventListener("click", function() { var pg=parseInt(this.dataset.page); if(pg>=1&&pg<=totalPages) loadList(pg); }); });
+}
+function loadStats() {
+  axios.post("/visitor/findPage", { currentPage: 1, pageSize: 1 }).then(function(res) { document.getElementById("s-total").textContent = res.data.total || 0; });
+  axios.post("/visitor/findPage", { currentPage: 1, pageSize: 1, status: 1 }).then(function(res) { document.getElementById("s-verified").textContent = res.data.total || 0; });
+  axios.post("/visitor/findPage", { currentPage: 1, pageSize: 1, status: 0 }).then(function(res) { document.getElementById("s-pending").textContent = res.data.total || 0; });
+  axios.post("/visitor/findPage", { currentPage: 1, pageSize: 1, status: 2 }).then(function(res) { document.getElementById("s-expired").textContent = res.data.total || 0; });
+}
+function openAdd() {
+  document.getElementById("modalTitle").textContent = "登记访客";
+  document.getElementById("f-id").value = "";
+  ["f-name","f-phone","f-ownerId","f-houseId","f-reserveTime","f-remark"].forEach(function(id){document.getElementById(id).value="";});
+  document.getElementById("f-accessMethod").value = "临时密码";
+  document.getElementById("f-status").value = "0";
+  document.getElementById("formModal").classList.add("show");
+}
+function openEdit(id) {
+  axios.get("/visitor/findById/" + id).then(function(res) {
+    var v = res.data;
+    document.getElementById("modalTitle").textContent = "编辑访客";
+    document.getElementById("f-id").value = v.id;
+    document.getElementById("f-name").value = v.name || "";
+    document.getElementById("f-phone").value = v.phone || "";
+    document.getElementById("f-ownerId").value = v.ownerId || "";
+    document.getElementById("f-houseId").value = v.houseId || "";
+    document.getElementById("f-reserveTime").value = v.reserveTime || "";
+    document.getElementById("f-accessMethod").value = v.accessMethod || "临时密码";
+    document.getElementById("f-status").value = v.status != null ? v.status : "0";
+    document.getElementById("f-remark").value = v.remark || "";
+    document.getElementById("formModal").classList.add("show");
+  });
+}
+function doSave() {
+  var id = document.getElementById("f-id").value;
+  var data = {
+    name: document.getElementById("f-name").value.trim(),
+    phone: document.getElementById("f-phone").value.trim(),
+    ownerId: parseInt(document.getElementById("f-ownerId").value) || null,
+    houseId: parseInt(document.getElementById("f-houseId").value) || null,
+    reserveTime: document.getElementById("f-reserveTime").value || null,
+    accessMethod: document.getElementById("f-accessMethod").value,
+    status: parseInt(document.getElementById("f-status").value),
+    remark: document.getElementById("f-remark").value.trim()
+  };
+  if (!data.name) { showToast("请填写访客姓名"); return; }
+  if (!data.phone) { showToast("请填写联系电话"); return; }
+  var p = id ? axios.put("/visitor/edit", Object.assign({ id: parseInt(id) }, data)) : axios.post("/visitor/add", data);
+  p.then(function() { showToast(id ? "修改成功" : "登记成功"); closeModal("form"); loadList(currentPage); });
+}
+function doDelete(id) { if (!confirm("确认删除该访客记录吗？此操作不可恢复。")) return; axios.delete("/visitor/delete/" + id).then(function() { showToast("删除成功"); loadList(currentPage); }); }
+function closeModal(n) { document.getElementById(n + "Modal").classList.remove("show"); }
+document.getElementById("btnAdd").addEventListener("click", openAdd);
+document.getElementById("btnSave").addEventListener("click", doSave);
+document.getElementById("btnSearch").addEventListener("click", function() { loadList(1); });
+document.getElementById("searchInput").addEventListener("keydown", function(e) { if (e.key === "Enter") loadList(1); });
+document.getElementById("filterStatus").addEventListener("change", function() { loadList(1); });
+document.getElementById("formModal").addEventListener("click", function(e) { if (e.target === this) this.classList.remove("show"); });
+loadList(1); initSidebar("visitor:list");
+</script>
 </body>
 </html>
-
-
-
-
-
-
-

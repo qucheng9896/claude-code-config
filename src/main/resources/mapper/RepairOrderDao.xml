@@ -33,6 +33,12 @@
                 AND (order_no LIKE CONCAT('%', #{queryString}, '%')
                 OR reporter LIKE CONCAT('%', #{queryString}, '%'))
             </if>
+            <if test="status != null">
+                AND status = #{status}
+            </if>
+            <if test="type != null">
+                AND urgency = #{type}
+            </if>
         </where>
         ORDER BY create_time DESC
     </select>

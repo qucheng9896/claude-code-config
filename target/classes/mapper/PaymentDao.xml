@@ -38,6 +38,8 @@
                 OR p.bill_no LIKE CONCAT('%', #{queryString}, '%')
                 OR b.building_name LIKE CONCAT('%', #{queryString}, '%'))
             </if>
+            <if test="status != null">AND p.pay_status = #{status}</if>
+            <if test="type != null and type != ''">AND p.fee_type = #{type}</if>
         </where>
         ORDER BY p.create_time DESC
     </select>

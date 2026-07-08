@@ -29,6 +29,12 @@
                 AND (title LIKE CONCAT('%', #{queryString}, '%')
                 OR type LIKE CONCAT('%', #{queryString}, '%'))
             </if>
+            <if test="status != null">
+                AND status = #{status}
+            </if>
+            <if test="type != null and type != ''">
+                AND type = #{type}
+            </if>
         </where>
         ORDER BY publish_date DESC
     </select>

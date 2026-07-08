@@ -15,39 +15,123 @@
     <div class="topbar"><div class="topbar-title">社区服务</div><div class="topbar-user"><span>欢迎，<strong>管理员</strong></span><div class="topbar-avatar">A</div></div></div>
     <div class="page-body">
       <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px;">
-        <div class="stat-card"><div class="stat-card-icon bg-blue"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2" stroke-linecap="round"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg></div><div class="stat-card-value">48</div><div class="stat-card-label">公告总数</div></div>
-        <div class="stat-card"><div class="stat-card-icon bg-green"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2" stroke-linecap="round"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/></svg></div><div class="stat-card-value">12</div><div class="stat-card-label">节假日福利</div></div>
-        <div class="stat-card"><div class="stat-card-icon bg-amber"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#d97706" stroke-width="2" stroke-linecap="round"><path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3zm7-13h2.67A2.31 2.31 0 0 1 22 4v7a2.31 2.31 0 0 1-2.33 2H17"/></svg></div><div class="stat-card-value">35</div><div class="stat-card-label">投诉建议</div></div>
-        <div class="stat-card"><div class="stat-card-icon bg-purple"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#7c3aed" stroke-width="2" stroke-linecap="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></div><div class="stat-card-value">6</div><div class="stat-card-label">在线投票</div></div>
+        <div class="stat-card"><div class="stat-card-icon bg-blue"></div><div class="stat-card-value" id="s-total">-</div><div class="stat-card-label">公告总数</div></div>
+        <div class="stat-card"><div class="stat-card-icon bg-green"></div><div class="stat-card-value" id="s-active">-</div><div class="stat-card-label">已发布</div></div>
+        <div class="stat-card"><div class="stat-card-icon bg-amber"></div><div class="stat-card-value" id="s-draft">-</div><div class="stat-card-label">草稿</div></div>
+        <div class="stat-card"><div class="stat-card-icon bg-purple"></div><div class="stat-card-value" id="s-totalRead">-</div><div class="stat-card-label">总阅读量</div></div>
       </div>
-
-      <div class="toolbar"><div class="toolbar-left">
-        <div style="display:flex;gap:8px;">
-          <button class="btn btn-primary" style="background:var(--accent);">公告通知</button>
-          <button class="btn btn-ghost">节假日福利</button>
-          <button class="btn btn-ghost">投诉建议</button>
-          <button class="btn btn-ghost">在线投票</button>
-        </div>
+      <div class="toolbar"><div class="toolbar-left"><div class="search-group"><input type="text" class="search-input" id="searchInput" placeholder="搜索公告标题"><select class="filter-select" id="filterType"><option value="">全部类型</option><option value="通知">通知</option><option value="公告">公告</option><option value="福利">福利</option><option value="投票">投票</option></select><select class="filter-select" id="filterStatus"><option value="">全部状态</option><option value="1">已发布</option><option value="0">草稿</option></select><button class="btn btn-ghost" id="btnSearch">搜索</button></div></div><button class="btn btn-primary" id="btnAdd">+ 发布公告</button></div>
+      <div class="data-card"><table><thead><tr><th>标题</th><th>类型</th><th>发布范围</th><th>阅读量</th><th>发布日期</th><th>状态</th><th>操作</th></tr></thead><tbody id="noticeTbody"></tbody></table>
+        <div class="table-footer"><span class="table-footer-info" id="tableInfo">加载中...</span><div class="pagination" id="pagination"></div></div>
       </div>
-      <button class="btn btn-primary">+ 发布公告</button></div>
-
-      <div class="data-card"><table><thead><tr><th>标题</th><th>类型</th><th>发布范围</th><th>已读/总数</th><th>发布日期</th><th>操作</th></tr></thead><tbody>
-        <tr data-idx="0"><td><strong>关于2025年春节放假及安全检查的通知</strong></td><td><span class="tag tag-info">通知</span></td><td>全体业主</td><td>420/520人</td><td>2025-01-20</td><td class="action-btns"><button class="btn-icon">查看</button><button class="btn-icon">编辑</button><button class="btn-icon btn-icon-danger">删除</button></td></tr>
-        <tr data-idx="1"><td><strong>春节期间物业费优惠及门禁时间调整公告</strong></td><td><span class="tag tag-info">公告</span></td><td>全体业主+租户</td><td>380/610人</td><td>2025-01-18</td><td class="action-btns"><button class="btn-icon">查看</button><button class="btn-icon">编辑</button></td></tr>
-        <tr data-idx="2"><td><strong>元宵节猜灯谜活动 & 汤圆福利发放</strong></td><td><span class="tag tag-confirm">福利</span></td><td>全体住户</td><td>256/610人</td><td>2025-01-15</td><td class="action-btns"><button class="btn-icon">查看</button><button class="btn-icon">编辑</button></td></tr>
-        <tr data-idx="3"><td><strong>关于调整小区绿化方案的投票</strong></td><td><span class="tag tag-paid">投票</span></td><td>全体业主</td><td>198/520人</td><td>2025-01-10</td><td class="action-btns"><button class="btn-icon">查看</button><button class="btn-icon">统计</button></td></tr>
-      </tbody></table><div class="table-footer"><span class="table-footer-info">显示 1-4 条，共 48 条公告</span><div class="pagination"><button class="page-btn disabled">‹</button><button class="page-btn active">1</button><button class="page-btn">2</button><button class="page-btn">›</button></div></div></div>
     </div>
   </main>
 </div>
-<script src="../js/sidebar.js"></script><script src="../js/page-common.js"></script><script>initPage({name:'社区服务',hashActions:{holiday:function(){showToast('节假日福利管理')},complaint:function(){showToast('投诉建议处理')}});</script><script>initSidebar('notice:list');</script>
-<div class="modal-overlay" id="editModal"><div class="modal"><h3>编辑信息</h3><div class="form-group"><label>名称 *</label><input type="text" class="form-input" placeholder="请输入"></div><div class="form-group"><label>备注</label><textarea class="form-input" rows="3" placeholder="备注信息"></textarea></div><div class="modal-footer"><button class="btn btn-ghost" onclick="closeModal('edit')">取消</button><button class="btn btn-primary">保存修改</button></div></div></div>
+<div class="modal-overlay" id="formModal"><div class="modal"><h3 id="modalTitle">发布公告</h3><input type="hidden" id="f-id">
+  <div class="form-group"><label>标题 *</label><input type="text" class="form-input" id="f-title" placeholder="请输入公告标题"></div>
+  <div class="form-group"><label>内容 *</label><textarea class="form-input" id="f-content" rows="4" placeholder="请输入公告内容"></textarea></div>
+  <div class="form-group"><label>类型</label><select class="form-input" id="f-type"><option value="通知">通知</option><option value="公告">公告</option><option value="福利">福利</option><option value="投票">投票</option></select></div>
+  <div class="form-group"><label>发布范围</label><input type="text" class="form-input" id="f-scope" placeholder="如：全体业主"></div>
+  <div class="form-group"><label>发布日期</label><input type="date" class="form-input" id="f-publishDate"></div>
+  <div class="form-group"><label>状态</label><select class="form-input" id="f-status"><option value="1">已发布</option><option value="0">草稿</option></select></div>
+  <div class="modal-footer"><button class="btn btn-ghost" onclick="closeModal('form')">取消</button><button class="btn btn-primary" id="btnSave">保存</button></div>
+</div></div>
+<script src="https://cdn.jsdelivr.net/npm/axios@1.6.2/dist/axios.min.js"></script>
+<script src="../js/axios-config.js"></script>
+<script src="../js/sidebar.js"></script>
+<script>
+var currentPage = 1, pageSize = 10, totalPages = 1;
+function showToast(msg) { var el = document.getElementById("toast"); if (!el) return; el.textContent = msg; el.className = "toast show"; setTimeout(function() { el.className = "toast"; }, 3000); }
+function fmtDate(d) { return d ? (typeof d === 'string' ? d.substring(0,10) : d) : '-'; }
+function loadList(page) {
+  currentPage = page || 1;
+  var q = document.getElementById("searchInput").value.trim();
+  var type = document.getElementById("filterType").value;
+  var status = document.getElementById("filterStatus").value;
+  var params = { currentPage: currentPage, pageSize: pageSize, queryString: q };
+  if (type) params.type = type;
+  if (status) params.status = parseInt(status);
+  axios.post("/notice/findPage", params).then(function(res) {
+    renderTable(res.data.rows);
+    totalPages = Math.ceil(res.data.total / pageSize) || 1;
+    document.getElementById("tableInfo").textContent = "显示第" + ((currentPage-1)*pageSize+1) + "-" + Math.min(currentPage*pageSize, res.data.total) + " 条，共 " + res.data.total + " 条";
+    renderPagination();
+    loadStats();
+  });
+}
+function renderTable(list) {
+  var tb = document.getElementById("noticeTbody");
+  if (!list || !list.length) { tb.innerHTML = "<tr><td colspan=\"7\" style=\"text-align:center;color:#94a3b8;padding:40px\">暂无数据</td></tr>"; return; }
+  var h = "";
+  list.forEach(function(n) {
+    var statusMap = { "1": "<span class='tag tag-ok'>已发布</span>", "0": "<span class='tag tag-info'>草稿</span>" };
+    var typeMap = { "通知": "<span class='tag tag-info'>通知</span>", "公告": "<span class='tag tag-confirm'>公告</span>", "福利": "<span class='tag tag-paid'>福利</span>", "投票": "<span class='tag tag-admin'>投票</span>" };
+    h += "<tr><td><strong>" + (n.title || "-") + "</strong></td><td>" + (typeMap[n.type] || n.type || "-") + "</td><td>" + (n.scope || "-") + "</td><td>" + (n.readCount || 0) + "/" + (n.totalCount || 0) + "</td><td>" + fmtDate(n.publishDate) + "</td><td>" + (statusMap[n.status] || "-") + "</td><td class='action-btns'><button class='btn-icon btn-edit' data-id='" + n.id + "'>编辑</button><button class='btn-icon btn-icon-danger btn-del' data-id='" + n.id + "'>删除</button></td></tr>";
+  });
+  tb.innerHTML = h;
+  tb.querySelectorAll(".btn-edit").forEach(function(b) { b.addEventListener("click", function() { openEdit(this.dataset.id); }); });
+  tb.querySelectorAll(".btn-del").forEach(function(b) { b.addEventListener("click", function() { doDelete(this.dataset.id); }); });
+}
+function renderPagination() {
+  var p = document.getElementById("pagination");
+  var h = "<button class='page-btn" + (currentPage<=1?" disabled":"") + "' data-page='" + (currentPage-1) + "'>‹</button>";
+  for (var i=1;i<=totalPages;i++) h += "<button class='page-btn"+(i===currentPage?" active":"")+"' data-page='"+i+"'>"+i+"</button>";
+  h += "<button class='page-btn"+(currentPage>=totalPages?" disabled":"")+"' data-page='"+(currentPage+1)+"'>›</button>";
+  p.innerHTML = h;
+  p.querySelectorAll(".page-btn").forEach(function(b) { b.addEventListener("click", function() { var pg=parseInt(this.dataset.page); if(pg>=1&&pg<=totalPages) loadList(pg); }); });
+}
+function loadStats() {
+  axios.post("/notice/findPage", { currentPage: 1, pageSize: 1 }).then(function(res) { document.getElementById("s-total").textContent = res.data.total || 0; });
+  axios.post("/notice/findPage", { currentPage: 1, pageSize: 1, status: 1 }).then(function(res) { document.getElementById("s-active").textContent = res.data.total || 0; });
+  axios.post("/notice/findPage", { currentPage: 1, pageSize: 1, status: 0 }).then(function(res) { document.getElementById("s-draft").textContent = res.data.total || 0; });
+}
+function openAdd() {
+  document.getElementById("modalTitle").textContent = "发布公告";
+  document.getElementById("f-id").value = "";
+  ["f-title","f-content","f-scope","f-publishDate"].forEach(function(id){document.getElementById(id).value="";});
+  document.getElementById("f-type").value = "通知";
+  document.getElementById("f-status").value = "1";
+  document.getElementById("formModal").classList.add("show");
+}
+function openEdit(id) {
+  axios.get("/notice/findById/" + id).then(function(res) {
+    var n = res.data;
+    document.getElementById("modalTitle").textContent = "编辑公告";
+    document.getElementById("f-id").value = n.id;
+    document.getElementById("f-title").value = n.title || "";
+    document.getElementById("f-content").value = n.content || "";
+    document.getElementById("f-type").value = n.type || "通知";
+    document.getElementById("f-scope").value = n.scope || "";
+    document.getElementById("f-publishDate").value = fmtDate(n.publishDate);
+    document.getElementById("f-status").value = n.status != null ? n.status : "1";
+    document.getElementById("formModal").classList.add("show");
+  });
+}
+function doSave() {
+  var id = document.getElementById("f-id").value;
+  var data = {
+    title: document.getElementById("f-title").value.trim(),
+    content: document.getElementById("f-content").value.trim(),
+    type: document.getElementById("f-type").value,
+    scope: document.getElementById("f-scope").value.trim(),
+    publishDate: document.getElementById("f-publishDate").value || null,
+    status: parseInt(document.getElementById("f-status").value)
+  };
+  if (!data.title) { showToast("请填写标题"); return; }
+  if (!data.content) { showToast("请填写内容"); return; }
+  var p = id ? axios.put("/notice/edit", Object.assign({ id: parseInt(id) }, data)) : axios.post("/notice/add", data);
+  p.then(function() { showToast(id ? "修改成功" : "发布成功"); closeModal("form"); loadList(currentPage); });
+}
+function doDelete(id) { if (!confirm("确认删除该公告吗？此操作不可恢复。")) return; axios.delete("/notice/delete/" + id).then(function() { showToast("删除成功"); loadList(currentPage); }); }
+function closeModal(n) { document.getElementById(n + "Modal").classList.remove("show"); }
+document.getElementById("btnAdd").addEventListener("click", openAdd);
+document.getElementById("btnSave").addEventListener("click", doSave);
+document.getElementById("btnSearch").addEventListener("click", function() { loadList(1); });
+document.getElementById("searchInput").addEventListener("keydown", function(e) { if (e.key === "Enter") loadList(1); });
+document.getElementById("filterType").addEventListener("change", function() { loadList(1); });
+document.getElementById("filterStatus").addEventListener("change", function() { loadList(1); });
+document.getElementById("formModal").addEventListener("click", function(e) { if (e.target === this) this.classList.remove("show"); });
+loadList(1); initSidebar("notice:list");
+</script>
 </body>
 </html>
-
-
-
-
-
-
-

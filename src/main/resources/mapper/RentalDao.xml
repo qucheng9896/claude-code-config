@@ -47,6 +47,9 @@
                 OR o.name LIKE CONCAT('%', #{queryString}, '%')
                 OR t.name LIKE CONCAT('%', #{queryString}, '%'))
             </if>
+            <if test="status != null">
+                AND r.status = #{status}
+            </if>
         </where>
         ORDER BY r.end_date ASC
     </select>

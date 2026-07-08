@@ -40,6 +40,9 @@
                 AND (v.name LIKE CONCAT('%', #{queryString}, '%')
                 OR v.phone LIKE CONCAT('%', #{queryString}, '%'))
             </if>
+            <if test="status != null">
+                AND v.status = #{status}
+            </if>
         </where>
         ORDER BY v.create_time DESC
     </select>

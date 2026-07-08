@@ -29,9 +29,24 @@ public class PaymentController {
     @Autowired
     private IAiRemindLogService aiRemindLogService;
 
-    /**
-     * 分页查询缴费记录
-     */
+    @GetMapping("/findById/{id}")
+    public Result findById(@PathVariable("id") Integer id) {
+        Payment payment = paymentService.findById(id);
+        return new Result(true, "查询成功", payment);
+    }
+
+    @PostMapping("/add")
+    public Result add(@RequestBody Payment payment) {
+        paymentService.add(payment);
+        return new Result(true, "新增成功");
+    }
+
+    @PutMapping("/edit")
+    public Result edit(@RequestBody Payment payment) {
+        paymentService.edit(payment);
+        return new Result(true, "修改成功");
+    }
+
     @PostMapping("/findPage")
     public Result findPage(@RequestBody QueryPageBean queryPageBean) {
         PageResult pageResult = paymentService.findPage(queryPageBean);

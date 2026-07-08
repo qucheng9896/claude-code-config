@@ -31,6 +31,8 @@
                 OR emp_no LIKE CONCAT('%', #{queryString}, '%')
                 OR phone LIKE CONCAT('%', #{queryString}, '%'))
             </if>
+            <if test="status != null">AND t_employee.status = #{status}</if>
+            <if test="type != null and type != ''">AND position = #{type}</if>
         </where>
         ORDER BY id
     </select>

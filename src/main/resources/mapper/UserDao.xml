@@ -39,6 +39,8 @@
                 AND (u.username LIKE CONCAT('%', #{queryString}, '%')
                 OR u.name LIKE CONCAT('%', #{queryString}, '%'))
             </if>
+            <if test="status != null">AND u.status = #{status}</if>
+            <if test="type != null">AND u.role_id = #{type}</if>
         </where>
         ORDER BY u.create_time DESC
     </select>

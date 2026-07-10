@@ -174,39 +174,21 @@
   <script src="https://cdn.jsdelivr.net/npm/axios@1.6.2/dist/axios.min.js"></script>
   <script src="../js/axios-config.js"></script>
   <script>
-    function showToast(msg, type) {
-      const t = document.getElementById('toast');
-      t.textContent = msg;
-      t.className = 'toast show ' + (type || '');
-      setTimeout(() => { t.className = 'toast ' + (type || ''); }, 3000);
-    }
-
+    function showToast(msg, type) { var t = document.getElementById('toast'); t.textContent = msg; t.className = 'toast show ' + (type || ''); setTimeout(function() { t.className = 'toast ' + (type || ''); }, 3000); }
     async function handleLogin(e) {
-      e.preventDefault();
-      const btn = document.getElementById('loginBtn');
-      const username = document.getElementById('username').value.trim();
-      const password = document.getElementById('password').value.trim();
-
-      btn.disabled = true;
-      btn.textContent = '登录中...';
-
+      e.preventDefault(); var btn = document.getElementById('loginBtn');
+      var username = document.getElementById('username').value.trim();
+      var password = document.getElementById('password').value.trim();
+      btn.disabled = true; btn.textContent = '登录中...';
       try {
-        const res = await axios.post('/user/login', { username: username, password: password });
-        localStorage.setItem('token', res.data.token);
-        localStorage.setItem('userInfo', JSON.stringify({
-          userId: res.data.userId,
-          username: res.data.username,
-          name: res.data.name,
-          roleId: res.data.roleId
-        }));
-        showToast('登录成功，正在跳转...', 'success');
-        setTimeout(function() { window.location.href = 'dashboard.html'; }, 1000);
-      } catch (err) {
-        showToast(err.message || '账号或密码错误', 'error');
-        btn.disabled = false;
-        btn.textContent = '登 录';
-      }
-
+        var response = await axios.post('/user/login', { username: username, password: password });
+        if (response.flag) {
+          localStorage.setItem('token', response.data.token);
+          localStorage.setItem('userInfo', JSON.stringify({ userId: response.data.userId, username: response.data.username, name: response.data.name, role: response.data.roleId }));
+          showToast('登录成功，正在跳转...', 'success');
+          setTimeout(function() { window.location.href = 'dashboard.html'; }, 1000);
+        } else { showToast(response.message || '账号或密码错误', 'error'); btn.disabled = false; btn.textContent = '登 录'; }
+      } catch (err) { showToast('登录异常，请重试', 'error'); btn.disabled = false; btn.textContent = '登 录'; }
       return false;
     }
   </script>

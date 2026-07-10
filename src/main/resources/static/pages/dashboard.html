@@ -118,7 +118,10 @@
     </div>
   </main>
 </div>
-<script src="../js/sidebar.js"></script><script src="../js/page-common.js"></script><script>
+<script src="https://cdn.jsdelivr.net/npm/axios@1.6.2/dist/axios.min.js"></script>
+<script src="../js/axios-config.js"></script>
+<script src="../js/sidebar.js"></script>
+<script>
 initSidebar('dashboard:view');
 
 function switchTab(key) {
@@ -128,7 +131,61 @@ function switchTab(key) {
   if (tabEl) tabEl.classList.add('active');
   var secEl = document.getElementById('sec-' + key);
   if (secEl) secEl.classList.add('active');
+  loadTabData(key);
 }
+
+function formatMoney(val) {
+  if (!val) return '¥0';
+  var n = parseFloat(val);
+  if (n >= 1000) return '¥' + (n / 1000).toFixed(0) + 'K';
+  return '¥' + n.toFixed(0);
+}
+
+function loadTabData(key) {
+  if (key === 'overview') {
+    axios.get('/dashboard/overview').then(function(res) {
+      if (res.flag) {
+        var d = res.data;
+        document.getElementById('v-ownerCount').textContent = d.ownerCount || 0;
+        document.getElementById('v-houseCount').textContent = d.houseCount || 0;
+        document.getElementById('v-paidAmount').textContent = formatMoney(d.totalPaidAmount);
+        document.getElementById('v-payRate').textContent = d.paymentRate || '0%';
+      }
+    }).catch(function() {});
+  } else if (key === 'payment') {
+    axios.get('/dashboard/payment').then(function(res) {
+      if (res.flag) {
+        var d = res.data;
+        document.getElementById('v-pay-paid').textContent = formatMoney(d.totalPaidAmount);
+        document.getElementById('v-pay-rate').textContent = d.paymentRate || '0%';
+        document.getElementById('v-pay-overdue').textContent = formatMoney(d.totalOverdueAmount);
+        document.getElementById('v-pay-bills').textContent = d.totalBills || 0;
+      }
+    }).catch(function() {});
+  } else if (key === 'repair') {
+    axios.get('/dashboard/repair').then(function(res) {
+      if (res.flag) {
+        var d = res.data;
+        document.getElementById('v-repair-total').textContent = d.totalOrders || 0;
+        document.getElementById('v-repair-done').textContent = d.completedOrders || 0;
+        document.getElementById('v-repair-time').textContent = d.avgResponseTime || '-';
+        document.getElementById('v-repair-rate').textContent = d.satisfactionRate || '-';
+      }
+    }).catch(function() {});
+  } else if (key === 'ai') {
+    axios.get('/dashboard/ai').then(function(res) {
+      if (res.flag) {
+        var d = res.data;
+        document.getElementById('v-ai-total').textContent = d.totalReminds || 0;
+        document.getElementById('v-ai-sent').textContent = d.sentReminds || 0;
+        document.getElementById('v-ai-rate').textContent = d.successRate || '0%';
+        document.getElementById('v-ai-amount').textContent = formatMoney(d.recoveredAmount);
+      }
+    }).catch(function() {});
+  }
+}
+
+loadTabData('overview');
 </script>
 </body>
 </html>

@@ -33,7 +33,9 @@ initPage({
     findById: API.repairFindById,
     add: API.repairAdd,
     edit: API.repairEdit,
-    delete: API.repairDelete
+    delete: API.repairDelete,
+    dispatch: API.repairDispatch,
+    evaluate: API.repairEvaluate
   },
   renderRow: function(item, index) {
     var urgencyMap = {0: ['tag-info', '一般'], 1: ['tag-overdue', '紧急'], 2: ['tag-overdue', '特急']};

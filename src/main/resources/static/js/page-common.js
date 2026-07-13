@@ -171,9 +171,36 @@ function initPage(opts) {
             showToast('已确认到账');
           }
         } else if (text.indexOf('派单') >= 0) {
-          showToast('已派单：张师傅');
+          if (api && api.dispatch) {
+            var workerId = 1;
+            var workerName = '张师傅';
+            api.dispatch(id, workerId, workerName).then(function(res) {
+              if (res && res.flag) { showToast('已派单：' + workerName); loadData(currentPage); }
+              else showToast('派单失败：' + (res ? res.message : '未知错误'), 'error');
+            });
+          } else {
+            showToast('已派单：张师傅');
+          }
         } else if (text.indexOf('退租') >= 0) {
-          if (confirm('确认办理退租？')) showToast('退租办理成功');
+          if (api && api.checkout) {
+            if (!confirm('确认办理退租？此操作将清空租户关联的房屋。')) return;
+            api.checkout(id).then(function(res) {
+              if (res && res.flag) { showToast('退租办理成功'); loadData(currentPage); }
+              else showToast('退租失败：' + (res ? res.message : '未知错误'), 'error');
+            });
+          } else {
+            if (confirm('确认办理退租？')) showToast('退租办理成功');
+          }
+        } else if (text.indexOf('评价') >= 0) {
+          if (api && api.evaluate) {
+            var evaluation = parseInt(prompt('请输入评价星级 (1-5)：', '5')) || 5;
+            api.evaluate(id, evaluation).then(function(res) {
+              if (res && res.flag) { showToast('评价成功：' + evaluation + '星'); loadData(currentPage); }
+              else showToast('评价失败：' + (res ? res.message : '未知错误'), 'error');
+            });
+          } else {
+            showToast('感谢您的评价！');
+          }
         } else if (text.indexOf('核验') >= 0) {
           showToast('访客已核验通过');
         } else if (text.indexOf('续签') >= 0) {

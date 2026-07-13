@@ -72,4 +72,33 @@
         DELETE FROM t_rental WHERE id = #{id}
     </delete>
 
+    <select id="findExpiring" resultMap="resultMap">
+        SELECT r.*, o.name AS owner_name, t.name AS tenant_name,
+               CONCAT(b.building_name, '-', h.room_no) AS house_address,
+               DATEDIFF(r.end_date, CURDATE()) AS remaining_days
+        FROM t_rental r
+        LEFT JOIN t_house h ON r.house_id = h.id
+        LEFT JOIN t_owner o ON r.owner_id = o.id
+        LEFT JOIN t_tenant t ON r.tenant_id = t.id
+        LEFT JOIN t_building b ON h.building_id = b.id
+        WHERE r.status = 1 AND r.end_date BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL #{days} DAY)
+        ORDER BY r.end_date ASC
+    </select>
+
+    <select id="findActiveByTenantId" resultMap="resultMap">
+        SELECT r.*, o.name AS owner_name, t.name AS tenant_name,
+               CONCAT(b.building_name, '-', h.room_no) AS house_address
+        FROM t_rental r
+        LEFT JOIN t_house h ON r.house_id = h.id
+        LEFT JOIN t_owner o ON r.owner_id = o.id
+        LEFT JOIN t_tenant t ON r.tenant_id = t.id
+        LEFT JOIN t_building b ON h.building_id = b.id
+        WHERE r.tenant_id = #{tenantId} AND r.status = 1
+        LIMIT 1
+    </select>
+
+    <update id="terminate" parameterType="int">
+        UPDATE t_rental SET status = 0 WHERE id = #{id}
+    </update>
+
 </mapper>

@@ -33,7 +33,8 @@ initPage({
     findById: API.tenantFindById,
     add: API.tenantAdd,
     edit: API.tenantEdit,
-    delete: API.tenantDelete
+    delete: API.tenantDelete,
+    checkout: API.tenantCheckout
   },
   renderRow: function(item, index) {
     var statusMap = {0: ['tag-off', '已退租'], 1: ['tag-ok', '在租'], 2: ['tag-overdue', '黑名单']};

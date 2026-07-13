@@ -16,6 +16,89 @@
 
 ## 迭代记录
 
+### [v0.4.0] - 2026-07-13 — 补齐业务方法与前端弹窗
+
+#### 📋 变更摘要
+
+| 类型 | 数量 | 说明 |
+|------|------|------|
+| 新增功能 | 4 | 退租、到期预警、派单、评价 |
+| 重构优化 | 1 | page-common.js 支持业务 API 调用 |
+| 文档更新 | 1 | 版本记录 |
+
+#### ✅ 已完成
+
+- **后端新增 4 个业务接口**: 租户退租、租赁到期预警、报修派单、报修评价
+- **DAO 层扩展**: 新增 findExpiring, findActiveByTenantId, dispatch, evaluate, clearTenantId, terminate 等方法
+- **Service 层扩展**: TenantServiceImpl/RepairServiceImpl/RentalServiceImpl 新增业务方法
+- **Controller 层扩展**: TenantController/RentalController/RepairController 新增端点
+- **前端 page-common.js**: 支持 api.dispatch/api.checkout/api.evaluate 调用
+- **前端页面适配**: tenant.html/repair.html/rental.html 配置新 API
+- **创建 api.js**: 统一的 API 接口定义文件（314 行）
+
+#### 📊 API 接口一览
+
+| 接口 | 方法 | 功能 |
+|------|------|------|
+| `/tenant/checkout/{id}` | PUT | 办理租户退租（事务：清空房屋→终止合同→更新租户状态） |
+| `/rental/expire` | GET | 查询 N 天内到期的合同（默认 30 天） |
+| `/repair/dispatch/{id}` | PUT | 派单给维修工（更新工时、状态改为维修中） |
+| `/repair/evaluate/{id}` | PUT | 评价工单（评分 1-5，状态改为已完成） |
+
+#### 📁 新增文件
+
+```
+src/main/resources/static/js/api.js
+versions/v0.4.0/RELEASE.md
+```
+
+#### 📁 修改文件
+
+```
+src/main/java/com/wygl/constant\MessageConstant.java
+src/main/java/com/wygl/dao/HouseDao.java
+src/main/java/com/wygl/dao/RentalDao.java
+src/main/java/com/wygl/dao/RepairOrderDao.java
+src/main/java/com/wygl/dao/TenantDao.java
+src/main/java/com/wygl/service/IRentalService.java
+src/main/java/com/wygl/service/IRepairService.java
+src/main/java/com/wygl/service/ITenantService.java
+src/main/java/com/wygl/service/impl/RentalServiceImpl.java
+src/main/java/com/wygl/service/impl/RepairServiceImpl.java
+src/main/java/com/wygl/service/impl/TenantServiceImpl.java
+src/main/java/com/wygl/controller/RentalController.java
+src/main/java/com/wygl/controller/RepairController.java
+src/main/java/com/wygl/controller/TenantController.java
+src/main/resources/mapper/HouseDao.xml
+src/main/resources/mapper/RentalDao.xml
+src/main/resources/mapper/RepairOrderDao.xml
+src/main/resources/mapper/TenantDao.xml
+src/main/resources/static/js/page-common.js
+src/main/resources/static/pages/repair.html
+src/main/resources/static/pages/rental.html
+src/main/resources/static/pages/tenant.html
+```
+
+#### 🧪 测试结果
+
+| 测试项 | 结果 | 备注 |
+|--------|------|------|
+| 编译 | ✅ | mvn clean compile |
+| 启动 | ✅ | 端口 8080 |
+| `/tenant/checkout/1` | ✅ | 退租办理成功 |
+| `/rental/expire?days=365` | ✅ | 返回多份到期合同 |
+| `/repair/dispatch/1` | ✅ | 状态校验正确 |
+| `/repair/evaluate/1` | ✅ | 评价成功 |
+
+#### 🔗 Git 信息
+
+```
+Tag: v0.4.0
+Commit: [待提交]
+```
+
+---
+
 ### [v0.3.0] - 2026-07-13 — 前后端真实连通
 
 #### 📋 变更摘要

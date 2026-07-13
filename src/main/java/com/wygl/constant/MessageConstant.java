@@ -34,4 +34,7 @@ public class MessageConstant {
     public static final String AI_NO_OVERDUE = "该业主无逾期账单";
     public static final String AI_GENERATE_SUCCESS = "AI催缴消息生成成功";
     public static final String AI_SEND_SUCCESS = "催缴消息已发送";
+
+    public static final String TENANT_NOT_FOUND = "租户不存在";
+    public static final String REPAIR_NOT_FOUND = "工单不存在";
 }

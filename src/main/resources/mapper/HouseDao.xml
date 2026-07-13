@@ -98,4 +98,12 @@
         FROM t_house
     </select>
 
+    <update id="clearTenantId" parameterType="int">
+        UPDATE t_house SET tenant_id = NULL, status = 0 WHERE id = #{houseId}
+    </update>
+
+    <update id="updateStatus" parameterType="int">
+        UPDATE t_house SET status = #{status} WHERE id = #{id}
+    </update>
+
 </mapper>

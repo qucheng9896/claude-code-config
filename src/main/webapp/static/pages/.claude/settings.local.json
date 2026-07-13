@@ -1,8 +1,0 @@
-{
-  "permissions": {
-    "allow": [
-      "Bash(npx -y http-server -p 8080 --cors)",
-      "Bash(curl *)"
-    ]
-  }
-}

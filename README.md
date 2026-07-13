@@ -96,13 +96,33 @@ cp ~/.claude/settings.json.bak.* ~/.claude/settings.json
 # 或手动删除配置中不需要的字段
 ```
 
+## 仓库结构
+
+```
+claude-code-config/
+├── README.md              # 本文件
+├── LICENSE                # MIT 许可证
+├── setup.sh               # Claude Code 一键安装脚本
+├── .claude/settings.json  # Claude Code 配置文件
+├── tools/                 # 独立工具
+│   ├── README.md
+│   └── autoclicker/       # 多步骤宏点击工具
+│       ├── README.md
+│       ├── autoclicker.py
+│       └── autoclicker_configs.json
+├── skills/                # Claude Code 技能（预留）
+│   └── README.md
+└── projects/              # 较大项目（预留）
+    └── README.md
+```
+
 ## 仓库内其他项目
 
-### [AutoClicker — 多步骤宏工具](src/)
+### [AutoClicker — 多步骤宏工具](tools/autoclicker/)
 
 Windows 桌面自动化点击工具，支持多步骤宏编排、录制回放、图片识别定位与游戏级底层输入模拟。
 
-详见 [src/README.md](src/README.md)
+详见 [tools/autoclicker/README.md](tools/autoclicker/README.md)
 
 ## License
 

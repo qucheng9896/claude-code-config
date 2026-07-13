@@ -57,8 +57,13 @@ function initPage(opts) {
   async function loadData(page, queryString) {
     if (!isApiMode) return;
     currentPage = page || 1;
-    var params = { pageNum: currentPage, pageSize: pageSize };
+    var params = { currentPage: currentPage, pageSize: pageSize };
     if (queryString) params.queryString = queryString;
+    // 读取筛选下拉框的值
+    var filterStatus = document.getElementById('filterStatus');
+    if (filterStatus && filterStatus.value) params.status = parseInt(filterStatus.value) || filterStatus.value;
+    var filterType = document.getElementById('filterType');
+    if (filterType && filterType.value) params.type = filterType.value;
 
     try {
       var response = await api.findPage(params);
@@ -202,17 +207,57 @@ function initPage(opts) {
             showToast('感谢您的评价！');
           }
         } else if (text.indexOf('核验') >= 0) {
-          showToast('访客已核验通过');
+          if (api && api.verify) {
+            api.verify(id).then(function(res) {
+              if (res && res.flag) { showToast('已核验通过'); loadData(currentPage); }
+              else showToast('核验失败：' + (res ? res.message : '未知错误'), 'error');
+            });
+          } else {
+            showToast('访客已核验通过');
+          }
+        } else if (text.indexOf('取消') >= 0) {
+          if (api && api.cancel) {
+            if (!confirm('确认取消该访客记录？')) return;
+            api.cancel(id).then(function(res) {
+              if (res && res.flag) { showToast('已取消'); loadData(currentPage); }
+              else showToast('取消失败：' + (res ? res.message : '未知错误'), 'error');
+            });
+          } else {
+            if (confirm('确认取消该访客记录？')) { showToast('已取消'); loadData(currentPage); }
+          }
         } else if (text.indexOf('续签') >= 0) {
-          showToast('打开合同续签表单');
+          if (api && api.renew) {
+            if (!confirm('确认续签合同一年？')) return;
+            api.renew(id).then(function(res) {
+              if (res && res.flag) { showToast('续签成功'); loadData(currentPage); }
+              else showToast('续签失败：' + (res ? res.message : '未知错误'), 'error');
+            });
+          } else {
+            if (confirm('确认续签合同一年？')) showToast('续签成功');
+          }
         } else if (text.indexOf('终止') >= 0) {
-          if (confirm('确认提前终止合同？')) showToast('合同已终止');
+          if (api && api.terminate) {
+            if (!confirm('确认提前终止合同？此操作将标记合同为已终止。')) return;
+            api.terminate(id).then(function(res) {
+              if (res && res.flag) { showToast('合同终止成功'); loadData(currentPage); }
+              else showToast('终止失败：' + (res ? res.message : '未知错误'), 'error');
+            });
+          } else {
+            if (confirm('确认提前终止合同？')) showToast('合同已终止');
+          }
         }
       });
     });
   }
 
-  // ===== 搜索框事件绑定 =====
+  // ===== 工具栏新增按钮绑定 =====
+  document.querySelectorAll('.toolbar .btn-primary').forEach(function(btn) {
+    if (!btn.onclick) {
+      btn.addEventListener('click', function() {
+        openAddModal();
+      });
+    }
+  });
   document.querySelectorAll('.search-group .btn-ghost').forEach(function(btn) {
     btn.addEventListener('click', function() {
       var input = this.parentElement.querySelector('.search-input');
@@ -227,6 +272,13 @@ function initPage(opts) {
         var btn = this.parentElement.querySelector('.btn-ghost');
         if (btn) btn.click();
       }
+    });
+  });
+
+  // ===== 筛选下拉框变化时自动重新加载 =====
+  document.querySelectorAll('.filter-select').forEach(function(sel) {
+    sel.addEventListener('change', function() {
+      loadData(1);
     });
   });
 
@@ -274,26 +326,42 @@ function initPage(opts) {
     }
   }
 
+  // ===== 跟踪编辑中的记录 =====
+  var _editingItem = null;
+
   // ===== 弹窗函数 =====
   window.openAddModal = function() {
     var modal = document.getElementById('addModal');
-    if (modal) modal.classList.add('show');
-    else showToast('打开新增表单（请配置 addModal）');
+    if (modal) {
+      _editingItem = null;
+      // 清空表单
+      modal.querySelectorAll('.form-input').forEach(function(input) { input.value = ''; });
+      modal.classList.add('show');
+    } else {
+      // 没有 addModal，尝试用 editModal
+      modal = document.getElementById('editModal');
+      if (modal) {
+        _editingItem = null;
+        modal.querySelectorAll('.form-input').forEach(function(input) { input.value = ''; });
+        modal.classList.add('show');
+      } else {
+        showToast('打开新增表单（请配置弹窗）');
+      }
+    }
   };
 
   window.openEditModal = function(item) {
+    _editingItem = item;
     var modal = document.getElementById('editModal');
     if (modal) {
       // 将数据填充到弹窗表单
-      if (item) {
-        var inputs = modal.querySelectorAll('.form-input');
-        var keys = Object.keys(item);
-        inputs.forEach(function(input, i) {
-          if (keys[i] && input.type !== 'file') {
-            input.value = item[keys[i]] != null ? item[keys[i]] : '';
-          }
-        });
-      }
+      var inputs = modal.querySelectorAll('.form-input');
+      var keys = Object.keys(item);
+      inputs.forEach(function(input, i) {
+        if (keys[i] && input.type !== 'file') {
+          input.value = item[keys[i]] != null ? item[keys[i]] : '';
+        }
+      });
       modal.classList.add('show');
     } else {
       showToast('编辑（请配置 editModal）');
@@ -359,14 +427,64 @@ function initPage(opts) {
     });
   });
 
-  // 确认按钮
+  // 确认/保存按钮
   document.querySelectorAll('.modal-footer .btn-primary').forEach(function(btn) {
     if (!btn.onclick) {
       btn.addEventListener('click', function() {
         var modal = this.closest('.modal-overlay');
-        if (modal) {
-          modal.classList.remove('show');
-          showToast('操作成功');
+        var modalId = modal.id.replace('Modal', '');
+        if (!api) {
+          // 没有 API 配置，仅关闭弹窗
+          if (modal) {
+            modal.classList.remove('show');
+            showToast('操作成功');
+          }
+          return;
+        }
+
+        // 收集表单数据
+        var data = {};
+        modal.querySelectorAll('.form-input').forEach(function(input) {
+          var nameAttr = input.name || input.placeholder || '';
+          var key = nameAttr.replace(' *', '').trim();
+          if (key) {
+            if (input.tagName === 'TEXTAREA') data[key] = input.value.trim();
+            else if (input.type === 'number') data[key] = parseFloat(input.value) || 0;
+            else data[key] = input.value.trim();
+          }
+        });
+
+        if (_editingItem && _editingItem.id != null) {
+          // 编辑现有记录
+          data.id = _editingItem.id;
+          if (api.edit) {
+            api.edit(data).then(function(res) {
+              if (res && res.flag) {
+                showToast('修改成功');
+                if (modal) modal.classList.remove('show');
+                loadData(currentPage);
+              } else {
+                showToast('修改失败: ' + (res ? res.message : '未知错误'), 'error');
+              }
+            }).catch(function(e) {
+              showToast('修改失败: ' + (e.message || '网络错误'), 'error');
+            });
+          }
+        } else {
+          // 新增记录
+          if (api.add) {
+            api.add(data).then(function(res) {
+              if (res && res.flag) {
+                showToast('新增成功');
+                if (modal) modal.classList.remove('show');
+                loadData(currentPage);
+              } else {
+                showToast('新增失败: ' + (res ? res.message : '未知错误'), 'error');
+              }
+            }).catch(function(e) {
+              showToast('新增失败: ' + (e.message || '网络错误'), 'error');
+            });
+          }
         }
       });
     }

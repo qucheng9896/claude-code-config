@@ -30,7 +30,7 @@ public class WebConfig implements WebMvcConfigurer {
 
     @Override
     public void addViewControllers(ViewControllerRegistry registry) {
-        registry.addViewController("/").setViewName("redirect:/login.html");
+        registry.addViewController("/").setViewName("redirect:/pages/login.html");
     }
 
     @Override

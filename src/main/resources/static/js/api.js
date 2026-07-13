@@ -170,6 +170,12 @@ var API = (function() {
     rentalExpire: function(days) {
       return axios.get('/rental/expire?days=' + (days || 30));
     },
+    rentalRenew: function(id) {
+      return axios.put('/rental/renew/' + id);
+    },
+    rentalTerminate: function(id) {
+      return axios.put('/rental/terminate/' + id);
+    },
 
     // ==================== 设施管理 ====================
     facilityFindPage: function(params) {
@@ -220,6 +226,12 @@ var API = (function() {
     },
     visitorDelete: function(id) {
       return remove('/visitor', id);
+    },
+    visitorVerify: function(id) {
+      return axios.put('/visitor/verify/' + id);
+    },
+    visitorCancel: function(id) {
+      return axios.delete('/visitor/cancel/' + id);
     },
 
     // ==================== 报修服务 ====================

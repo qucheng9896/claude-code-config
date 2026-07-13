@@ -12,4 +12,6 @@ public interface RentalDao extends BaseDao<Rental> {
     Rental findActiveByTenantId(@Param("tenantId") Integer tenantId);
 
     int terminate(@Param("id") Integer id);
+
+    int renew(@Param("id") Integer id);
 }

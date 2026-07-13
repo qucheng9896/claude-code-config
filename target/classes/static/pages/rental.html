@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
@@ -15,131 +15,52 @@
     <div class="topbar"><div class="topbar-title">租赁管理</div><div class="topbar-user"><span>欢迎，<strong>管理员</strong></span><div class="topbar-avatar">A</div></div></div>
     <div class="page-body">
       <div class="stats">
-        <div class="stat-card"><div class="stat-card-icon bg-green"></div><div class="stat-card-value" id="s-total">-</div><div class="stat-card-label">合同总数</div></div>
-        <div class="stat-card"><div class="stat-card-icon bg-blue"></div><div class="stat-card-value" id="s-active">-</div><div class="stat-card-label">生效中</div></div>
-        <div class="stat-card"><div class="stat-card-icon bg-amber"></div><div class="stat-card-value" id="s-expired">-</div><div class="stat-card-label">已到期</div></div>
-        <div class="stat-card"><div class="stat-card-icon bg-purple"></div><div class="stat-card-value" id="s-terminated">-</div><div class="stat-card-label">提前终止</div></div>
+        <div class="stat-card"><div class="stat-card-icon bg-green"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div><div class="stat-card-value">76</div><div class="stat-card-label">生效合同</div></div>
+        <div class="stat-card"><div class="stat-card-icon bg-amber"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#d97706" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div><div class="stat-card-value">8</div><div class="stat-card-label">30天内到期</div></div>
+        <div class="stat-card"><div class="stat-card-icon bg-blue"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2" stroke-linecap="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div><div class="stat-card-value">¥285K</div><div class="stat-card-label">月租总额</div></div>
+        <div class="stat-card"><div class="stat-card-icon bg-purple"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#7c3aed" stroke-width="2" stroke-linecap="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></div><div class="stat-card-value">92%</div><div class="stat-card-label">出租率</div></div>
       </div>
-      <div class="toolbar"><div class="toolbar-left"><div class="search-group"><input type="text" class="search-input" id="searchInput" placeholder="搜索合同号、业主、租户"><select class="filter-select" id="filterStatus"><option value="">全部状态</option><option value="1">生效中</option><option value="0">已到期</option><option value="2">提前终止</option></select><button class="btn btn-ghost" id="btnSearch">搜索</button></div></div><button class="btn btn-primary" id="btnAdd">+ 新建合同</button></div>
-      <div class="data-card"><table><thead><tr><th>合同编号</th><th>业主</th><th>租户</th><th>房屋</th><th>租期</th><th>月租金</th><th>押金</th><th>状态</th><th>操作</th></tr></thead><tbody id="rentalTbody"></tbody></table>
-        <div class="table-footer"><span class="table-footer-info" id="tableInfo">加载中...</span><div class="pagination" id="pagination"></div></div>
-      </div>
+      <div class="toolbar"><div class="toolbar-left"><div class="search-group"><input type="text" class="search-input" placeholder="搜索合同号、业主、租户"><select class="filter-select"><option value="">全部状态</option><option>生效中</option><option>已到期</option><option>提前终止</option></select><button class="btn btn-ghost">搜索</button></div></div><button class="btn btn-primary">+ 新建合同</button></div>
+      <div class="data-card"><table><thead><tr><th>合同编号</th><th>业主</th><th>租户</th><th>房屋</th><th>租期</th><th>月租金</th><th>剩余天数</th><th>状态</th><th>操作</th></tr></thead><tbody></tbody></table><div class="table-footer"><span class="table-footer-info">加载中...</span><div class="pagination"><button class="page-btn disabled">‹</button><button class="page-btn active">1</button><button class="page-btn">2</button><button class="page-btn">›</button></div></div></div>
     </div>
   </main>
 </div>
-<div class="modal-overlay" id="formModal"><div class="modal"><h3 id="modalTitle">新建合同</h3><input type="hidden" id="f-id">
-  <div class="form-group"><label>合同编号 *</label><input type="text" class="form-input" id="f-rentalNo" placeholder="如：HT25010001"></div>
-  <div class="form-group"><label>业主ID *</label><input type="number" class="form-input" id="f-ownerId" placeholder="请输入业主ID"></div>
-  <div class="form-group"><label>租户ID *</label><input type="number" class="form-input" id="f-tenantId" placeholder="请输入租户ID"></div>
-  <div class="form-group"><label>房屋ID *</label><input type="number" class="form-input" id="f-houseId" placeholder="请输入房屋ID"></div>
-  <div class="form-group"><label>起始日期 *</label><input type="date" class="form-input" id="f-startDate"></div>
-  <div class="form-group"><label>结束日期 *</label><input type="date" class="form-input" id="f-endDate"></div>
-  <div class="form-group"><label>月租金 *</label><input type="number" class="form-input" id="f-monthlyRent" step="0.01" placeholder="如：2800"></div>
-  <div class="form-group"><label>押金</label><input type="number" class="form-input" id="f-deposit" step="0.01" placeholder="如：5600"></div>
-  <div class="form-group"><label>状态</label><select class="form-input" id="f-status"><option value="1">生效中</option><option value="0">已到期</option><option value="2">提前终止</option></select></div>
-  <div class="form-group"><label>备注</label><input type="text" class="form-input" id="f-remark" placeholder="备注信息"></div>
-  <div class="modal-footer"><button class="btn btn-ghost" onclick="closeModal('form')">取消</button><button class="btn btn-primary" id="btnSave">保存</button></div>
-</div></div>
-<script src="https://cdn.jsdelivr.net/npm/axios@1.6.2/dist/axios.min.js"></script>
-<script src="../js/axios-config.js"></script>
-<script src="../js/sidebar.js"></script>
-<script>
-var currentPage = 1, pageSize = 10, totalPages = 1;
-function showToast(msg) { var el = document.getElementById("toast"); if (!el) return; el.textContent = msg; el.className = "toast show"; setTimeout(function() { el.className = "toast"; }, 3000); }
-function fmtDate(d) { return d ? (typeof d === 'string' ? d.substring(0,10) : d) : '-'; }
-function fmtMoney(m) { return m != null ? '¥' + parseFloat(m).toLocaleString('zh-CN', {minimumFractionDigits: 0, maximumFractionDigits: 2}) : '-'; }
-function loadList(page) {
-  currentPage = page || 1;
-  var q = document.getElementById("searchInput").value.trim();
-  var status = document.getElementById("filterStatus").value;
-  var params = { currentPage: currentPage, pageSize: pageSize, queryString: q };
-  if (status) params.status = parseInt(status);
-  axios.post("/rental/findPage", params).then(function(res) {
-    renderTable(res.data.rows);
-    totalPages = Math.ceil(res.data.total / pageSize) || 1;
-    document.getElementById("tableInfo").textContent = "显示第" + ((currentPage-1)*pageSize+1) + "-" + Math.min(currentPage*pageSize, res.data.total) + " 条，共 " + res.data.total + " 条";
-    renderPagination();
-    loadStats();
-  });
-}
-function renderTable(list) {
-  var tb = document.getElementById("rentalTbody");
-  if (!list || !list.length) { tb.innerHTML = "<tr><td colspan=\"9\" style=\"text-align:center;color:#94a3b8;padding:40px\">暂无数据</td></tr>"; return; }
-  var h = "";
-  list.forEach(function(r) {
-    var statusMap = { "1": "<span class='tag tag-ok'>生效中</span>", "0": "<span class='tag tag-overdue'>已到期</span>", "2": "<span class='tag tag-off'>提前终止</span>" };
-    h += "<tr><td>" + (r.rentalNo || "-") + "</td><td>" + (r.ownerName || "-") + "</td><td>" + (r.tenantName || "-") + "</td><td>" + (r.houseAddress || "-") + "</td><td>" + fmtDate(r.startDate) + " ~ " + fmtDate(r.endDate) + "</td><td>" + fmtMoney(r.monthlyRent) + "</td><td>" + fmtMoney(r.deposit) + "</td><td>" + (statusMap[r.status] || "-") + "</td><td class='action-btns'><button class='btn-icon btn-edit' data-id='" + r.id + "'>编辑</button><button class='btn-icon btn-icon-danger btn-del' data-id='" + r.id + "'>删除</button></td></tr>";
-  });
-  tb.innerHTML = h;
-  tb.querySelectorAll(".btn-edit").forEach(function(b) { b.addEventListener("click", function() { openEdit(this.dataset.id); }); });
-  tb.querySelectorAll(".btn-del").forEach(function(b) { b.addEventListener("click", function() { doDelete(this.dataset.id); }); });
-}
-function renderPagination() {
-  var p = document.getElementById("pagination");
-  var h = "<button class='page-btn" + (currentPage<=1?" disabled":"") + "' data-page='" + (currentPage-1) + "'>‹</button>";
-  for (var i=1;i<=totalPages;i++) h += "<button class='page-btn"+(i===currentPage?" active":"")+"' data-page='"+i+"'>"+i+"</button>";
-  h += "<button class='page-btn"+(currentPage>=totalPages?" disabled":"")+"' data-page='"+(currentPage+1)+"'>›</button>";
-  p.innerHTML = h;
-  p.querySelectorAll(".page-btn").forEach(function(b) { b.addEventListener("click", function() { var pg=parseInt(this.dataset.page); if(pg>=1&&pg<=totalPages) loadList(pg); }); });
-}
-function loadStats() {
-  axios.post("/rental/findPage", { currentPage: 1, pageSize: 1 }).then(function(res) { document.getElementById("s-total").textContent = res.data.total || 0; });
-  axios.post("/rental/findPage", { currentPage: 1, pageSize: 1, status: 1 }).then(function(res) { document.getElementById("s-active").textContent = res.data.total || 0; });
-  axios.post("/rental/findPage", { currentPage: 1, pageSize: 1, status: 0 }).then(function(res) { document.getElementById("s-expired").textContent = res.data.total || 0; });
-  axios.post("/rental/findPage", { currentPage: 1, pageSize: 1, status: 2 }).then(function(res) { document.getElementById("s-terminated").textContent = res.data.total || 0; });
-}
-function openAdd() {
-  document.getElementById("modalTitle").textContent = "新建合同";
-  document.getElementById("f-id").value = "";
-  ["f-rentalNo","f-ownerId","f-tenantId","f-houseId","f-startDate","f-endDate","f-monthlyRent","f-deposit","f-remark"].forEach(function(id){document.getElementById(id).value="";});
-  document.getElementById("f-status").value = "1";
-  document.getElementById("formModal").classList.add("show");
-}
-function openEdit(id) {
-  axios.get("/rental/findById/" + id).then(function(res) {
-    var r = res.data;
-    document.getElementById("modalTitle").textContent = "编辑合同";
-    document.getElementById("f-id").value = r.id;
-    document.getElementById("f-rentalNo").value = r.rentalNo || "";
-    document.getElementById("f-ownerId").value = r.ownerId || "";
-    document.getElementById("f-tenantId").value = r.tenantId || "";
-    document.getElementById("f-houseId").value = r.houseId || "";
-    document.getElementById("f-startDate").value = fmtDate(r.startDate);
-    document.getElementById("f-endDate").value = fmtDate(r.endDate);
-    document.getElementById("f-monthlyRent").value = r.monthlyRent || "";
-    document.getElementById("f-deposit").value = r.deposit || "";
-    document.getElementById("f-status").value = r.status != null ? r.status : "1";
-    document.getElementById("f-remark").value = r.remark || "";
-    document.getElementById("formModal").classList.add("show");
-  });
-}
-function doSave() {
-  var id = document.getElementById("f-id").value;
-  var data = {
-    rentalNo: document.getElementById("f-rentalNo").value.trim(),
-    ownerId: parseInt(document.getElementById("f-ownerId").value) || null,
-    tenantId: parseInt(document.getElementById("f-tenantId").value) || null,
-    houseId: parseInt(document.getElementById("f-houseId").value) || null,
-    startDate: document.getElementById("f-startDate").value || null,
-    endDate: document.getElementById("f-endDate").value || null,
-    monthlyRent: parseFloat(document.getElementById("f-monthlyRent").value) || 0,
-    deposit: parseFloat(document.getElementById("f-deposit").value) || 0,
-    status: parseInt(document.getElementById("f-status").value),
-    remark: document.getElementById("f-remark").value.trim()
-  };
-  if (!data.rentalNo) { showToast("请填写合同编号"); return; }
-  var p = id ? axios.put("/rental/edit", Object.assign({ id: parseInt(id) }, data)) : axios.post("/rental/add", data);
-  p.then(function() { showToast(id ? "修改成功" : "新增成功"); closeModal("form"); loadList(currentPage); });
-}
-function doDelete(id) { if (!confirm("确认删除该合同吗？此操作不可恢复。")) return; axios.delete("/rental/delete/" + id).then(function() { showToast("删除成功"); loadList(currentPage); }); }
-function closeModal(n) { document.getElementById(n + "Modal").classList.remove("show"); }
-document.getElementById("btnAdd").addEventListener("click", openAdd);
-document.getElementById("btnSave").addEventListener("click", doSave);
-document.getElementById("btnSearch").addEventListener("click", function() { loadList(1); });
-document.getElementById("searchInput").addEventListener("keydown", function(e) { if (e.key === "Enter") loadList(1); });
-document.getElementById("filterStatus").addEventListener("change", function() { loadList(1); });
-document.getElementById("formModal").addEventListener("click", function(e) { if (e.target === this) this.classList.remove("show"); });
-loadList(1); initSidebar("rental:list");
+<script src="../js/sidebar.js"></script><script src="../js/page-common.js"></script><script>
+initPage({
+  name: '租赁管理',
+  api: {
+    findPage: API.rentalFindPage,
+    findById: API.rentalFindById,
+    add: API.rentalAdd,
+    edit: API.rentalEdit,
+    delete: API.rentalDelete
+  },
+  renderRow: function(item, index) {
+    var statusMap = {0: ['tag-off', '提前终止'], 1: ['tag-ok', '生效中'], 2: ['tag-overdue', '已到期']};
+    var s = statusMap[item.status] || statusMap[1];
+    var daysLeft = item.daysLeft != null ? item.daysLeft + '天' : '-';
+    var actionBtns = item.status == 1 ? '<button class="btn-icon">续签</button><button class="btn-icon btn-icon-danger">终止</button>' : '<button class="btn-icon">查看</button>';
+    return '<td>' + (item.contractNo || item.id || '-') + '</td>' +
+      '<td>' + (item.ownerName || '-') + '</td>' +
+      '<td>' + (item.tenantName || '-') + '</td>' +
+      '<td>' + (item.houseName || '-') + '</td>' +
+      '<td>' + (item.leaseStart || '-') + ' ~ ' + (item.leaseEnd || '-') + '</td>' +
+      '<td>¥' + (item.monthlyRent || 0) + '</td>' +
+      '<td>' + daysLeft + '</td>' +
+      '<td><span class="tag ' + s[0] + '">' + s[1] + '</span></td>' +
+      '<td class="action-btns">' + actionBtns + '</td>';
+  },
+  hashActions: { add: function(){ openAddModal(); } }
+});
+initSidebar('rental:list');
 </script>
+<div class="modal-overlay" id="editModal"><div class="modal"><h3>编辑信息</h3><div class="form-group"><label>名称 *</label><input type="text" class="form-input" placeholder="请输入"></div><div class="form-group"><label>备注</label><textarea class="form-input" rows="3" placeholder="备注信息"></textarea></div><div class="modal-footer"><button class="btn btn-ghost" onclick="closeModal('edit')">取消</button><button class="btn btn-primary">保存修改</button></div></div></div>
 </body>
 </html>
+
+
+
+
+
+
+

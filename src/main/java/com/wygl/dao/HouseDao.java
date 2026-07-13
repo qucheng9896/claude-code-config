@@ -15,4 +15,8 @@ public interface HouseDao extends BaseDao<House> {
     List<House> findByStatus(@Param("status") Integer status);
 
     Map<String, Object> selectStats();
+
+    int clearTenantId(@Param("houseId") Integer houseId);
+
+    int updateStatus(@Param("id") Integer id, @Param("status") Integer status);
 }

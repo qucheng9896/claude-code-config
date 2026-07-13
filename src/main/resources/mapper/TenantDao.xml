@@ -20,6 +20,10 @@
         SELECT * FROM t_tenant WHERE id = #{id}
     </select>
 
+    <update id="updateStatus" parameterType="int">
+        UPDATE t_tenant SET status = #{status} WHERE id = #{id}
+    </update>
+
     <select id="findByPhone" resultMap="resultMap">
         SELECT * FROM t_tenant WHERE phone = #{phone}
     </select>

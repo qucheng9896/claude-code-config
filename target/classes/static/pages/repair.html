@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
@@ -15,134 +15,56 @@
     <div class="topbar"><div class="topbar-title">报修服务</div><div class="topbar-user"><span>欢迎，<strong>管理员</strong></span><div class="topbar-avatar">A</div></div></div>
     <div class="page-body">
       <div class="stats">
-        <div class="stat-card"><div class="stat-card-icon bg-blue"></div><div class="stat-card-value" id="s-total">-</div><div class="stat-card-label">工单总数</div></div>
-        <div class="stat-card"><div class="stat-card-icon bg-green"></div><div class="stat-card-value" id="s-completed">-</div><div class="stat-card-label">已完成</div></div>
-        <div class="stat-card"><div class="stat-card-icon bg-amber"></div><div class="stat-card-value" id="s-processing">-</div><div class="stat-card-label">维修中</div></div>
-        <div class="stat-card"><div class="stat-card-icon bg-purple"></div><div class="stat-card-value" id="s-pending">-</div><div class="stat-card-label">待派单</div></div>
+        <div class="stat-card"><div class="stat-card-icon bg-blue"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2" stroke-linecap="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg></div><div class="stat-card-value">186</div><div class="stat-card-label">本月工单</div></div>
+        <div class="stat-card"><div class="stat-card-icon bg-green"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2" stroke-linecap="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></div><div class="stat-card-value">162</div><div class="stat-card-label">已完成</div></div>
+        <div class="stat-card"><div class="stat-card-icon bg-amber"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#d97706" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div><div class="stat-card-value">2.3h</div><div class="stat-card-label">平均响应</div></div>
+        <div class="stat-card"><div class="stat-card-icon bg-purple"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#7c3aed" stroke-width="2" stroke-linecap="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></div><div class="stat-card-value">97%</div><div class="stat-card-label">满意度</div></div>
       </div>
-      <div class="toolbar"><div class="toolbar-left"><div class="search-group"><input type="text" class="search-input" id="searchInput" placeholder="搜索工单号、报修人"><select class="filter-select" id="filterStatus"><option value="">全部状态</option><option value="0">待派单</option><option value="1">维修中</option><option value="2">已完成</option></select><select class="filter-select" id="filterUrgency"><option value="">全部紧急度</option><option value="0">一般</option><option value="1">紧急</option><option value="2">特急</option></select><button class="btn btn-ghost" id="btnSearch">搜索</button></div></div><button class="btn btn-primary" id="btnAdd">+ 新建工单</button></div>
-      <div class="data-card"><table><thead><tr><th>工单号</th><th>报修人</th><th>房屋</th><th>问题类型</th><th>紧急程度</th><th>维修工</th><th>创建时间</th><th>状态</th><th>操作</th></tr></thead><tbody id="repairTbody"></tbody></table>
-        <div class="table-footer"><span class="table-footer-info" id="tableInfo">加载中...</span><div class="pagination" id="pagination"></div></div>
-      </div>
+      <div class="toolbar"><div class="toolbar-left"><div class="search-group"><input type="text" class="search-input" placeholder="搜索工单号、业主"><select class="filter-select"><option value="">全部状态</option><option>待派单</option><option>维修中</option><option>已完成</option></select><select class="filter-select"><option value="">紧急程度</option><option>一般</option><option>紧急</option><option>特急</option></select><button class="btn btn-ghost">搜索</button></div></div></div>
+      <div class="data-card"><table><thead><tr><th>工单号</th><th>报修人</th><th>房屋</th><th>问题类型</th><th>紧急程度</th><th>派单维修工</th><th>创建时间</th><th>状态</th><th>操作</th></tr></thead><tbody></tbody></table><div class="table-footer"><span class="table-footer-info">加载中...</span><div class="pagination"><button class="page-btn disabled">‹</button><button class="page-btn active">1</button><button class="page-btn">2</button><button class="page-btn">›</button></div></div></div>
     </div>
   </main>
 </div>
-<div class="modal-overlay" id="formModal"><div class="modal"><h3 id="modalTitle">新建工单</h3><input type="hidden" id="f-id">
-  <div class="form-group"><label>工单号</label><input type="text" class="form-input" id="f-orderNo" placeholder="自动生成或手动输入"></div>
-  <div class="form-group"><label>报修人 *</label><input type="text" class="form-input" id="f-reporter" placeholder="请输入报修人姓名"></div>
-  <div class="form-group"><label>房屋ID *</label><input type="number" class="form-input" id="f-houseId" placeholder="请输入房屋ID"></div>
-  <div class="form-group"><label>问题类型 *</label><input type="text" class="form-input" id="f-issueType" placeholder="如：水管漏水"></div>
-  <div class="form-group"><label>紧急程度</label><select class="form-input" id="f-urgency"><option value="0">一般</option><option value="1">紧急</option><option value="2">特急</option></select></div>
-  <div class="form-group"><label>问题描述</label><textarea class="form-input" id="f-description" rows="3" placeholder="请描述具体问题"></textarea></div>
-  <div class="form-group"><label>维修工ID</label><input type="number" class="form-input" id="f-workerId" placeholder="请输入维修工ID"></div>
-  <div class="form-group"><label>状态</label><select class="form-input" id="f-status"><option value="0">待派单</option><option value="1">维修中</option><option value="2">已完成</option></select></div>
-  <div class="form-group"><label>备注</label><input type="text" class="form-input" id="f-remark" placeholder="备注信息"></div>
-  <div class="modal-footer"><button class="btn btn-ghost" onclick="closeModal('form')">取消</button><button class="btn btn-primary" id="btnSave">保存</button></div>
-</div></div>
-<script src="https://cdn.jsdelivr.net/npm/axios@1.6.2/dist/axios.min.js"></script>
-<script src="../js/axios-config.js"></script>
-<script src="../js/sidebar.js"></script>
-<script>
-var currentPage = 1, pageSize = 10, totalPages = 1;
-function showToast(msg) { var el = document.getElementById("toast"); if (!el) return; el.textContent = msg; el.className = "toast show"; setTimeout(function() { el.className = "toast"; }, 3000); }
-function fmtDate(d) { return d ? (typeof d === 'string' ? d.substring(0,10) : d) : '-'; }
-function loadList(page) {
-  currentPage = page || 1;
-  var q = document.getElementById("searchInput").value.trim();
-  var status = document.getElementById("filterStatus").value;
-  var urgency = document.getElementById("filterUrgency").value;
-  var params = { currentPage: currentPage, pageSize: pageSize, queryString: q };
-  if (status) params.status = parseInt(status);
-  if (urgency) params.urgency = parseInt(urgency);
-  axios.post("/repair/findPage", params).then(function(res) {
-    renderTable(res.data.rows);
-    totalPages = Math.ceil(res.data.total / pageSize) || 1;
-    document.getElementById("tableInfo").textContent = "显示第" + ((currentPage-1)*pageSize+1) + "-" + Math.min(currentPage*pageSize, res.data.total) + " 条，共 " + res.data.total + " 条";
-    renderPagination();
-    loadStats();
-  });
-}
-function renderTable(list) {
-  var tb = document.getElementById("repairTbody");
-  if (!list || !list.length) { tb.innerHTML = "<tr><td colspan=\"9\" style=\"text-align:center;color:#94a3b8;padding:40px\">暂无数据</td></tr>"; return; }
-  var h = "";
-  list.forEach(function(r) {
-    var statusMap = { "0": "<span class='tag tag-unpaid'>待派单</span>", "1": "<span class='tag tag-paid'>维修中</span>", "2": "<span class='tag tag-confirm'>已完成</span>" };
-    var urgencyMap = { "0": "<span class='tag tag-info'>一般</span>", "1": "<span class='tag tag-overdue'>紧急</span>", "2": "<span class='tag tag-overdue' style='background:#dc2626;color:#fff;border-color:#dc2626;'>特急</span>" };
-    h += "<tr><td>" + (r.orderNo || "-") + "</td><td>" + (r.reporter || "-") + "</td><td>" + (r.houseId || "-") + "</td><td>" + (r.issueType || "-") + "</td><td>" + (urgencyMap[r.urgency] || "-") + "</td><td>" + (r.workerName || "-") + "</td><td>" + (r.createTime ? r.createTime.substring(0,16).replace('T',' ') : "-") + "</td><td>" + (statusMap[r.status] || "-") + "</td><td class='action-btns'><button class='btn-icon btn-edit' data-id='" + r.id + "'>编辑</button><button class='btn-icon btn-icon-danger btn-del' data-id='" + r.id + "'>删除</button></td></tr>";
-  });
-  tb.innerHTML = h;
-  tb.querySelectorAll(".btn-edit").forEach(function(b) { b.addEventListener("click", function() { openEdit(this.dataset.id); }); });
-  tb.querySelectorAll(".btn-del").forEach(function(b) { b.addEventListener("click", function() { doDelete(this.dataset.id); }); });
-}
-function renderPagination() {
-  var p = document.getElementById("pagination");
-  var h = "<button class='page-btn" + (currentPage<=1?" disabled":"") + "' data-page='" + (currentPage-1) + "'>‹</button>";
-  for (var i=1;i<=totalPages;i++) h += "<button class='page-btn"+(i===currentPage?" active":"")+"' data-page='"+i+"'>"+i+"</button>";
-  h += "<button class='page-btn"+(currentPage>=totalPages?" disabled":"")+"' data-page='"+(currentPage+1)+"'>›</button>";
-  p.innerHTML = h;
-  p.querySelectorAll(".page-btn").forEach(function(b) { b.addEventListener("click", function() { var pg=parseInt(this.dataset.page); if(pg>=1&&pg<=totalPages) loadList(pg); }); });
-}
-function loadStats() {
-  axios.post("/repair/findPage", { currentPage: 1, pageSize: 1 }).then(function(res) { document.getElementById("s-total").textContent = res.data.total || 0; });
-  axios.post("/repair/findPage", { currentPage: 1, pageSize: 1, status: 2 }).then(function(res) { document.getElementById("s-completed").textContent = res.data.total || 0; });
-  axios.post("/repair/findPage", { currentPage: 1, pageSize: 1, status: 1 }).then(function(res) { document.getElementById("s-processing").textContent = res.data.total || 0; });
-  axios.post("/repair/findPage", { currentPage: 1, pageSize: 1, status: 0 }).then(function(res) { document.getElementById("s-pending").textContent = res.data.total || 0; });
-}
-function openAdd() {
-  document.getElementById("modalTitle").textContent = "新建工单";
-  document.getElementById("f-id").value = "";
-  ["f-orderNo","f-reporter","f-houseId","f-issueType","f-description","f-workerId","f-remark"].forEach(function(id){document.getElementById(id).value="";});
-  document.getElementById("f-urgency").value = "0";
-  document.getElementById("f-status").value = "0";
-  document.getElementById("formModal").classList.add("show");
-}
-function openEdit(id) {
-  axios.get("/repair/findById/" + id).then(function(res) {
-    var r = res.data;
-    document.getElementById("modalTitle").textContent = "编辑工单";
-    document.getElementById("f-id").value = r.id;
-    document.getElementById("f-orderNo").value = r.orderNo || "";
-    document.getElementById("f-reporter").value = r.reporter || "";
-    document.getElementById("f-houseId").value = r.houseId || "";
-    document.getElementById("f-issueType").value = r.issueType || "";
-    document.getElementById("f-description").value = r.description || "";
-    document.getElementById("f-workerId").value = r.workerId || "";
-    document.getElementById("f-urgency").value = r.urgency != null ? r.urgency : "0";
-    document.getElementById("f-status").value = r.status != null ? r.status : "0";
-    document.getElementById("f-remark").value = r.remark || "";
-    document.getElementById("formModal").classList.add("show");
-  });
-}
-function doSave() {
-  var id = document.getElementById("f-id").value;
-  var data = {
-    orderNo: document.getElementById("f-orderNo").value.trim(),
-    reporter: document.getElementById("f-reporter").value.trim(),
-    houseId: parseInt(document.getElementById("f-houseId").value) || null,
-    issueType: document.getElementById("f-issueType").value.trim(),
-    urgency: parseInt(document.getElementById("f-urgency").value),
-    description: document.getElementById("f-description").value.trim(),
-    workerId: parseInt(document.getElementById("f-workerId").value) || null,
-    status: parseInt(document.getElementById("f-status").value),
-    remark: document.getElementById("f-remark").value.trim()
-  };
-  if (!data.reporter) { showToast("请填写报修人"); return; }
-  if (!data.houseId) { showToast("请填写房屋ID"); return; }
-  if (!data.issueType) { showToast("请填写问题类型"); return; }
-  var p = id ? axios.put("/repair/edit", Object.assign({ id: parseInt(id) }, data)) : axios.post("/repair/add", data);
-  p.then(function() { showToast(id ? "修改成功" : "新增成功"); closeModal("form"); loadList(currentPage); });
-}
-function doDelete(id) { if (!confirm("确认删除该工单吗？此操作不可恢复。")) return; axios.delete("/repair/delete/" + id).then(function() { showToast("删除成功"); loadList(currentPage); }); }
-function closeModal(n) { document.getElementById(n + "Modal").classList.remove("show"); }
-document.getElementById("btnAdd").addEventListener("click", openAdd);
-document.getElementById("btnSave").addEventListener("click", doSave);
-document.getElementById("btnSearch").addEventListener("click", function() { loadList(1); });
-document.getElementById("searchInput").addEventListener("keydown", function(e) { if (e.key === "Enter") loadList(1); });
-document.getElementById("filterStatus").addEventListener("change", function() { loadList(1); });
-document.getElementById("filterUrgency").addEventListener("change", function() { loadList(1); });
-document.getElementById("formModal").addEventListener("click", function(e) { if (e.target === this) this.classList.remove("show"); });
-loadList(1); initSidebar("repair:list");
+<script src="../js/sidebar.js"></script><script src="../js/page-common.js"></script><script>
+initPage({
+  name: '报修服务',
+  api: {
+    findPage: API.repairFindPage,
+    findById: API.repairFindById,
+    add: API.repairAdd,
+    edit: API.repairEdit,
+    delete: API.repairDelete
+  },
+  renderRow: function(item, index) {
+    var urgencyMap = {0: ['tag-info', '一般'], 1: ['tag-overdue', '紧急'], 2: ['tag-overdue', '特急']};
+    var u = urgencyMap[item.urgency] || urgencyMap[0];
+    var statusMap = {0: ['tag-unpaid', '待派单'], 1: ['tag-paid', '维修中'], 2: ['tag-confirm', '已完成']};
+    var s = statusMap[item.status] || statusMap[0];
+    var actionBtns = '<button class="btn-icon">查看</button>';
+    if (item.status == 0) actionBtns += '<button class="btn-icon">派单</button>';
+    else if (item.status == 1) actionBtns += '<button class="btn-icon">催办</button>';
+    else if (item.status == 2) actionBtns += '<button class="btn-icon">评价</button>';
+    return '<td>' + item.workOrderNo + '</td>' +
+      '<td>' + (item.repairName || '-') + '</td>' +
+      '<td>' + (item.houseName || '-') + '</td>' +
+      '<td>' + (item.faultType || '-') + '</td>' +
+      '<td><span class="tag ' + u[0] + '">' + u[1] + '</span></td>' +
+      '<td>' + (item.workerName || '-') + '</td>' +
+      '<td>' + (item.createTime || '-') + '</td>' +
+      '<td><span class="tag ' + s[0] + '">' + s[1] + '</span></td>' +
+      '<td class="action-btns">' + actionBtns + '</td>';
+  },
+  hashActions: { pending: function(){ showToast('筛选待派单工单'); }, processing: function(){ showToast('筛选维修中工单'); } }
+});
+initSidebar('repair:list');
 </script>
+<div class="modal-overlay" id="editModal"><div class="modal"><h3>编辑信息</h3><div class="form-group"><label>名称 *</label><input type="text" class="form-input" placeholder="请输入"></div><div class="form-group"><label>备注</label><textarea class="form-input" rows="3" placeholder="备注信息"></textarea></div><div class="modal-footer"><button class="btn btn-ghost" onclick="closeModal('edit')">取消</button><button class="btn btn-primary">保存修改</button></div></div></div>
 </body>
 </html>
+
+
+
+
+
+
+

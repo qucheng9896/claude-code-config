@@ -65,4 +65,16 @@
         DELETE FROM t_repair_order WHERE id = #{id}
     </delete>
 
+    <update id="dispatch" parameterType="RepairOrder">
+        UPDATE t_repair_order
+        SET worker_id = #{workerId}, worker_name = #{workerName}, status = 1, dispatch_time = NOW()
+        WHERE id = #{id}
+    </update>
+
+    <update id="evaluate" parameterType="RepairOrder">
+        UPDATE t_repair_order
+        SET evaluation = #{evaluation}, status = 2, finish_time = NOW()
+        WHERE id = #{id}
+    </update>
+
 </mapper>

@@ -50,7 +50,21 @@ initPage({
       '<td><span class="tag ' + s[0] + '">' + s[1] + '</span></td>' +
       '<td class="action-btns">' + actionBtns + '</td>';
   },
-  hashActions: { add: function(){ openAddModal(); } }
+  hashActions: { add: function(){ openAddModal(); }, expire: function(){
+    API.rentalExpire(30).then(function(res){
+      if (res && res.flag) {
+        var list = res.data || [];
+        showToast('30天内到期合同：' + list.length + ' 份');
+        if (list.length > 0) {
+          tableData = list;
+          filteredData = list.slice();
+          renderTable();
+          var info = document.querySelector('.table-footer-info');
+          if (info) info.innerHTML = '30天内到期合同：' + list.length + ' 份';
+        }
+      }
+    });
+  } },
 });
 initSidebar('rental:list');
 </script>

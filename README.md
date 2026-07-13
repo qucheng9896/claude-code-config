@@ -112,11 +112,26 @@ claude-code-config/
 │       └── autoclicker_configs.json
 ├── skills/                # Claude Code 技能（预留）
 │   └── README.md
-└── projects/              # 较大项目（预留）
-    └── README.md
+├── projects/              # 较大项目
+│   ├── README.md
+│   └── smart-property/    # 智慧物业毕业设计
+│       ├── CLAUDE.md
+│       ├── CHANGELOG.md
+│       ├── pom.xml
+│       ├── 开发进度.md
+│       ├── 设计文档.md
+│       ├── 毕设设计文档_核心章节.md
+│       ├── src/
+│       └── versions/
 ```
 
 ## 仓库内其他项目
+
+### [智慧物业 — 物业管理系统毕业设计](projects/smart-property/)
+
+Spring Boot + 纯静态 HTML/JS 前端，物业管理系统毕业设计项目。包含 15 个功能模块、完整的 CRUD 操作、JWT 认证、AI 催缴提醒等功能。
+
+详见 [projects/smart-property/CLAUDE.md](projects/smart-property/CLAUDE.md)
 
 ### [AutoClicker — 多步骤宏工具](tools/autoclicker/)
 

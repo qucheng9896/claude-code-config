@@ -10,4 +10,6 @@
 
 ## 包含项目
 
-暂无
+| 项目 | 说明 |
+|------|------|
+| [smart-property/](smart-property/) | 智慧物业 — 物业管理系统毕业设计（Spring Boot + 纯静态前端） |

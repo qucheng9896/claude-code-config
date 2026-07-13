@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
@@ -29,13 +29,7 @@
           <button class="btn btn-primary">⚡ 批量生成账单</button>
         </div>
       </div>
-      <div class="data-card"><table><thead><tr><th>账单编号</th><th>租户</th><th>房屋</th><th>类型</th><th>金额</th><th>周期</th><th>状态</th><th>操作</th></tr></thead><tbody>
-        <tr data-idx="0"><td>BILL2501001</td><td>陈租客</td><td>1-1001</td><td>物业费</td><td>¥268.50</td><td>2025-01</td><td><span class="tag tag-confirm">已确认</span></td><td class="action-btns"><button class="btn-icon btn-icon-danger">删除</button></td></tr>
-        <tr data-idx="1"><td>BILL2501002</td><td>陈租客</td><td>1-1001</td><td>水电费</td><td>¥156.80</td><td>2025-01</td><td><span class="tag tag-paid">已缴</span></td><td class="action-btns"><button class="btn-icon">确认</button><button class="btn-icon btn-icon-danger">删除</button></td></tr>
-        <tr class="overdue-row"><td>BILL2501004</td><td>陈租客</td><td>1-1001</td><td>停车费</td><td>¥150.00</td><td>2025-01</td><td><span class="tag tag-overdue">逾期</span></td><td class="action-btns"><button class="btn-icon" style="border-color:#7c3aed;color:#7c3aed;" onclick="openAiRemindSingle('BILL2501004')">AI催缴</button><button class="btn-icon btn-icon-danger">删除</button></td></tr>
-        <tr class="overdue-row"><td>BILL2501005</td><td>刘租客</td><td>2-301</td><td>水电费</td><td>¥224.60</td><td>2025-01</td><td><span class="tag tag-overdue">逾期</span></td><td class="action-btns"><button class="btn-icon" style="border-color:#7c3aed;color:#7c3aed;" onclick="openAiRemindSingle('BILL2501005')">AI催缴</button><button class="btn-icon btn-icon-danger">删除</button></td></tr>
-        <tr data-idx="2"><td>BILL2501003</td><td>刘租客</td><td>2-301</td><td>物业费</td><td>¥360.00</td><td>2025-01</td><td><span class="tag tag-confirm">已确认</span></td><td class="action-btns"><button class="btn-icon btn-icon-danger">删除</button></td></tr>
-      </tbody></table><div class="table-footer"><span class="table-footer-info">显示 1-5 条，共 186 条（<span style="color:#dc2626;">2 条逾期</span>）</span><div class="pagination"><button class="page-btn disabled">‹</button><button class="page-btn active">1</button><button class="page-btn">2</button><button class="page-btn">›</button></div></div></div>
+      <div class="data-card"><table><thead><tr><th>账单编号</th><th>租户</th><th>房屋</th><th>类型</th><th>金额</th><th>周期</th><th>状态</th><th>操作</th></tr></thead><tbody></tbody></table><div class="table-footer"><span class="table-footer-info">加载中...</span><div class="pagination"><button class="page-btn disabled">‹</button><button class="page-btn active">1</button><button class="page-btn">2</button><button class="page-btn">›</button></div></div></div>
     </div>
   </main>
 </div>
@@ -75,16 +69,44 @@
   <div class="modal-footer"><button class="btn btn-ghost" onclick="closeModal('gen')">取消</button><button class="btn btn-primary">确认生成</button></div>
 </div></div>
 
-<script src="../js/sidebar.js"></script><script src="../js/page-common.js"></script><script>initPage({name:'收费管理',hashActions:{generate:function(){showToast('打开批量生成弹窗')},ai:function(){openAiRemindModal()}});</script><script>
+<script src="../js/sidebar.js"></script><script src="../js/page-common.js"></script><script>
+initPage({
+  name: '收费管理',
+  api: {
+    findPage: API.paymentFindPage,
+    findById: API.paymentFindById,
+    add: API.paymentAdd,
+    edit: API.paymentEdit,
+    delete: API.paymentDelete
+  },
+  renderRow: function(item, index) {
+    var statusMap = {0: ['tag-unpaid', '未缴'], 1: ['tag-paid', '已缴'], 2: ['tag-confirm', '已确认'], 3: ['tag-overdue', '逾期']};
+    var s = statusMap[item.payStatus] || statusMap[0];
+    var actionBtns = '';
+    if (item.payStatus == 1) actionBtns += '<button class="btn-icon">确认</button>';
+    else if (item.payStatus == 0 || item.payStatus == 3) actionBtns += '<button class="btn-icon" style="border-color:#7c3aed;color:#7c3aed;">AI催缴</button>';
+    actionBtns += '<button class="btn-icon btn-icon-danger">删除</button>';
+    return '<td>' + item.billNo + '</td>' +
+      '<td>' + (item.tenantName || '-') + '</td>' +
+      '<td>' + (item.houseName || '-') + '</td>' +
+      '<td>' + (item.feeType || '-') + '</td>' +
+      '<td>¥' + (item.amount || 0).toFixed(2) + '</td>' +
+      '<td>' + (item.period || '-') + '</td>' +
+      '<td><span class="tag ' + s[0] + '">' + s[1] + '</span></td>' +
+      '<td class="action-btns">' + actionBtns + '</td>';
+  },
+  hashActions: { generate: function(){ showToast('打开批量生成弹窗'); }, ai: function(){ openAiRemindModal(); } }
+});
 initSidebar('payment:list');
+</script>
+<script>
 var aiOwner=null, aiMsg=null;
 function closeModal(n){document.getElementById(n+'Modal').classList.remove('show');}
 function openAiRemindModal(){document.getElementById('aiRemindModal').classList.add('show');}
-function openAiRemindSingle(id){selectForAiRemind('陈租客',150,15);openAiRemindModal();} // TODO: 根据id查询业主信息
+function openAiRemindSingle(id){selectForAiRemind('陈租客',150,15);openAiRemindModal();}
 function selectForAiRemind(name,amount,days){aiOwner={name:name,amount:amount,days:days};document.getElementById('btnAiGen').disabled=false;document.getElementById('btnAiSend').disabled=true;document.getElementById('aiMsgPreview').innerHTML='<span class="ai-msg-loading">已选择：<strong>'+name+'</strong>，逾期 ¥'+amount+'，'+days+'天</span>';}
 function generateAiRemind(){if(!aiOwner)return;var p=document.getElementById('aiMsgPreview');p.innerHTML='<span class="ai-msg-loading">AI 正在生成催缴消息...</span>';setTimeout(function(){aiMsg=aiOwner.name+' 您好，您有账单逾期未缴，总金额 ¥'+aiOwner.amount.toFixed(2)+'，已逾期 '+aiOwner.days+' 天。请尽快登录系统或到物业处缴纳，以免影响信用记录。如有疑问请联系物业客服。感谢配合！';p.textContent=aiMsg;document.getElementById('btnAiSend').disabled=false;},1200);}
 function sendAiRemind(){if(!aiMsg)return;alert('催缴消息已发送给 '+aiOwner.name);document.getElementById('btnAiSend').disabled=true;aiOwner=null;aiMsg=null;}
-document.querySelectorAll('.modal-overlay').forEach(function(m){m.addEventListener('click',function(e){if(e.target===this)this.classList.remove('show');});});
 </script>
 <div class="modal-overlay" id="editModal"><div class="modal"><h3>编辑账单</h3><div class="form-group"><label>金额 *</label><input type="number" class="form-input" step="0.01" placeholder="请输入金额"></div><div class="form-group"><label>备注</label><textarea class="form-input" rows="3" placeholder="备注信息"></textarea></div><div class="modal-footer"><button class="btn btn-ghost" onclick="closeModal('edit')">取消</button><button class="btn btn-primary">保存修改</button></div></div></div>
 </body>

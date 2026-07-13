@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
@@ -21,16 +21,35 @@
         <div class="stat-card"><div class="stat-card-icon bg-rose"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2" stroke-linecap="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/></svg></div><div class="stat-card-value">3</div><div class="stat-card-label">黑名单</div></div>
       </div>
       <div class="toolbar"><div class="toolbar-left"><div class="search-group"><input type="text" class="search-input" placeholder="搜索租户姓名、手机号"><select class="filter-select"><option value="">全部状态</option><option>在租</option><option>已退租</option><option>黑名单</option></select><button class="btn btn-ghost">搜索</button></div></div><button class="btn btn-primary">+ 新增租户</button></div>
-      <div class="data-card"><table><thead><tr><th>ID</th><th>姓名</th><th>手机号</th><th>身份证</th><th>紧急联系人</th><th>合同状态</th><th>操作</th></tr></thead><tbody>
-        <tr data-idx="0"><td>1</td><td><strong>陈租客</strong></td><td>139****0011</td><td>3301********3456</td><td>陈父 138****0001</td><td><span class="tag tag-ok">在租</span></td><td class="action-btns"><button class="btn-icon">编辑</button><button class="btn-icon">退租</button><button class="btn-icon btn-icon-danger">拉黑</button></td></tr>
-        <tr data-idx="1"><td>2</td><td><strong>刘租客</strong></td><td>139****0012</td><td>3301********4567</td><td>刘母 138****0002</td><td><span class="tag tag-ok">在租</span></td><td class="action-btns"><button class="btn-icon">编辑</button><button class="btn-icon">退租</button><button class="btn-icon btn-icon-danger">拉黑</button></td></tr>
-        <tr data-idx="2"><td>3</td><td><strong>张租客</strong></td><td>139****0013</td><td>3301********5678</td><td>张妻 138****0003</td><td><span class="tag tag-off">已退租</span></td><td class="action-btns"><button class="btn-icon">查看</button><button class="btn-icon">恢复</button></td></tr>
-        <tr data-idx="3"><td>4</td><td><strong>赵赖账</strong></td><td>139****0014</td><td>3301********6789</td><td>—</td><td><span class="tag tag-overdue">黑名单</span></td><td class="action-btns"><button class="btn-icon">查看</button><button class="btn-icon">解除</button></td></tr>
-      </tbody></table><div class="table-footer"><span class="table-footer-info">显示 1-4 条，共 92 条</span><div class="pagination"><button class="page-btn disabled">‹</button><button class="page-btn active">1</button><button class="page-btn">2</button><button class="page-btn">›</button></div></div></div>
+      <div class="data-card"><table><thead><tr><th>ID</th><th>姓名</th><th>手机号</th><th>身份证</th><th>紧急联系人</th><th>合同状态</th><th>操作</th></tr></thead><tbody></tbody></table><div class="table-footer"><span class="table-footer-info">加载中...</span><div class="pagination"><button class="page-btn disabled">‹</button><button class="page-btn active">1</button><button class="page-btn">2</button><button class="page-btn">›</button></div></div></div>
     </div>
   </main>
 </div>
-<script src="../js/sidebar.js"></script><script src="../js/page-common.js"></script><script>initPage({name:'租户管理',hashActions:{add:function(){showToast('打开新增租户弹窗')},checkout:function(){showToast('退租处理流程')},blacklist:function(){showToast('查看黑名单')}});</script><script>initSidebar('tenant:list');</script>
+<script src="../js/sidebar.js"></script><script src="../js/page-common.js"></script><script>
+initPage({
+  name: '租户管理',
+  api: {
+    findPage: API.tenantFindPage,
+    findById: API.tenantFindById,
+    add: API.tenantAdd,
+    edit: API.tenantEdit,
+    delete: API.tenantDelete
+  },
+  renderRow: function(item, index) {
+    var statusMap = {0: ['tag-off', '已退租'], 1: ['tag-ok', '在租'], 2: ['tag-overdue', '黑名单']};
+    var s = statusMap[item.status] || statusMap[1];
+    return '<td>' + item.id + '</td>' +
+      '<td><strong>' + (item.name || item.tenantName || '-') + '</strong></td>' +
+      '<td>' + (item.phone || '-') + '</td>' +
+      '<td>' + (item.idCard || '-') + '</td>' +
+      '<td>' + (item.emergencyContact || '-') + '</td>' +
+      '<td><span class="tag ' + s[0] + '">' + s[1] + '</span></td>' +
+      '<td class="action-btns"><button class="btn-icon">编辑</button><button class="btn-icon">退租</button><button class="btn-icon btn-icon-danger">拉黑</button></td>';
+  },
+  hashActions: { add: function(){ openAddModal(); } }
+});
+initSidebar('tenant:list');
+</script>
 <div class="modal-overlay" id="editModal"><div class="modal"><h3>编辑信息</h3><div class="form-group"><label>名称 *</label><input type="text" class="form-input" placeholder="请输入"></div><div class="form-group"><label>备注</label><textarea class="form-input" rows="3" placeholder="备注信息"></textarea></div><div class="modal-footer"><button class="btn btn-ghost" onclick="closeModal('edit')">取消</button><button class="btn btn-primary">保存修改</button></div></div></div>
 </body>
 </html>

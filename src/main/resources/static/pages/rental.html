@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
@@ -21,16 +21,39 @@
         <div class="stat-card"><div class="stat-card-icon bg-purple"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#7c3aed" stroke-width="2" stroke-linecap="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></div><div class="stat-card-value">92%</div><div class="stat-card-label">出租率</div></div>
       </div>
       <div class="toolbar"><div class="toolbar-left"><div class="search-group"><input type="text" class="search-input" placeholder="搜索合同号、业主、租户"><select class="filter-select"><option value="">全部状态</option><option>生效中</option><option>已到期</option><option>提前终止</option></select><button class="btn btn-ghost">搜索</button></div></div><button class="btn btn-primary">+ 新建合同</button></div>
-      <div class="data-card"><table><thead><tr><th>合同编号</th><th>业主</th><th>租户</th><th>房屋</th><th>租期</th><th>月租金</th><th>剩余天数</th><th>状态</th><th>操作</th></tr></thead><tbody>
-        <tr data-idx="0"><td>HT25010001</td><td>王大明</td><td>陈租客</td><td>1-1001</td><td>2025-01-01 ~ 2025-12-31</td><td>¥2,800</td><td><span style="color:#059669;font-weight:600;">28</span>天</td><td><span class="tag tag-ok">生效中</span></td><td class="action-btns"><button class="btn-icon">续签</button><button class="btn-icon btn-icon-danger">终止</button></td></tr>
-        <tr data-idx="1"><td>HT25010002</td><td>李小红</td><td>刘租客</td><td>2-301</td><td>2025-02-01 ~ 2026-01-31</td><td>¥3,500</td><td><span style="color:#d97706;font-weight:600;">15</span>天</td><td><span class="tag tag-ok">生效中</span></td><td class="action-btns"><button class="btn-icon">续签</button><button class="btn-icon btn-icon-danger">终止</button></td></tr>
-        <tr data-idx="2"><td>HT24060015</td><td>王大明</td><td>张租客</td><td>3-1501</td><td>2024-06-01 ~ 2025-05-31</td><td>¥2,200</td><td><span style="color:#dc2626;font-weight:600;">已到期</span></td><td><span class="tag tag-overdue">已到期</span></td><td class="action-btns"><button class="btn-icon">查看</button></td></tr>
-        <tr data-idx="3"><td>HT24090008</td><td>李小红</td><td>林租客</td><td>5-802</td><td>2024-09-01 ~ 2025-08-31</td><td>¥3,000</td><td><span style="color:#dc2626;font-weight:600;">已终止</span></td><td><span class="tag tag-off">提前终止</span></td><td class="action-btns"><button class="btn-icon">查看</button></td></tr>
-      </tbody></table><div class="table-footer"><span class="table-footer-info">显示 1-4 条，共 82 条合同</span><div class="pagination"><button class="page-btn disabled">‹</button><button class="page-btn active">1</button><button class="page-btn">2</button><button class="page-btn">›</button></div></div></div>
+      <div class="data-card"><table><thead><tr><th>合同编号</th><th>业主</th><th>租户</th><th>房屋</th><th>租期</th><th>月租金</th><th>剩余天数</th><th>状态</th><th>操作</th></tr></thead><tbody></tbody></table><div class="table-footer"><span class="table-footer-info">加载中...</span><div class="pagination"><button class="page-btn disabled">‹</button><button class="page-btn active">1</button><button class="page-btn">2</button><button class="page-btn">›</button></div></div></div>
     </div>
   </main>
 </div>
-<script src="../js/sidebar.js"></script><script src="../js/page-common.js"></script><script>initPage({name:'租赁管理',hashActions:{add:function(){showToast('打开新建合同弹窗')},renew:function(){showToast('合同续签操作')},terminate:function(){showToast('合同终止确认')}});</script><script>initSidebar('rental:list');</script>
+<script src="../js/sidebar.js"></script><script src="../js/page-common.js"></script><script>
+initPage({
+  name: '租赁管理',
+  api: {
+    findPage: API.rentalFindPage,
+    findById: API.rentalFindById,
+    add: API.rentalAdd,
+    edit: API.rentalEdit,
+    delete: API.rentalDelete
+  },
+  renderRow: function(item, index) {
+    var statusMap = {0: ['tag-off', '提前终止'], 1: ['tag-ok', '生效中'], 2: ['tag-overdue', '已到期']};
+    var s = statusMap[item.status] || statusMap[1];
+    var daysLeft = item.daysLeft != null ? item.daysLeft + '天' : '-';
+    var actionBtns = item.status == 1 ? '<button class="btn-icon">续签</button><button class="btn-icon btn-icon-danger">终止</button>' : '<button class="btn-icon">查看</button>';
+    return '<td>' + (item.contractNo || item.id || '-') + '</td>' +
+      '<td>' + (item.ownerName || '-') + '</td>' +
+      '<td>' + (item.tenantName || '-') + '</td>' +
+      '<td>' + (item.houseName || '-') + '</td>' +
+      '<td>' + (item.leaseStart || '-') + ' ~ ' + (item.leaseEnd || '-') + '</td>' +
+      '<td>¥' + (item.monthlyRent || 0) + '</td>' +
+      '<td>' + daysLeft + '</td>' +
+      '<td><span class="tag ' + s[0] + '">' + s[1] + '</span></td>' +
+      '<td class="action-btns">' + actionBtns + '</td>';
+  },
+  hashActions: { add: function(){ openAddModal(); } }
+});
+initSidebar('rental:list');
+</script>
 <div class="modal-overlay" id="editModal"><div class="modal"><h3>编辑信息</h3><div class="form-group"><label>名称 *</label><input type="text" class="form-input" placeholder="请输入"></div><div class="form-group"><label>备注</label><textarea class="form-input" rows="3" placeholder="备注信息"></textarea></div><div class="modal-footer"><button class="btn btn-ghost" onclick="closeModal('edit')">取消</button><button class="btn btn-primary">保存修改</button></div></div></div>
 </body>
 </html>

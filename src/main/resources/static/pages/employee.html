@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
@@ -29,17 +29,36 @@
       </div>
 
       <div class="toolbar"><div class="toolbar-left"><div class="search-group"><input type="text" class="search-input" placeholder="搜索员工姓名、手机号"><select class="filter-select"><option value="">全部岗位</option><option>经理</option><option>主管</option><option>维修技师</option><option>安保员</option><option>保洁员</option><option>绿化工</option><option>前台</option></select><select class="filter-select"><option value="">全部状态</option><option>在职</option><option>休假</option><option>离职</option></select><button class="btn btn-ghost">搜索</button></div></div><button class="btn btn-primary">+ 新增员工</button></div>
-      <div class="data-card"><table><thead><tr><th>工号</th><th>姓名</th><th>手机号</th><th>岗位</th><th>部门</th><th>入职日期</th><th>本月出勤</th><th>本月工单</th><th>评分</th><th>状态</th><th>操作</th></tr></thead><tbody>
-       <tr data-idx="0"><td>E001</td><td><strong>张师傅</strong></td><td>138****0001</td><td>维修技工</td><td>工程部</td><td>2020-03-15</td><td>26/26天</td><td>48</td><td>⭐4.9</td><td><span class="tag tag-ok">在职</span></td><td class="action-btns"><button class="btn-icon">排班</button><button class="btn-icon">编辑</button></td></tr>
-       <tr data-idx="1"><td>E002</td><td><strong>李电工</strong></td><td>138****0002</td><td>维修技工</td><td>工程部</td><td>2020-05-20</td><td>25/26天</td><td>41</td><td>⭐4.8</td><td><span class="tag tag-ok">在职</span></td><td class="action-btns"><button class="btn-icon">排班</button><button class="btn-icon">编辑</button></td></tr>
-       <tr data-idx="2"><td>E003</td><td><strong>王主管</strong></td><td>138****0003</td><td>安保主管</td><td>安保部</td><td>2019-08-01</td><td>26/26天</td><td>—</td><td>⭐4.7</td><td><span class="tag tag-ok">在职</span></td><td class="action-btns"><button class="btn-icon">排班</button><button class="btn-icon">编辑</button></td></tr>
-       <tr data-idx="3"><td>E007</td><td><strong>刘保洁</strong></td><td>138****0007</td><td>保洁员</td><td>客服部</td><td>2021-02-10</td><td>24/26天</td><td>—</td><td>⭐4.5</td><td><span class="tag tag-paid">休假</span></td><td class="action-btns"><button class="btn-icon">编辑</button><button class="btn-icon btn-icon-danger">离职</button></td></tr>
-       <tr data-idx="4"><td>E012</td><td><strong>赵队长</strong></td><td>138****0012</td><td>安保队长</td><td>安保部</td><td>2018-06-01</td><td>26/26天</td><td>—</td><td>⭐4.9</td><td><span class="tag tag-ok">在职</span></td><td class="action-btns"><button class="btn-icon">排班</button><button class="btn-icon">编辑</button></td></tr>
-      </tbody></table><div class="table-footer"><span class="table-footer-info">显示 1-5 条，共 28 名员工</span><div class="pagination"><button class="page-btn disabled">‹</button><button class="page-btn active">1</button><button class="page-btn">2</button><button class="page-btn">›</button></div></div></div>
+      <div class="data-card"><table><thead><tr><th>工号</th><th>姓名</th><th>手机号</th><th>岗位</th><th>部门</th><th>入职日期</th><th>状态</th><th>操作</th></tr></thead><tbody></tbody></table><div class="table-footer"><span class="table-footer-info">加载中...</span><div class="pagination"><button class="page-btn disabled">‹</button><button class="page-btn active">1</button><button class="page-btn">2</button><button class="page-btn">›</button></div></div></div>
     </div>
   </main>
 </div>
-<script src="../js/sidebar.js"></script><script src="../js/page-common.js"></script><script>initPage({name:'物业员工',hashActions:{add:function(){showToast('打开新增员工弹窗')}});</script><script>initSidebar('employee:list');</script>
+<script src="../js/sidebar.js"></script><script src="../js/page-common.js"></script><script>
+initPage({
+  name: '物业员工',
+  api: {
+    findPage: API.employeeFindPage,
+    findById: API.employeeFindById,
+    add: API.employeeAdd,
+    edit: API.employeeEdit,
+    delete: API.employeeDelete
+  },
+  renderRow: function(item, index) {
+    var statusClass = item.status == 1 ? 'tag-ok' : item.status == 2 ? 'tag-paid' : 'tag-off';
+    var statusText = item.status == 1 ? '在职' : item.status == 2 ? '休假' : '离职';
+    return '<td>' + item.id + '</td>' +
+      '<td><strong>' + item.employeeName + '</strong></td>' +
+      '<td>' + (item.phone || '-') + '</td>' +
+      '<td>' + (item.position || '-') + '</td>' +
+      '<td>' + (item.department || '-') + '</td>' +
+      '<td>' + (item.hireDate || '-') + '</td>' +
+      '<td><span class="tag ' + statusClass + '">' + statusText + '</span></td>' +
+      '<td class="action-btns"><button class="btn-icon">排班</button><button class="btn-icon">编辑</button></td>';
+  },
+  hashActions: { add: function(){ openAddModal(); } }
+});
+initSidebar('employee:list');
+</script>
 <div class="modal-overlay" id="editModal"><div class="modal"><h3>编辑信息</h3><div class="form-group"><label>名称 *</label><input type="text" class="form-input" placeholder="请输入"></div><div class="form-group"><label>备注</label><textarea class="form-input" rows="3" placeholder="备注信息"></textarea></div><div class="modal-footer"><button class="btn btn-ghost" onclick="closeModal('edit')">取消</button><button class="btn btn-primary">保存修改</button></div></div></div>
 </body>
 </html>

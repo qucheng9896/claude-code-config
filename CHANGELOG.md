@@ -16,6 +16,59 @@
 
 ## 迭代记录
 
+### [v0.2.0] - 2026-07-13 — 环境配置与数据库初始化
+
+#### 📋 变更摘要
+
+| 类型 | 数量 | 说明 |
+|------|------|------|
+| 文档更新 | 1 | 环境配置与运行记录 |
+
+#### ✅ 已完成
+
+- **环境配置**: 确认 JAVA_HOME (Corretto 1.8.0_492) + Maven 3.9.5 + MySQL 8.0.19
+- **数据库初始化**: `db_init.sql` 执行成功，18 张表 + 3 视图 + 完整初始数据
+- **编译验证**: `mvn clean compile` 通过，102 个 .class 文件
+- **启动验证**: `mvn spring-boot:run` 成功，端口 8080
+- **接口验证**: 登录 / 房屋分页 / Dashboard 统计 / JWT 拦截 全部通过
+
+#### 📊 验证结果
+
+```
+登录接口:  POST /user/login       → ✅ 返回 JWT Token
+房屋接口:  POST /house/findPage   → ✅ 460 条数据，含关联名称
+统计接口:  GET  /dashboard/overview → ✅ 真实统计数据
+JWT拦截:   未认证访问              → ✅ 返回 401
+```
+
+##### 数据库状态
+
+| 表 | 记录数 | 表 | 记录数 |
+|------|--------|------|--------|
+| t_house | 460 | t_shop | 36 |
+| t_owner | 100 | t_parking | 580 |
+| t_tenant | 15 | t_rental | 386 |
+| t_payment | 2316 | t_building | 5 |
+| t_employee | 16 | t_user | 1 |
+| t_visitor | 20 | t_notice | 9 |
+| t_repair_order | 30 | t_facility | 24 |
+| t_ai_remind_log | 0 | t_access_record | 0 |
+
+#### 📁 新增文件
+
+```
+versions/v0.2.0/RELEASE.md
+```
+
+#### 🔗 Git 信息
+
+```
+Tag: v0.2.0
+Commit: [待提交]
+```
+
+---
+
 ### [v0.1.0] - 2026-07-13 — 项目基线版本
 
 #### 📋 项目状态快照

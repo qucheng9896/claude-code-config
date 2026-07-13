@@ -50,7 +50,7 @@ versions/v0.3.0/RELEASE.md
 
 ```
 Tag: v0.3.0
-Commit: [待提交]
+Commit: 050bd9a
 ```
 
 ---

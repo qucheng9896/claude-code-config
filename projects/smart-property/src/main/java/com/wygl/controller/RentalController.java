@@ -1,0 +1,35 @@
+package com.wygl.controller;
+
+import com.wygl.pojo.Rental;
+import com.wygl.result.Result;
+import com.wygl.service.IRentalService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
+@RestController
+@RequestMapping("/rental")
+public class RentalController extends BaseController<Rental> {
+
+    @Autowired
+    private IRentalService rentalService;
+
+    @GetMapping("/expire")
+    public Result expire(@RequestParam(defaultValue = "30") Integer days) {
+        List<Rental> list = rentalService.findExpiring(days);
+        return new Result(true, list);
+    }
+
+    @PutMapping("/renew/{id}")
+    public Result renew(@PathVariable Integer id) {
+        boolean ok = rentalService.renew(id);
+        return new Result(ok, ok ? "续签成功" : "续签失败");
+    }
+
+    @PutMapping("/terminate/{id}")
+    public Result terminate(@PathVariable Integer id) {
+        boolean ok = rentalService.terminate(id);
+        return new Result(ok, ok ? "合同终止成功" : "终止失败");
+    }
+}

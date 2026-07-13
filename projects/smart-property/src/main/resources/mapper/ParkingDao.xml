@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wygl.dao.ParkingDao">
+
+    <resultMap id="resultMap" type="Parking">
+        <id property="id" column="id"/>
+        <result property="parkingNo" column="parking_no"/>
+        <result property="area" column="area"/>
+        <result property="type" column="type"/>
+        <result property="size" column="size"/>
+        <result property="ownerId" column="owner_id"/>
+        <result property="tenantId" column="tenant_id"/>
+        <result property="monthlyRent" column="monthly_rent"/>
+        <result property="status" column="status"/>
+        <result property="remark" column="remark"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateTime" column="update_time"/>
+    </resultMap>
+
+    <select id="findById" resultMap="resultMap">
+        SELECT p.*, o.name AS owner_name, t.name AS tenant_name
+        FROM t_parking p
+        LEFT JOIN t_owner o ON p.owner_id = o.id
+        LEFT JOIN t_tenant t ON p.tenant_id = t.id
+        WHERE p.id = #{id}
+    </select>
+
+    <select id="findPage" resultMap="resultMap">
+        SELECT p.*, o.name AS owner_name, t.name AS tenant_name
+        FROM t_parking p
+        LEFT JOIN t_owner o ON p.owner_id = o.id
+        LEFT JOIN t_tenant t ON p.tenant_id = t.id
+        <where>
+            <if test="queryString != null and queryString != ''">
+                AND (p.parking_no LIKE CONCAT('%', #{queryString}, '%')
+                OR p.area LIKE CONCAT('%', #{queryString}, '%')
+                OR o.name LIKE CONCAT('%', #{queryString}, '%')
+                OR t.name LIKE CONCAT('%', #{queryString}, '%'))
+            </if>
+            <if test="type != null and type != ''">
+                AND p.type = #{type}
+            </if>
+            <if test="status != null">
+                AND p.status = #{status}
+            </if>
+        </where>
+        ORDER BY p.parking_no
+    </select>
+
+    <insert id="insert" parameterType="Parking" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO t_parking (parking_no, area, type, size, owner_id, tenant_id, monthly_rent, status, remark, create_time)
+        VALUES (#{parkingNo}, #{area}, #{type}, #{size}, #{ownerId}, #{tenantId}, #{monthlyRent}, #{status}, #{remark}, NOW())
+    </insert>
+
+    <update id="update" parameterType="Parking">
+        UPDATE t_parking
+        <set>
+            <if test="parkingNo != null">parking_no = #{parkingNo},</if>
+            <if test="area != null">area = #{area},</if>
+            <if test="type != null">type = #{type},</if>
+            <if test="size != null">size = #{size},</if>
+            <if test="ownerId != null">owner_id = #{ownerId},</if>
+            <if test="tenantId != null">tenant_id = #{tenantId},</if>
+            <if test="monthlyRent != null">monthly_rent = #{monthlyRent},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="remark != null">remark = #{remark},</if>
+        </set>
+        WHERE id = #{id}
+    </update>
+
+    <select id="countByParkingNo" resultType="int">
+        SELECT COUNT(*) FROM t_parking WHERE parking_no = #{parkingNo}
+    </select>
+
+    <delete id="delete" parameterType="int">
+        DELETE FROM t_parking WHERE id = #{id}
+    </delete>
+
+    <select id="selectStats" resultType="map">
+        SELECT
+            COUNT(*) AS total,
+            SUM(CASE WHEN status = 1 THEN 1 ELSE 0 END) AS rented,
+            ROUND(SUM(CASE WHEN status = 1 THEN monthly_rent ELSE 0 END), 2) AS totalRent
+        FROM t_parking
+    </select>
+
+</mapper>

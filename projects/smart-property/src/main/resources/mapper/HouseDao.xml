@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wygl.dao.HouseDao">
+
+    <resultMap id="houseResultMap" type="House">
+        <id property="id" column="id"/>
+        <result property="buildingId" column="building_id"/>
+        <result property="roomNo" column="room_no"/>
+        <result property="area" column="area"/>
+        <result property="ownerId" column="owner_id"/>
+        <result property="tenantId" column="tenant_id"/>
+        <result property="houseType" column="house_type"/>
+        <result property="status" column="status"/>
+        <result property="remark" column="remark"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateTime" column="update_time"/>
+        <result property="buildingName" column="building_name"/>
+        <result property="ownerName" column="owner_name"/>
+        <result property="tenantName" column="tenant_name"/>
+    </resultMap>
+
+    <select id="findById" resultMap="houseResultMap">
+        SELECT h.*, o.name AS owner_name, t.name AS tenant_name, b.building_name
+        FROM t_house h
+        LEFT JOIN t_owner o ON h.owner_id = o.id
+        LEFT JOIN t_tenant t ON h.tenant_id = t.id
+        LEFT JOIN t_building b ON h.building_id = b.id
+        WHERE h.id = #{id}
+    </select>
+
+    <select id="findPage" resultMap="houseResultMap">
+        SELECT h.*, o.name AS owner_name, t.name AS tenant_name, b.building_name
+        FROM t_house h
+        LEFT JOIN t_owner o ON h.owner_id = o.id
+        LEFT JOIN t_tenant t ON h.tenant_id = t.id
+        LEFT JOIN t_building b ON h.building_id = b.id
+        <where>
+            <if test="queryString != null and queryString != ''">
+                AND (b.building_name LIKE CONCAT('%', #{queryString}, '%')
+                OR h.room_no LIKE CONCAT('%', #{queryString}, '%')
+                OR o.name LIKE CONCAT('%', #{queryString}, '%'))
+            </if>
+            <if test="status != null">
+                AND h.status = #{status}
+            </if>
+        </where>
+        ORDER BY b.building_name, h.room_no
+    </select>
+
+    <insert id="insert" parameterType="House" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO t_house (building_id, room_no, area, owner_id, tenant_id, house_type, status, remark, create_time)
+        VALUES (#{buildingId}, #{roomNo}, #{area}, #{ownerId}, #{tenantId}, #{houseType}, #{status}, #{remark}, NOW())
+    </insert>
+
+    <update id="update" parameterType="House">
+        UPDATE t_house
+        <set>
+            <if test="buildingId != null">building_id = #{buildingId},</if>
+            <if test="roomNo != null">room_no = #{roomNo},</if>
+            <if test="area != null">area = #{area},</if>
+            <if test="ownerId != null">owner_id = #{ownerId},</if>
+            <if test="tenantId != null">tenant_id = #{tenantId},</if>
+            <if test="houseType != null">house_type = #{houseType},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="remark != null">remark = #{remark},</if>
+        </set>
+        WHERE id = #{id}
+    </update>
+
+    <delete id="delete" parameterType="int">
+        DELETE FROM t_house WHERE id = #{id}
+    </delete>
+
+    <select id="countByBuildingRoom" resultType="int">
+        SELECT COUNT(*) FROM t_house WHERE building_id = #{buildingId} AND room_no = #{roomNo}
+    </select>
+
+    <select id="countUnpaidByHouseId" resultType="int">
+        SELECT COUNT(*) FROM t_payment WHERE house_id = #{houseId} AND pay_status IN (0, 3)
+    </select>
+
+    <select id="findByStatus" resultMap="houseResultMap">
+        SELECT h.*, o.name AS owner_name, t.name AS tenant_name, b.building_name
+        FROM t_house h
+        LEFT JOIN t_owner o ON h.owner_id = o.id
+        LEFT JOIN t_tenant t ON h.tenant_id = t.id
+        LEFT JOIN t_building b ON h.building_id = b.id
+        WHERE h.status = #{status}
+    </select>
+
+    <select id="selectStats" resultType="map">
+        SELECT
+            COUNT(*) AS total,
+            SUM(CASE WHEN status = 1 THEN 1 ELSE 0 END) AS occupied,
+            SUM(CASE WHEN status = 0 THEN 1 ELSE 0 END) AS vacant,
+            COUNT(DISTINCT building_id) AS buildings
+        FROM t_house
+    </select>
+
+    <update id="clearTenantId" parameterType="int">
+        UPDATE t_house SET tenant_id = NULL, status = 0 WHERE id = #{houseId}
+    </update>
+
+    <update id="updateStatus" parameterType="int">
+        UPDATE t_house SET status = #{status} WHERE id = #{id}
+    </update>
+
+</mapper>

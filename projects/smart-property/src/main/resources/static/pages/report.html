@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>报表统计 - 物业管理系统</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/common.css">
+</head>
+<body>
+<div class="toast" id="toast"></div>
+<div class="admin-layout">
+  <div id="sidebar-placeholder"></div>
+  <main class="main-content">
+    <div class="topbar"><div class="topbar-title">报表统计</div><div class="topbar-user"><span>欢迎，<strong>管理员</strong></span><div class="topbar-avatar">A</div></div></div>
+    <div class="page-body">
+      <div class="stats">
+        <div class="stat-card"><div class="stat-card-icon bg-green"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2" stroke-linecap="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div><div class="stat-card-value">¥1,842K</div><div class="stat-card-label">累计已收缴</div></div>
+        <div class="stat-card"><div class="stat-card-icon bg-blue"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2" stroke-linecap="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div><div class="stat-card-value">96.2%</div><div class="stat-card-label">综合收缴率</div></div>
+        <div class="stat-card"><div class="stat-card-icon bg-amber"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#d97706" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div><div class="stat-card-value">¥38.5K</div><div class="stat-card-label">逾期未缴</div></div>
+        <div class="stat-card"><div class="stat-card-icon bg-purple"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#7c3aed" stroke-width="2" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div><div class="stat-card-value">76</div><div class="stat-card-label">在租合同</div></div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:2fr 1fr;gap:20px;margin-bottom:20px;">
+        <div style="background:white;border:1px solid #e2e8f0;border-radius:10px;padding:24px;">
+          <div style="font-size:15px;font-weight:600;margin-bottom:16px;">近 12 个月收缴趋势</div>
+          <div style="display:flex;align-items:flex-end;gap:6px;height:180px;padding-top:12px;">
+            <div style="flex:1;height:58%;background:#059669;border-radius:4px 4px 0 0;opacity:0.7;"></div>
+            <div style="flex:1;height:72%;background:#059669;border-radius:4px 4px 0 0;opacity:0.75;"></div>
+            <div style="flex:1;height:48%;background:#059669;border-radius:4px 4px 0 0;opacity:0.8;"></div>
+            <div style="flex:1;height:80%;background:#059669;border-radius:4px 4px 0 0;opacity:0.85;"></div>
+            <div style="flex:1;height:65%;background:#059669;border-radius:4px 4px 0 0;opacity:0.88;"></div>
+            <div style="flex:1;height:85%;background:#059669;border-radius:4px 4px 0 0;opacity:0.9;"></div>
+            <div style="flex:1;height:70%;background:#059669;border-radius:4px 4px 0 0;opacity:0.92;"></div>
+            <div style="flex:1;height:90%;background:#059669;border-radius:4px 4px 0 0;opacity:0.94;"></div>
+            <div style="flex:1;height:78%;background:#059669;border-radius:4px 4px 0 0;opacity:0.95;"></div>
+            <div style="flex:1;height:95%;background:#059669;border-radius:4px 4px 0 0;opacity:0.97;"></div>
+            <div style="flex:1;height:82%;background:#059669;border-radius:4px 4px 0 0;opacity:0.98;"></div>
+            <div style="flex:1;height:100%;background:linear-gradient(135deg,#059669,#10b981);border-radius:4px 4px 0 0;"></div>
+          </div>
+          <div style="display:flex;gap:6px;margin-top:8px;">
+            <span style="flex:1;text-align:center;font-size:10px;color:#94a3b8;">2月</span><span style="flex:1;text-align:center;font-size:10px;color:#94a3b8;">3月</span><span style="flex:1;text-align:center;font-size:10px;color:#94a3b8;">4月</span><span style="flex:1;text-align:center;font-size:10px;color:#94a3b8;">5月</span><span style="flex:1;text-align:center;font-size:10px;color:#94a3b8;">6月</span><span style="flex:1;text-align:center;font-size:10px;color:#94a3b8;">7月</span><span style="flex:1;text-align:center;font-size:10px;color:#94a3b8;">8月</span><span style="flex:1;text-align:center;font-size:10px;color:#94a3b8;">9月</span><span style="flex:1;text-align:center;font-size:10px;color:#94a3b8;">10月</span><span style="flex:1;text-align:center;font-size:10px;color:#94a3b8;">11月</span><span style="flex:1;text-align:center;font-size:10px;color:#94a3b8;">12月</span><span style="flex:1;text-align:center;font-size:10px;color:#059669;font-weight:700;">1月</span>
+          </div>
+        </div>
+        <div style="background:white;border:1px solid #e2e8f0;border-radius:10px;padding:24px;">
+          <div style="font-size:15px;font-weight:600;margin-bottom:16px;">月度汇总</div>
+          <div style="display:flex;flex-direction:column;gap:14px;">
+            <div style="padding-bottom:14px;border-bottom:1px solid #f1f5f9;"><div style="font-size:13px;color:#64748b;margin-bottom:4px;">本月账单</div><div style="font-size:22px;font-weight:700;font-family:'JetBrains Mono',monospace;">186 <span style="font-size:12px;font-weight:400;color:#94a3b8;">笔</span></div></div>
+            <div style="padding-bottom:14px;border-bottom:1px solid #f1f5f9;"><div style="font-size:13px;color:#64748b;margin-bottom:4px;">已确认收入</div><div style="font-size:22px;font-weight:700;font-family:'JetBrains Mono',monospace;color:#059669;">¥128,450</div></div>
+            <div style="padding-bottom:14px;border-bottom:1px solid #f1f5f9;"><div style="font-size:13px;color:#64748b;margin-bottom:4px;">逾期账单</div><div style="font-size:22px;font-weight:700;font-family:'JetBrains Mono',monospace;color:#dc2626;">42 <span style="font-size:12px;font-weight:400;color:#94a3b8;">笔</span></div></div>
+            <div><div style="font-size:13px;color:#64748b;margin-bottom:4px;">催缴已发送</div><div style="font-size:22px;font-weight:700;font-family:'JetBrains Mono',monospace;color:#7c3aed;">28 <span style="font-size:12px;font-weight:400;color:#94a3b8;">条</span></div></div>
+          </div>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin-bottom:20px;">
+        <div style="background:white;border:1px solid #e2e8f0;border-radius:10px;padding:24px;">
+          <div style="font-size:15px;font-weight:600;margin-bottom:12px;">费用类型分布</div>
+          <div style="display:flex;align-items:center;justify-content:center;height:140px;">
+            <div style="width:120px;height:120px;border-radius:50%;background:conic-gradient(#059669 0% 45%, #2563eb 45% 70%, #d97706 70% 85%, #7c3aed 85% 100%);"></div>
+          </div>
+          <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:8px;"><span style="display:flex;align-items:center;gap:4px;font-size:12px;color:#64748b;"><span style="width:8px;height:8px;border-radius:50%;background:#059669;"></span>物业费 45%</span><span style="display:flex;align-items:center;gap:4px;font-size:12px;color:#64748b;"><span style="width:8px;height:8px;border-radius:50%;background:#2563eb;"></span>租金 25%</span><span style="display:flex;align-items:center;gap:4px;font-size:12px;color:#64748b;"><span style="width:8px;height:8px;border-radius:50%;background:#d97706;"></span>水电 15%</span><span style="display:flex;align-items:center;gap:4px;font-size:12px;color:#64748b;"><span style="width:8px;height:8px;border-radius:50%;background:#7c3aed;"></span>停车 15%</span></div>
+        </div>
+        <div style="background:white;border:1px solid #e2e8f0;border-radius:10px;padding:24px;">
+          <div style="font-size:15px;font-weight:600;margin-bottom:12px;">楼栋出租率 TOP5</div>
+          <div style="display:flex;flex-direction:column;gap:10px;">
+            <div><div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px;"><span>1栋 (28套)</span><span style="color:#059669;font-weight:600;">100%</span></div><div style="height:6px;background:#f1f5f9;border-radius:3px;"><div style="width:100%;height:100%;background:linear-gradient(90deg,#059669,#10b981);border-radius:3px;"></div></div></div>
+            <div><div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px;"><span>2栋 (24套)</span><span style="color:#059669;font-weight:600;">96%</span></div><div style="height:6px;background:#f1f5f9;border-radius:3px;"><div style="width:96%;height:100%;background:linear-gradient(90deg,#059669,#10b981);border-radius:3px;"></div></div></div>
+            <div><div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px;"><span>3栋 (26套)</span><span style="color:#d97706;font-weight:600;">88%</span></div><div style="height:6px;background:#f1f5f9;border-radius:3px;"><div style="width:88%;height:100%;background:linear-gradient(90deg,#d97706,#f59e0b);border-radius:3px;"></div></div></div>
+            <div><div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px;"><span>5栋 (20套)</span><span style="color:#d97706;font-weight:600;">85%</span></div><div style="height:6px;background:#f1f5f9;border-radius:3px;"><div style="width:85%;height:100%;background:linear-gradient(90deg,#d97706,#f59e0b);border-radius:3px;"></div></div></div>
+            <div><div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px;"><span>4栋 (22套)</span><span style="color:#dc2626;font-weight:600;">77%</span></div><div style="height:6px;background:#f1f5f9;border-radius:3px;"><div style="width:77%;height:100%;background:linear-gradient(90deg,#dc2626,#ef4444);border-radius:3px;"></div></div></div>
+          </div>
+        </div>
+        <div style="background:white;border:1px solid #e2e8f0;border-radius:10px;padding:24px;">
+          <div style="font-size:15px;font-weight:600;margin-bottom:12px;">缴费方式统计</div>
+          <div style="display:flex;flex-direction:column;gap:12px;padding-top:8px;">
+            <div><div style="display:flex;justify-content:space-between;font-size:13px;color:#334155;margin-bottom:6px;"><span>微信支付</span><span style="font-family:'JetBrains Mono',monospace;font-weight:600;">58%</span></div><div style="height:8px;background:#f1f5f9;border-radius:4px;"><div style="width:58%;height:100%;background:#059669;border-radius:4px;"></div></div></div>
+            <div><div style="display:flex;justify-content:space-between;font-size:13px;color:#334155;margin-bottom:6px;"><span>支付宝</span><span style="font-family:'JetBrains Mono',monospace;font-weight:600;">22%</span></div><div style="height:8px;background:#f1f5f9;border-radius:4px;"><div style="width:22%;height:100%;background:#2563eb;border-radius:4px;"></div></div></div>
+            <div><div style="display:flex;justify-content:space-between;font-size:13px;color:#334155;margin-bottom:6px;"><span>银行转账</span><span style="font-family:'JetBrains Mono',monospace;font-weight:600;">12%</span></div><div style="height:8px;background:#f1f5f9;border-radius:4px;"><div style="width:12%;height:100%;background:#d97706;border-radius:4px;"></div></div></div>
+            <div><div style="display:flex;justify-content:space-between;font-size:13px;color:#334155;margin-bottom:6px;"><span>现金</span><span style="font-family:'JetBrains Mono',monospace;font-weight:600;">8%</span></div><div style="height:8px;background:#f1f5f9;border-radius:4px;"><div style="width:8%;height:100%;background:#7c3aed;border-radius:4px;"></div></div></div>
+          </div>
+        </div>
+      </div>
+
+      <div style="background:white;border:1px solid #e2e8f0;border-radius:10px;padding:24px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;"><div style="font-size:15px;font-weight:600;">月度收缴明细表</div><button class="btn btn-ghost" onclick="exportCSV()">导出 Excel</button></div>
+        <table><thead><tr><th>月份</th><th>物业费</th><th>水电费</th><th>停车费</th><th>租金</th><th>合计</th><th>收缴率</th></tr></thead><tbody>
+          <tr data-idx="0"><td><strong>2025-01</strong></td><td>¥52,340</td><td>¥28,650</td><td>¥12,800</td><td>¥34,660</td><td style="font-weight:700;">¥128,450</td><td><span class="tag tag-ok">96.2%</span></td></tr>
+          <tr data-idx="1"><td>2024-12</td><td>¥48,920</td><td>¥26,380</td><td>¥12,800</td><td>¥32,400</td><td style="font-weight:700;">¥120,500</td><td><span class="tag tag-ok">94.1%</span></td></tr>
+          <tr data-idx="2"><td>2024-11</td><td>¥45,680</td><td>¥24,200</td><td>¥12,800</td><td>¥29,800</td><td style="font-weight:700;">¥112,480</td><td><span class="tag tag-ok">97.8%</span></td></tr>
+        </tbody></table>
+      </div>
+    </div>
+  </main>
+</div>
+<script src="../js/sidebar.js"></script><script src="../js/page-common.js"></script><script>initPage({name:'收缴明细表',hashActions:{export:function(){exportCSV()},rental:function(){showToast('租赁统计报表')},year:function(){showToast('年度汇总报表')}}});</script><script>initSidebar('report:payment');</script>
+</body>
+</html>

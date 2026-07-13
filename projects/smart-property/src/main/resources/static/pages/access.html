@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>门禁管理 - 物业管理系统</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/common.css">
+</head>
+<body>
+<div class="toast" id="toast"></div>
+<div class="admin-layout">
+  <div id="sidebar-placeholder"></div>
+  <main class="main-content">
+    <div class="topbar"><div class="topbar-title">安防门禁</div><div class="topbar-user"><span>欢迎，<strong>管理员</strong></span><div class="topbar-avatar">A</div></div></div>
+    <div class="page-body">
+      <div class="stats">
+        <div class="stat-card"><div class="stat-card-icon bg-blue"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2" stroke-linecap="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div><div class="stat-card-value">5</div><div class="stat-card-label">门口机数量</div></div>
+        <div class="stat-card"><div class="stat-card-icon bg-green"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2" stroke-linecap="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/></svg></div><div class="stat-card-value">1,856</div><div class="stat-card-label">注册人脸</div></div>
+        <div class="stat-card"><div class="stat-card-icon bg-amber"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#d97706" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div><div class="stat-card-value">12,430</div><div class="stat-card-label">今日通行</div></div>
+        <div class="stat-card"><div class="stat-card-icon bg-rose"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2" stroke-linecap="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/></svg></div><div class="stat-card-value">3</div><div class="stat-card-label">今日告警</div></div>
+      </div>
+      <div class="toolbar"><div class="toolbar-left"><div style="display:flex;gap:8px;">
+        <button class="btn btn-primary" style="background:var(--accent);">门禁记录</button>
+        <button class="btn btn-ghost">访客预约</button>
+        <button class="btn btn-ghost">监控中心</button>
+        <button class="btn btn-ghost">报警中心</button>
+      </div></div></div>
+      <div class="data-card"><table><thead><tr><th>通行时间</th><th>姓名</th><th>身份</th><th>房屋</th><th>通行方式</th><th>门口机</th><th>结果</th></tr></thead><tbody></tbody></table><div class="table-footer"><span class="table-footer-info">加载中...</span><div class="pagination"><button class="page-btn disabled">‹</button><button class="page-btn active">1</button><button class="page-btn">2</button><button class="page-btn">›</button></div></div></div>
+    </div>
+  </main>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/axios@1.6.2/dist/axios.min.js"></script>
+<script src="../js/axios-config.js"></script>
+<script src="../js/sidebar.js"></script><script src="../js/api.js"></script><script src="../js/page-common.js"></script><script>
+initPage({
+  name: '安防门禁',
+  api: {
+    findPage: API.accessFindPage,
+    findById: API.accessFindById,
+    add: API.accessAdd,
+    edit: API.accessEdit,
+    delete: API.accessDelete
+  },
+  renderRow: function(item, index) {
+    var identityMap = {0: ['tag-admin', '管理员'], 1: ['tag-owner', '业主'], 2: ['tag-info', '租户'], 3: ['tag-paid', '访客']};
+    var id = identityMap[item.identityType] || ['', '-'];
+    var resultClass = item.result == 1 ? 'tag-ok' : 'tag-overdue';
+    var resultText = item.result == 1 ? '通过' : '拒绝';
+    return '<td>' + item.passTime + '</td>' +
+      '<td>' + (item.personName || '-') + '</td>' +
+      '<td><span class="tag ' + id[0] + '">' + id[1] + '</span></td>' +
+      '<td>' + (item.houseName || '-') + '</td>' +
+      '<td>' + (item.passMethod || '-') + '</td>' +
+      '<td>' + (item.gateName || '-') + '</td>' +
+      '<td><span class="tag ' + resultClass + '">' + resultText + '</span></td>';
+  },
+  hashActions: { face: function(){ showToast('人脸录入管理'); }, monitor: function(){ showToast('视频监控中心'); } }
+});
+initSidebar('access:records');
+</script>
+<div class="modal-overlay" id="editModal"><div class="modal"><h3>编辑信息</h3><div class="form-group"><label>名称 *</label><input type="text" class="form-input" placeholder="请输入"></div><div class="form-group"><label>备注</label><textarea class="form-input" rows="3" placeholder="备注信息"></textarea></div><div class="modal-footer"><button class="btn btn-ghost" onclick="closeModal('edit')">取消</button><button class="btn btn-primary">保存修改</button></div></div></div>
+</body>
+</html>
+
+
+
+
+
+
+

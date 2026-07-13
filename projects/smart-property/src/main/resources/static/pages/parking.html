@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>车位管理 - 物业管理系统</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/common.css">
+</head>
+<body>
+<div class="toast" id="toast"></div>
+<div class="admin-layout">
+  <div id="sidebar-placeholder"></div>
+  <main class="main-content">
+    <div class="topbar"><div class="topbar-title">车位管理</div><div class="topbar-user"><span>欢迎，<strong>管理员</strong></span><div class="topbar-avatar">A</div></div></div>
+    <div class="page-body">
+      <div class="stats">
+        <div class="stat-card"><div class="stat-card-icon bg-blue"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2" stroke-linecap="round"><rect x="1" y="4" width="22" height="16" rx="2"/><path d="M1 10h22"/><path d="M7 15h.01"/><path d="M17 15h.01"/></svg></div><div class="stat-card-value">580</div><div class="stat-card-label">车位总数</div></div>
+        <div class="stat-card"><div class="stat-card-icon bg-green"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2" stroke-linecap="round"><path d="M12 2v20M2 12h20"/></svg></div><div class="stat-card-value">120</div><div class="stat-card-label">充电桩车位</div></div>
+        <div class="stat-card"><div class="stat-card-icon bg-amber"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#d97706" stroke-width="2" stroke-linecap="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/></svg></div><div class="stat-card-value">496</div><div class="stat-card-label">月租车位</div></div>
+        <div class="stat-card"><div class="stat-card-icon bg-purple"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#7c3aed" stroke-width="2" stroke-linecap="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/></svg></div><div class="stat-card-value">85.5%</div><div class="stat-card-label">出租率</div></div>
+      </div>
+      <div class="toolbar"><div class="toolbar-left"><div class="search-group"><input type="text" id="searchInput" class="search-input" placeholder="搜索车位编号"><select id="filterType" class="filter-select"><option value="">全部类型</option><option value="地下车位">地下车位</option><option value="地面车位">地面车位</option><option value="充电桩车位">充电桩车位</option></select><select id="filterStatus" class="filter-select"><option value="">全部状态</option><option value="2">产权</option><option value="1">租赁</option><option value="0">空闲</option></select><button id="btnSearch" class="btn btn-ghost">搜索</button></div></div><button id="btnAdd" class="btn btn-primary">+ 新增车位</button></div>
+      <div class="data-card"><table><thead><tr><th>车位编号</th><th>区域</th><th>类型</th><th>面积</th><th>业主</th><th>当前租户</th><th>月租</th><th>状态</th><th>操作</th></tr></thead><tbody id="parkingTbody"></tbody></table><div class="table-footer"><span id="tableInfo" class="table-footer-info">加载中...</span><div id="pagination" class="pagination"><button class="page-btn disabled">‹</button><button class="page-btn active">1</button><button class="page-btn">2</button><button class="page-btn">›</button></div></div></div>
+    </div>
+  </main>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/axios@1.6.2/dist/axios.min.js"></script>
+<script src="../js/axios-config.js"></script>
+<script src="../js/sidebar.js"></script>
+<script>
+var currentPage = 1, pageSize = 10, totalPages = 1;
+function showToast(msg) { var el = document.getElementById('toast'); if (!el) return; el.textContent = msg; el.className = 'toast show'; setTimeout(function() { el.className = 'toast'; }, 3000); }
+function loadList(page) { currentPage = page || 1; var q = document.getElementById('searchInput').value.trim(); var t = document.getElementById('filterType').value; var s = document.getElementById('filterStatus').value; axios.post('/parking/findPage', { currentPage: currentPage, pageSize: pageSize, queryString: q, type: t || null, status: s || null }).then(function(res) { renderTable(res.data.rows); totalPages = Math.ceil(res.data.total / pageSize) || 1; renderPagination(document.getElementById('tableInfo'), res.data.total); loadStats(); }); }
+function renderTable(list) { var tb = document.getElementById('parkingTbody'); if (!list || !list.length) { tb.innerHTML = '<tr><td colspan="10" style="text-align:center;color:#94a3b8;padding:40px">暂无数据</td></tr>'; return; } var h = ''; list.forEach(function(x) { var tag = x.status == 1 ? '<span class="tag tag-ok">租赁</span>' : (x.status == 2 ? '<span class="tag tag-info">产权</span>' : '<span class="tag tag-empty">空闲</span>'); h += '<tr><td>' + x.id + '</td><td><strong>' + (x.parkingNo || '-') + '</strong></td><td>' + (x.area || '-') + '</td><td>' + (x.type || '-') + '</td><td>' + (x.size || '-') + '</td><td>' + (x.ownerName || '-') + '</td><td>' + (x.tenantName || '-') + '</td><td>' + (x.monthlyRent ? '¥' + x.monthlyRent : '-') + '</td><td>' + tag + '</td><td class="action-btns"><button class="btn-icon btn-edit" data-id="' + x.id + '">编辑</button><button class="btn-icon btn-icon-danger btn-del" data-id="' + x.id + '">删除</button></td></tr>'; }); tb.innerHTML = h; tb.querySelectorAll('.btn-edit').forEach(function(b) { b.addEventListener('click', function() { openEdit(this.dataset.id); }); }); tb.querySelectorAll('.btn-del').forEach(function(b) { b.addEventListener('click', function() { doDelete(this.dataset.id); }); }); }
+function renderPagination(e, t) { e.textContent = '显示第' + ((currentPage-1)*pageSize+1) + '-' + Math.min(currentPage*pageSize, t) + ' 条，共 ' + t + ' 条'; var p = document.getElementById('pagination'), h = '<button class="page-btn' + (currentPage<=1?' disabled':'') + '" data-page="' + (currentPage-1) + '">‹</button>'; for (var i=1;i<=totalPages;i++) h += '<button class="page-btn'+(i===currentPage?' active':'')+'" data-page="'+i+'">'+i+'</button>'; h += '<button class="page-btn'+(currentPage>=totalPages?' disabled':'')+'" data-page="'+(currentPage+1)+'">›</button>'; p.innerHTML = h; p.querySelectorAll('.page-btn').forEach(function(b) { b.addEventListener('click', function() { var pg=parseInt(this.dataset.page); if(pg>=1&&pg<=totalPages) loadList(pg); }); }); }
+function loadStats() { axios.post('/parking/findPage', {currentPage:1,pageSize:9999,queryString:''}).then(function(res){var l=res.data.rows,el=document.getElementById('s-total');if(el)el.textContent=l.length;el=document.getElementById('s-rented');if(el)el.textContent=l.filter(function(x){return x.status==1}).length;el=document.getElementById('s-rate');if(el)el.textContent=l.length?(l.filter(function(x){return x.status==1}).length*100/l.length).toFixed(1)+'%':'0%';}); }
+function openAdd(){document.getElementById('editModal').classList.add('show');}
+function openEdit(id){axios.get('/parking/findById/'+id).then(function(){document.getElementById('editModal').classList.add('show');});}
+function doSave(){showToast('保存成功');closeModal('edit');loadList(currentPage);}
+function doDelete(id){if(!confirm('确认删除该车位吗？'))return;axios.delete('/parking/delete/'+id).then(function(){showToast('删除成功');loadList(currentPage);});}
+function closeModal(n){document.getElementById(n+'Modal').classList.remove('show');}
+document.getElementById('btnAdd').addEventListener('click',openAdd);document.getElementById('btnSearch').addEventListener('click',function(){loadList(1);});document.getElementById('searchInput').addEventListener('keydown',function(e){if(e.key==='Enter')loadList(1);});document.getElementById('filterType').addEventListener('change',function(){loadList(1);});document.getElementById('filterStatus').addEventListener('change',function(){loadList(1);});var em=document.getElementById('editModal');if(em)em.addEventListener('click',function(e){if(e.target===this)this.classList.remove('show');});
+loadList(1);initSidebar('parking:list');
+</script>
+<div class="modal-overlay" id="editModal"><div class="modal"><h3>编辑信息</h3><div class="form-group"><label>名称 *</label><input type="text" class="form-input" placeholder="请输入"></div><div class="form-group"><label>备注</label><textarea class="form-input" rows="3" placeholder="备注信息"></textarea></div><div class="modal-footer"><button class="btn btn-ghost" onclick="closeModal('edit')">取消</button><button class="btn btn-primary" onclick="doSave()">保存修改</button></div></div></div>
+</body>
+</html>
+
+
+
+
+
+
+

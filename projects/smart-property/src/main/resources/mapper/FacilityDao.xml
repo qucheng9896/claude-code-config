@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wygl.dao.FacilityDao">
+
+    <resultMap id="resultMap" type="Facility">
+        <id property="id" column="id"/>
+        <result property="name" column="name"/>
+        <result property="type" column="type"/>
+        <result property="location" column="location"/>
+        <result property="quantity" column="quantity"/>
+        <result property="maintainer" column="maintainer"/>
+        <result property="lastCheck" column="last_check"/>
+        <result property="nextCheck" column="next_check"/>
+        <result property="status" column="status"/>
+        <result property="remark" column="remark"/>
+        <result property="createTime" column="create_time"/>
+    </resultMap>
+
+    <select id="findById" resultMap="resultMap">
+        SELECT * FROM t_facility WHERE id = #{id}
+    </select>
+
+    <select id="findPage" resultMap="resultMap">
+        SELECT * FROM t_facility
+        <where>
+            <if test="queryString != null and queryString != ''">
+                AND (name LIKE CONCAT('%', #{queryString}, '%')
+                OR location LIKE CONCAT('%', #{queryString}, '%'))
+            </if>
+            <if test="type != null and type != ''">
+                AND type = #{type}
+            </if>
+            <if test="status != null">
+                AND status = #{status}
+            </if>
+        </where>
+        ORDER BY id
+    </select>
+
+    <insert id="insert" parameterType="Facility" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO t_facility (name, type, location, quantity, maintainer, last_check, next_check, status, remark, create_time)
+        VALUES (#{name}, #{type}, #{location}, #{quantity}, #{maintainer}, #{lastCheck}, #{nextCheck}, #{status}, #{remark}, NOW())
+    </insert>
+
+    <update id="update" parameterType="Facility">
+        UPDATE t_facility
+        <set>
+            <if test="name != null">name = #{name},</if>
+            <if test="type != null">type = #{type},</if>
+            <if test="location != null">location = #{location},</if>
+            <if test="quantity != null">quantity = #{quantity},</if>
+            <if test="maintainer != null">maintainer = #{maintainer},</if>
+            <if test="lastCheck != null">last_check = #{lastCheck},</if>
+            <if test="nextCheck != null">next_check = #{nextCheck},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="remark != null">remark = #{remark},</if>
+        </set>
+        WHERE id = #{id}
+    </update>
+
+    <delete id="delete" parameterType="int">
+        DELETE FROM t_facility WHERE id = #{id}
+    </delete>
+
+    <select id="selectStats" resultType="map">
+        SELECT
+            COUNT(*) AS total,
+            SUM(CASE WHEN status = 1 THEN 1 ELSE 0 END) AS normal,
+            SUM(CASE WHEN status = 2 THEN 1 ELSE 0 END) AS needRepair,
+            SUM(CASE WHEN status = 3 THEN 1 ELSE 0 END) AS checking
+        FROM t_facility
+    </select>
+
+</mapper>

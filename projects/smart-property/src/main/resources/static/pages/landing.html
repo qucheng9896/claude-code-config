@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>物业管理系统 - 智慧社区管理平台</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/common.css">
+</head>
+<body>
+
+  <!-- NAVBAR -->
+  <nav class="navbar">
+    <div class="container">
+      <a href="#" class="nav-brand">
+        <div class="nav-brand-icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        </div>
+        <span>智慧物业</span>
+      </a>
+      <div class="nav-links">
+        <a href="#features">功能特性</a>
+        <a href="#modules">业务模块</a>
+        <a href="#flow">系统流程</a>
+        <a href="#tech">技术栈</a>
+      </div>
+      <div class="nav-actions">
+        <a href="login.html" class="btn btn-ghost">登录</a>
+        <a href="login.html" class="btn btn-primary">开始使用</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="container">
+      <div class="hero-content">
+        <div class="hero-badge">
+          <span style="width:6px;height:6px;background:var(--accent);border-radius:50%;display:inline-block;"></span>
+          基于 SSM + Vue.js 构建
+        </div>
+        <h1>让物业管理<span>更高效</span><br>让业主生活<span>更便捷</span></h1>
+        <p>一套面向现代化小区的物业管理信息系统，涵盖业主管理、房屋管理、缴费管理三大核心业务，实现物业工作的信息化、规范化、高效化。</p>
+        <div class="hero-actions">
+          <a href="login.html" class="btn btn-primary btn-lg">进入系统</a>
+          <a href="#features" class="btn btn-ghost btn-lg">了解更多</a>
+        </div>
+        <div class="hero-stats">
+          <div><div class="hero-stat-value">3</div><div class="hero-stat-label">核心模块</div></div>
+          <div><div class="hero-stat-value">20+</div><div class="hero-stat-label">功能接口</div></div>
+          <div><div class="hero-stat-value">JWT</div><div class="hero-stat-label">安全认证</div></div>
+        </div>
+      </div>
+      <div class="hero-visual">
+        <div class="hero-card">
+          <div class="hero-card-header">
+            <div class="hero-card-dot"></div>
+            <div class="hero-card-dot"></div>
+            <div class="hero-card-dot"></div>
+            <span class="hero-card-title">业主缴费概览</span>
+          </div>
+          <div class="hero-card-body">
+            <div class="hero-dash-row">
+              <div class="hero-dash-stat"><div class="hero-dash-stat-value">¥128,450</div><div class="hero-dash-stat-label">本月已收缴</div></div>
+              <div class="hero-dash-stat"><div class="hero-dash-stat-value">96.2%</div><div class="hero-dash-stat-label">缴费完成率</div></div>
+            </div>
+            <div class="hero-dash-list">
+              <div class="hero-dash-item"><span class="hero-dash-item-name">张三 3-1001</span><span class="hero-dash-item-status status-paid">已缴</span></div>
+              <div class="hero-dash-item"><span class="hero-dash-item-name">李四 5-2003</span><span class="hero-dash-item-status status-paid">已缴</span></div>
+              <div class="hero-dash-item"><span class="hero-dash-item-name">王五 1-3002</span><span class="hero-dash-item-status status-unpaid">未缴</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FEATURES -->
+  <section class="features" id="features">
+    <div class="container">
+      <div class="section-header animate-in">
+        <div class="section-label">核心优势</div>
+        <h2 class="section-title">为什么选择我们</h2>
+        <p class="section-desc">系统设计遵循高内聚低耦合原则，采用分层架构，确保可维护性与可扩展性</p>
+      </div>
+      <div class="features-grid">
+        <div class="feature-card animate-in delay-1">
+          <div class="feature-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div>
+          <h3>JWT 安全认证</h3>
+          <p>基于 Token 的无状态认证方案，支持角色权限区分（管理员/业主），密码 MD5 加密存储，保障系统安全。</p>
+        </div>
+        <div class="feature-card animate-in delay-2">
+          <div class="feature-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20V10"/><path d="M18 20V4"/><path d="M6 20v-4"/></svg></div>
+          <h3>事务一致性</h3>
+          <p>Spring 声明式事务管理，批量生成账单等关键操作具备原子性，任一失败全部回滚，杜绝脏数据。</p>
+        </div>
+        <div class="feature-card animate-in delay-3">
+          <div class="feature-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div>
+          <h3>RESTful API</h3>
+          <p>前后端完全分离，统一的 Result 响应格式，JSON 数据交互，接口规范清晰，易于对接与测试。</p>
+        </div>
+        <div class="feature-card animate-in delay-1">
+          <div class="feature-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div>
+          <h3>分页查询</h3>
+          <p>PageHelper 分页插件，大数据量下依然流畅，支持模糊搜索，列表展示清晰高效。</p>
+        </div>
+        <div class="feature-card animate-in delay-2">
+          <div class="feature-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></div>
+          <h3>全局异常处理</h3>
+          <p>@RestControllerAdvice 统一拦截业务异常、数据库异常、系统异常，返回友好提示，记录错误日志。</p>
+        </div>
+        <div class="feature-card animate-in delay-3">
+          <div class="feature-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg></div>
+          <h3>分层架构</h3>
+          <p>Controller → Service → DAO → Database，职责清晰，各层通过接口解耦，便于单元测试与迭代维护。</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- MODULES -->
+  <section class="modules" id="modules">
+    <div class="container">
+      <div class="section-header animate-in">
+        <div class="section-label">业务模块</div>
+        <h2 class="section-title">覆盖物业管理全流程</h2>
+        <p class="section-desc">三大核心模块协同工作，构建完整的物业管理闭环</p>
+      </div>
+      <div class="modules-grid">
+        <div class="module-card animate-in delay-1">
+          <div class="module-visual module-visual-owners">
+            <div class="module-visual-icon">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            </div>
+          </div>
+          <div class="module-info">
+            <h3>业主管理</h3>
+            <p>业主信息的增删改查，手机号唯一性校验，默认密码自动生成，业主与房屋关联管理。</p>
+            <a href="login.html">进入模块</a>
+          </div>
+        </div>
+        <div class="module-card animate-in delay-2">
+          <div class="module-visual module-visual-houses">
+            <div class="module-visual-icon">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+            </div>
+          </div>
+          <div class="module-info">
+            <h3>房屋管理</h3>
+            <p>楼栋-房间信息维护，建筑面积记录，业主关联绑定，入住状态跟踪，关联房屋防误删。</p>
+            <a href="login.html">进入模块</a>
+          </div>
+        </div>
+        <div class="module-card animate-in delay-3">
+          <div class="module-visual module-visual-payments">
+            <div class="module-visual-icon">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#d97706" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+            </div>
+          </div>
+          <div class="module-info">
+            <h3>缴费管理</h3>
+            <p>物业费/水电费/停车费批量生成，防重复校验，业主在线缴费，管理确认到账，状态流转完整。</p>
+            <a href="login.html">进入模块</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FLOW -->
+  <section class="flow" id="flow">
+    <div class="container">
+      <div class="section-header animate-in">
+        <div class="section-label">系统流程</div>
+        <h2 class="section-title">缴费管理业务流程</h2>
+        <p class="section-desc">从账单生成到最终确认，全程事务保障</p>
+      </div>
+      <div class="flow-steps">
+        <div class="flow-step animate-in delay-1">
+          <div class="flow-step-num">1</div>
+          <h4>选择周期</h4>
+          <p>物业人员选择费用类型和费用周期（如 2025-01）</p>
+        </div>
+        <div class="flow-step animate-in delay-2">
+          <div class="flow-step-num">2</div>
+          <h4>批量生成账单</h4>
+          <p>系统自动计算各房屋费用，批量生成，防重复校验</p>
+        </div>
+        <div class="flow-step animate-in delay-3">
+          <div class="flow-step-num">3</div>
+          <h4>业主缴费</h4>
+          <p>业主登录查看待缴账单，确认后在线完成缴费</p>
+        </div>
+        <div class="flow-step animate-in delay-4">
+          <div class="flow-step-num">4</div>
+          <h4>确认到账</h4>
+          <p>物业管理员核实到账后确认，账单状态变为已确认</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- TECH -->
+  <section class="tech" id="tech">
+    <div class="container">
+      <div class="section-header animate-in">
+        <div class="section-label">技术栈</div>
+        <h2 class="section-title">成熟可靠的技术选型</h2>
+        <p class="section-desc">前后端分离架构，主流开源框架组合</p>
+      </div>
+      <div class="tech-grid">
+        <div class="tech-item animate-in delay-1"><div class="tech-icon tech-icon-spring">Sp</div><div><div class="tech-name">Spring</div><div class="tech-desc">IoC + 事务管理</div></div></div>
+        <div class="tech-item animate-in delay-1"><div class="tech-icon" style="background:#5382a1;">SM</div><div><div class="tech-name">SpringMVC</div><div class="tech-desc">请求分发 + RESTful</div></div></div>
+        <div class="tech-item animate-in delay-2"><div class="tech-icon tech-icon-mybatis">MB</div><div><div class="tech-name">MyBatis</div><div class="tech-desc">SQL 映射 + 持久层</div></div></div>
+        <div class="tech-item animate-in delay-2"><div class="tech-icon tech-icon-mysql">My</div><div><div class="tech-name">MySQL 8.0</div><div class="tech-desc">关系型数据库</div></div></div>
+        <div class="tech-item animate-in delay-3"><div class="tech-icon tech-icon-vue">Vu</div><div><div class="tech-name">Vue.js 2.x</div><div class="tech-desc">响应式前端框架</div></div></div>
+        <div class="tech-item animate-in delay-3"><div class="tech-icon" style="background:#42b883;">EU</div><div><div class="tech-name">Element UI</div><div class="tech-desc">桌面端组件库</div></div></div>
+        <div class="tech-item animate-in delay-4"><div class="tech-icon tech-icon-jwt">JT</div><div><div class="tech-name">JWT</div><div class="tech-desc">Token 身份认证</div></div></div>
+        <div class="tech-item animate-in delay-4"><div class="tech-icon tech-icon-maven">Mv</div><div><div class="tech-name">Maven</div><div class="tech-desc">项目构建管理</div></div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-grid">
+        <div class="footer-brand">
+          <div class="footer-brand-name">智慧物业</div>
+          <p>基于 SSM + Vue.js 的物业管理系统毕业设计，致力于提升社区物业管理效率与服务品质。</p>
+        </div>
+        <div><h5>快速导航</h5><ul><li><a href="#features">功能特性</a></li><li><a href="#modules">业务模块</a></li><li><a href="#flow">系统流程</a></li><li><a href="#tech">技术栈</a></li></ul></div>
+        <div><h5>业务模块</h5><ul><li><a href="login.html">业主管理</a></li><li><a href="login.html">房屋管理</a></li><li><a href="login.html">缴费管理</a></li></ul></div>
+        <div><h5>系统信息</h5><ul><li><a href="#">版本 v1.0</a></li><li><a href="#">SSM + Vue.js</a></li><li><a href="#">MySQL 8.0</a></li><li><a href="#">© 2025 毕业设计</a></li></ul></div>
+      </div>
+      <div class="footer-bottom">
+        <span>© 2025 物业管理系统 — 毕业设计作品</span>
+        <span>Powered by SpringMVC + MyBatis + Vue.js + Element UI</span>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    const observer = new IntersectionObserver(entries => {
+      entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+    }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+    document.querySelectorAll('.animate-in').forEach(el => observer.observe(el));
+    document.querySelectorAll('a[href^="#"]').forEach(a => {
+      a.addEventListener('click', function(e) {
+        e.preventDefault();
+        const t = document.querySelector(this.getAttribute('href'));
+        if (t) t.scrollIntoView({ behavior: 'smooth' });
+      });
+    });
+  </script>
+</body>
+</html>

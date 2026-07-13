@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
@@ -26,17 +26,37 @@
         <button class="btn btn-ghost">监控中心</button>
         <button class="btn btn-ghost">报警中心</button>
       </div></div></div>
-      <div class="data-card"><table><thead><tr><th>通行时间</th><th>姓名</th><th>身份</th><th>房屋</th><th>通行方式</th><th>门口机</th><th>结果</th></tr></thead><tbody>
-        <tr data-idx="0"><td>01-08 08:32:15</td><td>王大明</td><td><span class="tag tag-owner">业主</span></td><td>1-1001</td><td>人脸识别</td><td>南门1号机</td><td><span class="tag tag-ok">通过</span></td></tr>
-        <tr data-idx="1"><td>01-08 08:45:22</td><td>陈租客</td><td><span class="tag tag-info">租户</span></td><td>1-1001</td><td>手机开门</td><td>南门1号机</td><td><span class="tag tag-ok">通过</span></td></tr>
-        <tr data-idx="2"><td>01-08 09:12:08</td><td>访客-张先生</td><td><span class="tag tag-paid">访客</span></td><td>3-2001</td><td>临时密码</td><td>北门2号机</td><td><span class="tag tag-ok">通过</span></td></tr>
-        <tr data-idx="3"><td>01-08 14:28:33</td><td>未知人员</td><td>—</td><td>—</td><td>未知</td><td>东门1号机</td><td><span class="tag tag-overdue">拒绝</span></td></tr>
-        <tr data-idx="4"><td>01-08 18:05:47</td><td>刘租户</td><td><span class="tag tag-info">租户</span></td><td>2-301</td><td>刷卡</td><td>南门2号机</td><td><span class="tag tag-ok">通过</span></td></tr>
-      </tbody></table><div class="table-footer"><span class="table-footer-info">显示 1-5 条，今日共 12,430 条记录</span><div class="pagination"><button class="page-btn disabled">‹</button><button class="page-btn active">1</button><button class="page-btn">2</button><button class="page-btn">›</button></div></div></div>
+      <div class="data-card"><table><thead><tr><th>通行时间</th><th>姓名</th><th>身份</th><th>房屋</th><th>通行方式</th><th>门口机</th><th>结果</th></tr></thead><tbody></tbody></table><div class="table-footer"><span class="table-footer-info">加载中...</span><div class="pagination"><button class="page-btn disabled">‹</button><button class="page-btn active">1</button><button class="page-btn">2</button><button class="page-btn">›</button></div></div></div>
     </div>
   </main>
 </div>
-<script src="../js/sidebar.js"></script><script src="../js/page-common.js"></script><script>initPage({name:'安防门禁',hashActions:{face:function(){showToast('人脸录入管理')},monitor:function(){showToast('视频监控中心')}});</script><script>initSidebar('access:records');</script>
+<script src="../js/sidebar.js"></script><script src="../js/page-common.js"></script><script>
+initPage({
+  name: '安防门禁',
+  api: {
+    findPage: API.accessFindPage,
+    findById: API.accessFindById,
+    add: API.accessAdd,
+    edit: API.accessEdit,
+    delete: API.accessDelete
+  },
+  renderRow: function(item, index) {
+    var identityMap = {0: ['tag-admin', '管理员'], 1: ['tag-owner', '业主'], 2: ['tag-info', '租户'], 3: ['tag-paid', '访客']};
+    var id = identityMap[item.identityType] || ['', '-'];
+    var resultClass = item.result == 1 ? 'tag-ok' : 'tag-overdue';
+    var resultText = item.result == 1 ? '通过' : '拒绝';
+    return '<td>' + item.passTime + '</td>' +
+      '<td>' + (item.personName || '-') + '</td>' +
+      '<td><span class="tag ' + id[0] + '">' + id[1] + '</span></td>' +
+      '<td>' + (item.houseName || '-') + '</td>' +
+      '<td>' + (item.passMethod || '-') + '</td>' +
+      '<td>' + (item.gateName || '-') + '</td>' +
+      '<td><span class="tag ' + resultClass + '">' + resultText + '</span></td>';
+  },
+  hashActions: { face: function(){ showToast('人脸录入管理'); }, monitor: function(){ showToast('视频监控中心'); } }
+});
+initSidebar('access:records');
+</script>
 <div class="modal-overlay" id="editModal"><div class="modal"><h3>编辑信息</h3><div class="form-group"><label>名称 *</label><input type="text" class="form-input" placeholder="请输入"></div><div class="form-group"><label>备注</label><textarea class="form-input" rows="3" placeholder="备注信息"></textarea></div><div class="modal-footer"><button class="btn btn-ghost" onclick="closeModal('edit')">取消</button><button class="btn btn-primary">保存修改</button></div></div></div>
 </body>
 </html>

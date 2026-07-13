@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
@@ -21,15 +21,43 @@
         <div class="stat-card"><div class="stat-card-icon bg-purple"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#7c3aed" stroke-width="2" stroke-linecap="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></div><div class="stat-card-value">97%</div><div class="stat-card-label">满意度</div></div>
       </div>
       <div class="toolbar"><div class="toolbar-left"><div class="search-group"><input type="text" class="search-input" placeholder="搜索工单号、业主"><select class="filter-select"><option value="">全部状态</option><option>待派单</option><option>维修中</option><option>已完成</option></select><select class="filter-select"><option value="">紧急程度</option><option>一般</option><option>紧急</option><option>特急</option></select><button class="btn btn-ghost">搜索</button></div></div></div>
-      <div class="data-card"><table><thead><tr><th>工单号</th><th>报修人</th><th>房屋</th><th>问题类型</th><th>紧急程度</th><th>派单维修工</th><th>创建时间</th><th>状态</th><th>操作</th></tr></thead><tbody>
-        <tr data-idx="0"><td>WX2501008</td><td>陈租客</td><td>1-1001</td><td>水管漏水</td><td><span class="tag tag-overdue">紧急</span></td><td>张师傅 138****0001</td><td>2025-01-08 09:30</td><td><span class="tag tag-paid">维修中</span></td><td class="action-btns"><button class="btn-icon">查看</button><button class="btn-icon">催办</button></td></tr>
-        <tr data-idx="1"><td>WX2501009</td><td>刘租客</td><td>2-301</td><td>电梯故障</td><td><span class="tag tag-overdue">特急</span></td><td>李师傅 138****0002</td><td>2025-01-08 10:15</td><td><span class="tag tag-unpaid">待派单</span></td><td class="action-btns"><button class="btn-icon">派单</button><button class="btn-icon">查看</button></td></tr>
-        <tr data-idx="2"><td>WX2501010</td><td>王大明</td><td>3-1501</td><td>门禁失灵</td><td><span class="tag tag-info">一般</span></td><td>王师傅 138****0003</td><td>2025-01-08 14:20</td><td><span class="tag tag-confirm">已完成</span></td><td class="action-btns"><button class="btn-icon">评价</button></td></tr>
-      </tbody></table><div class="table-footer"><span class="table-footer-info">显示 1-3 条，共 186 条工单</span><div class="pagination"><button class="page-btn disabled">‹</button><button class="page-btn active">1</button><button class="page-btn">2</button><button class="page-btn">›</button></div></div></div>
+      <div class="data-card"><table><thead><tr><th>工单号</th><th>报修人</th><th>房屋</th><th>问题类型</th><th>紧急程度</th><th>派单维修工</th><th>创建时间</th><th>状态</th><th>操作</th></tr></thead><tbody></tbody></table><div class="table-footer"><span class="table-footer-info">加载中...</span><div class="pagination"><button class="page-btn disabled">‹</button><button class="page-btn active">1</button><button class="page-btn">2</button><button class="page-btn">›</button></div></div></div>
     </div>
   </main>
 </div>
-<script src="../js/sidebar.js"></script><script src="../js/page-common.js"></script><script>initPage({name:'报修服务',hashActions:{pending:function(){showToast('筛选待派单工单')},processing:function(){showToast('筛选维修中工单')}});</script><script>initSidebar('repair:list');</script>
+<script src="../js/sidebar.js"></script><script src="../js/page-common.js"></script><script>
+initPage({
+  name: '报修服务',
+  api: {
+    findPage: API.repairFindPage,
+    findById: API.repairFindById,
+    add: API.repairAdd,
+    edit: API.repairEdit,
+    delete: API.repairDelete
+  },
+  renderRow: function(item, index) {
+    var urgencyMap = {0: ['tag-info', '一般'], 1: ['tag-overdue', '紧急'], 2: ['tag-overdue', '特急']};
+    var u = urgencyMap[item.urgency] || urgencyMap[0];
+    var statusMap = {0: ['tag-unpaid', '待派单'], 1: ['tag-paid', '维修中'], 2: ['tag-confirm', '已完成']};
+    var s = statusMap[item.status] || statusMap[0];
+    var actionBtns = '<button class="btn-icon">查看</button>';
+    if (item.status == 0) actionBtns += '<button class="btn-icon">派单</button>';
+    else if (item.status == 1) actionBtns += '<button class="btn-icon">催办</button>';
+    else if (item.status == 2) actionBtns += '<button class="btn-icon">评价</button>';
+    return '<td>' + item.workOrderNo + '</td>' +
+      '<td>' + (item.repairName || '-') + '</td>' +
+      '<td>' + (item.houseName || '-') + '</td>' +
+      '<td>' + (item.faultType || '-') + '</td>' +
+      '<td><span class="tag ' + u[0] + '">' + u[1] + '</span></td>' +
+      '<td>' + (item.workerName || '-') + '</td>' +
+      '<td>' + (item.createTime || '-') + '</td>' +
+      '<td><span class="tag ' + s[0] + '">' + s[1] + '</span></td>' +
+      '<td class="action-btns">' + actionBtns + '</td>';
+  },
+  hashActions: { pending: function(){ showToast('筛选待派单工单'); }, processing: function(){ showToast('筛选维修中工单'); } }
+});
+initSidebar('repair:list');
+</script>
 <div class="modal-overlay" id="editModal"><div class="modal"><h3>编辑信息</h3><div class="form-group"><label>名称 *</label><input type="text" class="form-input" placeholder="请输入"></div><div class="form-group"><label>备注</label><textarea class="form-input" rows="3" placeholder="备注信息"></textarea></div><div class="modal-footer"><button class="btn btn-ghost" onclick="closeModal('edit')">取消</button><button class="btn btn-primary">保存修改</button></div></div></div>
 </body>
 </html>

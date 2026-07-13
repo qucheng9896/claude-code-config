@@ -16,6 +16,45 @@
 
 ## 迭代记录
 
+### [v0.3.0] - 2026-07-13 — 前后端真实连通
+
+#### 📋 变更摘要
+
+| 类型 | 数量 | 说明 |
+|------|------|------|
+| 重构优化 | 14 | page-common.js 重写 + 13 个 HTML 页面适配 |
+
+#### ✅ 已完成
+
+- **page-common.js 重写**: 支持 API 模式（传入 api/renderRow）和静态模式（向后兼容）
+- **13 个页面适配**: building/owner/tenant/employee/visitor/rental/payment/repair/notice/user/access
+- **API 字段对齐**: 修复 owner/tenant `name` 字段映射
+- **动态渲染**: 所有表格数据由后端 API 获取，支持真分页
+
+#### 📊 验证结果
+
+```
+building API: ✅ 5 条数据（含楼栋名、层数、入住率等）
+owner API:    ✅ 100 条数据
+tenant API:   ✅ 15 条数据
+登录页:        ✅ 页面加载正常
+```
+
+#### 📁 新增文件
+
+```
+versions/v0.3.0/RELEASE.md
+```
+
+#### 🔗 Git 信息
+
+```
+Tag: v0.3.0
+Commit: [待提交]
+```
+
+---
+
 ### [v0.2.0] - 2026-07-13 — 环境配置与数据库初始化
 
 #### 📋 变更摘要
@@ -64,7 +103,7 @@ versions/v0.2.0/RELEASE.md
 
 ```
 Tag: v0.2.0
-Commit: [待提交]
+Commit: 617ddb0
 ```
 
 ---

@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
@@ -31,16 +31,34 @@
       </div>
       <button class="btn btn-primary">+ 发布公告</button></div>
 
-      <div class="data-card"><table><thead><tr><th>标题</th><th>类型</th><th>发布范围</th><th>已读/总数</th><th>发布日期</th><th>操作</th></tr></thead><tbody>
-        <tr data-idx="0"><td><strong>关于2025年春节放假及安全检查的通知</strong></td><td><span class="tag tag-info">通知</span></td><td>全体业主</td><td>420/520人</td><td>2025-01-20</td><td class="action-btns"><button class="btn-icon">查看</button><button class="btn-icon">编辑</button><button class="btn-icon btn-icon-danger">删除</button></td></tr>
-        <tr data-idx="1"><td><strong>春节期间物业费优惠及门禁时间调整公告</strong></td><td><span class="tag tag-info">公告</span></td><td>全体业主+租户</td><td>380/610人</td><td>2025-01-18</td><td class="action-btns"><button class="btn-icon">查看</button><button class="btn-icon">编辑</button></td></tr>
-        <tr data-idx="2"><td><strong>元宵节猜灯谜活动 & 汤圆福利发放</strong></td><td><span class="tag tag-confirm">福利</span></td><td>全体住户</td><td>256/610人</td><td>2025-01-15</td><td class="action-btns"><button class="btn-icon">查看</button><button class="btn-icon">编辑</button></td></tr>
-        <tr data-idx="3"><td><strong>关于调整小区绿化方案的投票</strong></td><td><span class="tag tag-paid">投票</span></td><td>全体业主</td><td>198/520人</td><td>2025-01-10</td><td class="action-btns"><button class="btn-icon">查看</button><button class="btn-icon">统计</button></td></tr>
-      </tbody></table><div class="table-footer"><span class="table-footer-info">显示 1-4 条，共 48 条公告</span><div class="pagination"><button class="page-btn disabled">‹</button><button class="page-btn active">1</button><button class="page-btn">2</button><button class="page-btn">›</button></div></div></div>
+      <div class="data-card"><table><thead><tr><th>标题</th><th>类型</th><th>发布范围</th><th>已读/总数</th><th>发布日期</th><th>操作</th></tr></thead><tbody></tbody></table><div class="table-footer"><span class="table-footer-info">加载中...</span><div class="pagination"><button class="page-btn disabled">‹</button><button class="page-btn active">1</button><button class="page-btn">2</button><button class="page-btn">›</button></div></div></div>
     </div>
   </main>
 </div>
-<script src="../js/sidebar.js"></script><script src="../js/page-common.js"></script><script>initPage({name:'社区服务',hashActions:{holiday:function(){showToast('节假日福利管理')},complaint:function(){showToast('投诉建议处理')}});</script><script>initSidebar('notice:list');</script>
+<script src="../js/sidebar.js"></script><script src="../js/page-common.js"></script><script>
+initPage({
+  name: '社区服务',
+  api: {
+    findPage: API.noticeFindPage,
+    findById: API.noticeFindById,
+    add: API.noticeAdd,
+    edit: API.noticeEdit,
+    delete: API.noticeDelete
+  },
+  renderRow: function(item, index) {
+    var typeMap = {0: ['tag-info', '通知'], 1: ['tag-confirm', '公告'], 2: ['tag-paid', '福利'], 3: ['tag-unpaid', '投票']};
+    var t = typeMap[item.noticeType] || typeMap[0];
+    return '<td><strong>' + (item.title || '-') + '</strong></td>' +
+      '<td><span class="tag ' + t[0] + '">' + t[1] + '</span></td>' +
+      '<td>' + (item.publishScope || '-') + '</td>' +
+      '<td>' + (item.readCount || 0) + '/' + (item.totalCount || 0) + '人</td>' +
+      '<td>' + (item.publishDate || '-') + '</td>' +
+      '<td class="action-btns"><button class="btn-icon">查看</button><button class="btn-icon">编辑</button><button class="btn-icon btn-icon-danger">删除</button></td>';
+  },
+  hashActions: { holiday: function(){ showToast('节假日福利管理'); }, complaint: function(){ showToast('投诉建议处理'); } }
+});
+initSidebar('notice:list');
+</script>
 <div class="modal-overlay" id="editModal"><div class="modal"><h3>编辑信息</h3><div class="form-group"><label>名称 *</label><input type="text" class="form-input" placeholder="请输入"></div><div class="form-group"><label>备注</label><textarea class="form-input" rows="3" placeholder="备注信息"></textarea></div><div class="modal-footer"><button class="btn btn-ghost" onclick="closeModal('edit')">取消</button><button class="btn btn-primary">保存修改</button></div></div></div>
 </body>
 </html>

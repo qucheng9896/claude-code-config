@@ -26,7 +26,7 @@
           <button class="btn btn-primary" style="background:linear-gradient(135deg,#7c3aed,#6366f1);box-shadow:0 2px 8px rgba(124,58,237,0.3);" onclick="openAiRemindModal()">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-right:4px;"><path d="M12 2a3 3 0 0 0-3 3v1a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>AI智能催缴
           </button>
-          <button class="btn btn-primary">⚡ 批量生成账单</button>
+          <button class="btn btn-primary" onclick="if(typeof generateBills==='function')generateBills();else showToast('批量生成账单功能');">⚡ 批量生成账单</button>
         </div>
       </div>
       <div class="data-card"><table><thead><tr><th>账单编号</th><th>租户</th><th>房屋</th><th>类型</th><th>金额</th><th>周期</th><th>状态</th><th>操作</th></tr></thead><tbody></tbody></table><div class="table-footer"><span class="table-footer-info">加载中...</span><div class="pagination"><button class="page-btn disabled">‹</button><button class="page-btn active">1</button><button class="page-btn">2</button><button class="page-btn">›</button></div></div></div>
@@ -69,7 +69,9 @@
   <div class="modal-footer"><button class="btn btn-ghost" onclick="closeModal('gen')">取消</button><button class="btn btn-primary">确认生成</button></div>
 </div></div>
 
-<script src="../js/sidebar.js"></script><script src="../js/page-common.js"></script><script>
+<script src="https://cdn.jsdelivr.net/npm/axios@1.6.2/dist/axios.min.js"></script>
+<script src="../js/axios-config.js"></script>
+<script src="../js/sidebar.js"></script><script src="../js/api.js"></script><script src="../js/page-common.js"></script><script>
 initPage({
   name: '收费管理',
   api: {

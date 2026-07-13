@@ -26,7 +26,10 @@
         <where>
             <if test="queryString != null and queryString != ''">
                 AND (name LIKE CONCAT('%', #{queryString}, '%')
-                OR type LIKE CONCAT('%', #{queryString}, '%'))
+                OR location LIKE CONCAT('%', #{queryString}, '%'))
+            </if>
+            <if test="type != null and type != ''">
+                AND type = #{type}
             </if>
             <if test="status != null">
                 AND status = #{status}

@@ -29,13 +29,15 @@
           <button class="btn btn-ghost">在线投票</button>
         </div>
       </div>
-      <button class="btn btn-primary">+ 发布公告</button></div>
+      <button id="btnAdd" class="btn btn-primary">+ 发布公告</button></div>
 
       <div class="data-card"><table><thead><tr><th>标题</th><th>类型</th><th>发布范围</th><th>已读/总数</th><th>发布日期</th><th>操作</th></tr></thead><tbody></tbody></table><div class="table-footer"><span class="table-footer-info">加载中...</span><div class="pagination"><button class="page-btn disabled">‹</button><button class="page-btn active">1</button><button class="page-btn">2</button><button class="page-btn">›</button></div></div></div>
     </div>
   </main>
 </div>
-<script src="../js/sidebar.js"></script><script src="../js/page-common.js"></script><script>
+<script src="https://cdn.jsdelivr.net/npm/axios@1.6.2/dist/axios.min.js"></script>
+<script src="../js/axios-config.js"></script>
+<script src="../js/sidebar.js"></script><script src="../js/api.js"></script><script src="../js/page-common.js"></script><script>
 initPage({
   name: '社区服务',
   api: {

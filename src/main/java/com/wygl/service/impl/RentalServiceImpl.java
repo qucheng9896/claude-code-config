@@ -23,4 +23,14 @@ public class RentalServiceImpl extends BaseServiceImpl<Rental> implements IRenta
     public Rental findActiveByTenantId(Integer tenantId) {
         return rentalDao.findActiveByTenantId(tenantId);
     }
+
+    @Override
+    public boolean renew(Integer id) {
+        return rentalDao.renew(id) > 0;
+    }
+
+    @Override
+    public boolean terminate(Integer id) {
+        return rentalDao.terminate(id) > 0;
+    }
 }

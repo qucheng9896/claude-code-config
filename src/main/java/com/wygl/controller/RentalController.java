@@ -20,4 +20,16 @@ public class RentalController extends BaseController<Rental> {
         List<Rental> list = rentalService.findExpiring(days);
         return new Result(true, list);
     }
+
+    @PutMapping("/renew/{id}")
+    public Result renew(@PathVariable Integer id) {
+        boolean ok = rentalService.renew(id);
+        return new Result(ok, ok ? "续签成功" : "续签失败");
+    }
+
+    @PutMapping("/terminate/{id}")
+    public Result terminate(@PathVariable Integer id) {
+        boolean ok = rentalService.terminate(id);
+        return new Result(ok, ok ? "合同终止成功" : "终止失败");
+    }
 }

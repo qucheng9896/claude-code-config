@@ -20,12 +20,14 @@
         <div class="stat-card"><div class="stat-card-icon bg-blue"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2" stroke-linecap="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div><div class="stat-card-value">¥285K</div><div class="stat-card-label">月租总额</div></div>
         <div class="stat-card"><div class="stat-card-icon bg-purple"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#7c3aed" stroke-width="2" stroke-linecap="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></div><div class="stat-card-value">92%</div><div class="stat-card-label">出租率</div></div>
       </div>
-      <div class="toolbar"><div class="toolbar-left"><div class="search-group"><input type="text" class="search-input" placeholder="搜索合同号、业主、租户"><select class="filter-select"><option value="">全部状态</option><option>生效中</option><option>已到期</option><option>提前终止</option></select><button class="btn btn-ghost">搜索</button></div></div><button class="btn btn-primary">+ 新建合同</button></div>
+      <div class="toolbar"><div class="toolbar-left"><div class="search-group"><input type="text" id="searchInput" class="search-input" placeholder="搜索合同号、业主、租户"><select id="filterStatus" class="filter-select"><option value="">全部状态</option><option value="1">生效中</option><option value="0">已到期</option><option value="2">提前终止</option></select><button id="btnSearch" class="btn btn-ghost">搜索</button></div></div><button id="btnAdd" class="btn btn-primary">+ 新建合同</button></div>
       <div class="data-card"><table><thead><tr><th>合同编号</th><th>业主</th><th>租户</th><th>房屋</th><th>租期</th><th>月租金</th><th>剩余天数</th><th>状态</th><th>操作</th></tr></thead><tbody></tbody></table><div class="table-footer"><span class="table-footer-info">加载中...</span><div class="pagination"><button class="page-btn disabled">‹</button><button class="page-btn active">1</button><button class="page-btn">2</button><button class="page-btn">›</button></div></div></div>
     </div>
   </main>
 </div>
-<script src="../js/sidebar.js"></script><script src="../js/page-common.js"></script><script>
+<script src="https://cdn.jsdelivr.net/npm/axios@1.6.2/dist/axios.min.js"></script>
+<script src="../js/axios-config.js"></script>
+<script src="../js/sidebar.js"></script><script src="../js/api.js"></script><script src="../js/page-common.js"></script><script>
 initPage({
   name: '租赁管理',
   api: {
@@ -33,7 +35,9 @@ initPage({
     findById: API.rentalFindById,
     add: API.rentalAdd,
     edit: API.rentalEdit,
-    delete: API.rentalDelete
+    delete: API.rentalDelete,
+    renew: API.rentalRenew,
+    terminate: API.rentalTerminate
   },
   renderRow: function(item, index) {
     var statusMap = {0: ['tag-off', '提前终止'], 1: ['tag-ok', '生效中'], 2: ['tag-overdue', '已到期']};

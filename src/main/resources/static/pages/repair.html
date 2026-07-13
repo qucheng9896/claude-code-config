@@ -20,12 +20,14 @@
         <div class="stat-card"><div class="stat-card-icon bg-amber"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#d97706" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div><div class="stat-card-value">2.3h</div><div class="stat-card-label">平均响应</div></div>
         <div class="stat-card"><div class="stat-card-icon bg-purple"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#7c3aed" stroke-width="2" stroke-linecap="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></div><div class="stat-card-value">97%</div><div class="stat-card-label">满意度</div></div>
       </div>
-      <div class="toolbar"><div class="toolbar-left"><div class="search-group"><input type="text" class="search-input" placeholder="搜索工单号、业主"><select class="filter-select"><option value="">全部状态</option><option>待派单</option><option>维修中</option><option>已完成</option></select><select class="filter-select"><option value="">紧急程度</option><option>一般</option><option>紧急</option><option>特急</option></select><button class="btn btn-ghost">搜索</button></div></div></div>
+      <div class="toolbar"><div class="toolbar-left"><div class="search-group"><input type="text" id="searchInput" class="search-input" placeholder="搜索工单号、业主"><select id="filterStatus" class="filter-select"><option value="">全部状态</option><option value="0">待派单</option><option value="1">维修中</option><option value="2">已完成</option></select><select id="filterUrgency" class="filter-select"><option value="">紧急程度</option><option value="一般">一般</option><option value="紧急">紧急</option><option value="特急">特急</option></select><button id="btnSearch" class="btn btn-ghost">搜索</button></div></div><button id="btnAdd" class="btn btn-primary">+ 新增报修</button></div>
       <div class="data-card"><table><thead><tr><th>工单号</th><th>报修人</th><th>房屋</th><th>问题类型</th><th>紧急程度</th><th>派单维修工</th><th>创建时间</th><th>状态</th><th>操作</th></tr></thead><tbody></tbody></table><div class="table-footer"><span class="table-footer-info">加载中...</span><div class="pagination"><button class="page-btn disabled">‹</button><button class="page-btn active">1</button><button class="page-btn">2</button><button class="page-btn">›</button></div></div></div>
     </div>
   </main>
 </div>
-<script src="../js/sidebar.js"></script><script src="../js/page-common.js"></script><script>
+<script src="https://cdn.jsdelivr.net/npm/axios@1.6.2/dist/axios.min.js"></script>
+<script src="../js/axios-config.js"></script>
+<script src="../js/sidebar.js"></script><script src="../js/api.js"></script><script src="../js/page-common.js"></script><script>
 initPage({
   name: '报修服务',
   api: {

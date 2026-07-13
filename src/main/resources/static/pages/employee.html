@@ -28,12 +28,14 @@
         <div style="flex:1;min-width:200px;background:white;border:1px solid #e2e8f0;border-radius:10px;padding:16px;border-left:4px solid #7c3aed;"><div style="font-size:12px;color:#64748b;">保洁绿化</div><div style="font-size:20px;font-weight:700;margin-top:4px;">11 人</div><div style="font-size:11px;color:#94a3b8;">保洁员/绿化工</div></div>
       </div>
 
-      <div class="toolbar"><div class="toolbar-left"><div class="search-group"><input type="text" class="search-input" placeholder="搜索员工姓名、手机号"><select class="filter-select"><option value="">全部岗位</option><option>经理</option><option>主管</option><option>维修技师</option><option>安保员</option><option>保洁员</option><option>绿化工</option><option>前台</option></select><select class="filter-select"><option value="">全部状态</option><option>在职</option><option>休假</option><option>离职</option></select><button class="btn btn-ghost">搜索</button></div></div><button class="btn btn-primary">+ 新增员工</button></div>
+      <div class="toolbar"><div class="toolbar-left"><div class="search-group"><input type="text" id="searchInput" class="search-input" placeholder="搜索员工姓名、手机号"><select id="filterType" class="filter-select"><option value="">全部岗位</option><option value="维修技工">维修技工</option><option value="安保主管">安保主管</option><option value="安保队长">安保队长</option><option value="保洁员">保洁员</option></select><select id="filterStatus" class="filter-select"><option value="">全部状态</option><option value="1">在职</option><option value="2">休假</option><option value="0">离职</option></select><button id="btnSearch" class="btn btn-ghost">搜索</button></div></div><button id="btnAdd" class="btn btn-primary">+ 新增员工</button></div>
       <div class="data-card"><table><thead><tr><th>工号</th><th>姓名</th><th>手机号</th><th>岗位</th><th>部门</th><th>入职日期</th><th>状态</th><th>操作</th></tr></thead><tbody></tbody></table><div class="table-footer"><span class="table-footer-info">加载中...</span><div class="pagination"><button class="page-btn disabled">‹</button><button class="page-btn active">1</button><button class="page-btn">2</button><button class="page-btn">›</button></div></div></div>
     </div>
   </main>
 </div>
-<script src="../js/sidebar.js"></script><script src="../js/page-common.js"></script><script>
+<script src="https://cdn.jsdelivr.net/npm/axios@1.6.2/dist/axios.min.js"></script>
+<script src="../js/axios-config.js"></script>
+<script src="../js/sidebar.js"></script><script src="../js/api.js"></script><script src="../js/page-common.js"></script><script>
 initPage({
   name: '物业员工',
   api: {

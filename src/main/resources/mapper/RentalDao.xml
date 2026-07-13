@@ -101,4 +101,8 @@
         UPDATE t_rental SET status = 0 WHERE id = #{id}
     </update>
 
+    <update id="renew" parameterType="int">
+        UPDATE t_rental SET end_date = DATE_ADD(end_date, INTERVAL 1 YEAR), status = 1 WHERE id = #{id}
+    </update>
+
 </mapper>

@@ -20,12 +20,14 @@
         <div class="stat-card"><div class="stat-card-icon bg-amber"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#d97706" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div><div class="stat-card-value">8</div><div class="stat-card-label">待核验</div></div>
         <div class="stat-card"><div class="stat-card-icon bg-purple"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#7c3aed" stroke-width="2" stroke-linecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div><div class="stat-card-value">52</div><div class="stat-card-label">本周预约</div></div>
       </div>
-      <div class="toolbar"><div class="toolbar-left"><div class="search-group"><input type="text" class="search-input" placeholder="搜索访客姓名、手机号"><select class="filter-select"><option value="">全部状态</option><option>待核验</option><option>已核验</option><option>已过期</option></select><button class="btn btn-ghost">搜索</button></div></div></div>
+      <div class="toolbar"><div class="toolbar-left"><div class="search-group"><input type="text" id="searchInput" class="search-input" placeholder="搜索访客姓名、手机号"><select id="filterStatus" class="filter-select"><option value="">全部状态</option><option value="0">待核验</option><option value="1">已核验</option><option value="2">已过期</option></select><button id="btnSearch" class="btn btn-ghost">搜索</button></div></div><button id="btnAdd" class="btn btn-primary">+ 新增访客</button></div>
       <div class="data-card"><table><thead><tr><th>访客姓名</th><th>联系电话</th><th>被访业主</th><th>被访房屋</th><th>预约时间</th><th>通行方式</th><th>状态</th><th>操作</th></tr></thead><tbody></tbody></table><div class="table-footer"><span class="table-footer-info">加载中...</span><div class="pagination"><button class="page-btn disabled">‹</button><button class="page-btn active">1</button><button class="page-btn">›</button></div></div></div>
     </div>
   </main>
 </div>
-<script src="../js/sidebar.js"></script><script src="../js/page-common.js"></script><script>
+<script src="https://cdn.jsdelivr.net/npm/axios@1.6.2/dist/axios.min.js"></script>
+<script src="../js/axios-config.js"></script>
+<script src="../js/sidebar.js"></script><script src="../js/api.js"></script><script src="../js/page-common.js"></script><script>
 initPage({
   name: '访客管理',
   api: {
@@ -33,7 +35,9 @@ initPage({
     findById: API.visitorFindById,
     add: API.visitorAdd,
     edit: API.visitorEdit,
-    delete: API.visitorDelete
+    delete: API.visitorDelete,
+    verify: API.visitorVerify,
+    cancel: API.visitorCancel
   },
   renderRow: function(item, index) {
     var statusMap = {0: ['tag-off', '已过期'], 1: ['tag-info', '待核验'], 2: ['tag-ok', '已核验']};

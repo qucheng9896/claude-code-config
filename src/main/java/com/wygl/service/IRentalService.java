@@ -11,4 +11,8 @@ public interface IRentalService extends BaseService<Rental> {
     List<Rental> findExpiring(Integer days);
 
     Rental findActiveByTenantId(Integer tenantId);
+
+    boolean renew(Integer id);
+
+    boolean terminate(Integer id);
 }

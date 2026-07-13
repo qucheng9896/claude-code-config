@@ -20,12 +20,14 @@
         <div class="stat-card"><div class="stat-card-icon bg-amber"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#d97706" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div><div class="stat-card-value">8</div><div class="stat-card-label">即将到期</div></div>
         <div class="stat-card"><div class="stat-card-icon bg-rose"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2" stroke-linecap="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/></svg></div><div class="stat-card-value">3</div><div class="stat-card-label">黑名单</div></div>
       </div>
-      <div class="toolbar"><div class="toolbar-left"><div class="search-group"><input type="text" class="search-input" placeholder="搜索租户姓名、手机号"><select class="filter-select"><option value="">全部状态</option><option>在租</option><option>已退租</option><option>黑名单</option></select><button class="btn btn-ghost">搜索</button></div></div><button class="btn btn-primary">+ 新增租户</button></div>
+      <div class="toolbar"><div class="toolbar-left"><div class="search-group"><input type="text" id="searchInput" class="search-input" placeholder="搜索租户姓名"><select id="filterStatus" class="filter-select"><option value="">全部状态</option><option value="1">入住</option><option value="0">退租</option></select><button id="btnSearch" class="btn btn-ghost">搜索</button></div></div><button id="btnAdd" class="btn btn-primary">+ 新增租户</button></div>
       <div class="data-card"><table><thead><tr><th>ID</th><th>姓名</th><th>手机号</th><th>身份证</th><th>紧急联系人</th><th>合同状态</th><th>操作</th></tr></thead><tbody></tbody></table><div class="table-footer"><span class="table-footer-info">加载中...</span><div class="pagination"><button class="page-btn disabled">‹</button><button class="page-btn active">1</button><button class="page-btn">2</button><button class="page-btn">›</button></div></div></div>
     </div>
   </main>
 </div>
-<script src="../js/sidebar.js"></script><script src="../js/page-common.js"></script><script>
+<script src="https://cdn.jsdelivr.net/npm/axios@1.6.2/dist/axios.min.js"></script>
+<script src="../js/axios-config.js"></script>
+<script src="../js/sidebar.js"></script><script src="../js/api.js"></script><script src="../js/page-common.js"></script><script>
 initPage({
   name: '租户管理',
   api: {

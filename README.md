@@ -109,7 +109,9 @@ claude-code-config/
 │   └── autoclicker/       # 多步骤宏点击工具
 │       ├── README.md
 │       ├── autoclicker.py
-│       └── autoclicker_configs.json
+│       ├── app_icon.ico
+│       ├── autoclicker_configs.json
+│       └── dist/ 阴阳师痒痒鼠爬塔助手.exe
 ├── skills/                # Claude Code 技能（预留）
 │   └── README.md
 ├── projects/              # 较大项目
@@ -135,7 +137,7 @@ Spring Boot + 纯静态 HTML/JS 前端，物业管理系统毕业设计项目。
 
 ### [AutoClicker — 多步骤宏工具](tools/autoclicker/)
 
-Windows 桌面自动化点击工具，支持多步骤宏编排、录制回放、图片识别定位与游戏级底层输入模拟。
+Windows 桌面自动化点击工具，支持多步骤宏编排、录制回放、图片识别定位与游戏级底层输入模拟。阴阳师风格 UI，含打包好的单文件 EXE，开箱即用。
 
 详见 [tools/autoclicker/README.md](tools/autoclicker/README.md)
 

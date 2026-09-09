@@ -6,7 +6,7 @@
 
 | 工具 | 说明 |
 |------|------|
-| [autoclicker/](autoclicker/) | Windows 桌面自动化点击工具（多步骤宏、录制回放、图片识别） |
+| [autoclicker/](autoclicker/) | 阴阳师痒痒鼠爬塔助手 — Windows 桌面自动化点击工具（多步骤宏、录制回放、图片识别，含打包 EXE） |
 
 ## 添加新工具
 

@@ -11,12 +11,33 @@ import random
 import time
 import json
 import os
+import sys
 import ctypes
 import ctypes.wintypes
 
 os.environ["OPENCV_LOG_LEVEL"] = "SILENT"
 
-SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+if getattr(sys, "frozen", False):
+    SCRIPT_DIR = os.path.dirname(os.path.abspath(sys.executable))
+else:
+    SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+
+SCREENSHOTS_DIR = os.path.join(SCRIPT_DIR, "screenshots")
+CONFIG_DIR = os.path.join(SCRIPT_DIR, "configs")
+os.makedirs(SCREENSHOTS_DIR, exist_ok=True)
+os.makedirs(CONFIG_DIR, exist_ok=True)
+
+
+def set_window_icon(window):
+    """设置窗口标题栏/任务栏图标（内嵌，无外部依赖）"""
+    try:
+        import base64
+        import io
+        from PIL import Image, ImageTk
+        icon_data = base64.b64decode(_APP_ICON_B64)
+        window.iconphoto(True, ImageTk.PhotoImage(Image.open(io.BytesIO(icon_data))))
+    except Exception:
+        pass
 
 try:
     import win32api
@@ -128,29 +149,6 @@ def _make_move_input(screen_x, screen_y):
     return inp
 
 
-def _make_button_inputs(click_type):
-    flags = {
-        "left": (MOUSEEVENTF_LEFTDOWN, MOUSEEVENTF_LEFTUP),
-        "right": (MOUSEEVENTF_RIGHTDOWN, MOUSEEVENTF_RIGHTUP),
-        "middle": (MOUSEEVENTF_MIDDLEDOWN, MOUSEEVENTF_MIDDLEUP),
-    }
-    if click_type == "double":
-        pairs = [flags["left"], flags["left"]]
-    else:
-        pairs = [flags.get(click_type, flags["left"])]
-    inputs = []
-    for down_f, up_f in pairs:
-        d = SENDINPUT()
-        d.type = INPUT_MOUSE
-        d.mi.dwFlags = down_f
-        inputs.append(d)
-        u = SENDINPUT()
-        u.type = INPUT_MOUSE
-        u.mi.dwFlags = up_f
-        inputs.append(u)
-    return inputs
-
-
 def _send_input_array(inputs):
     arr = (SENDINPUT * len(inputs))(*inputs)
     ctypes.windll.user32.SendInput(len(inputs), ctypes.byref(arr), ctypes.sizeof(SENDINPUT))
@@ -242,13 +240,104 @@ class MacroStep:
 # 主程序
 # ===========================================================================
 
+# ===========================================================================
+# 应用图标（64x64 PNG，Base64 内嵌）
+# ===========================================================================
+
+_APP_ICON_B64 = "iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAAiFUlEQVR4nIWbCZAc53Xff33Ofe0N7C6OBQESJ0FSPEWaZCxKpg7qSGLJViW6UnaiJKWknFTFlVLKFZcdx6lEcpWjkkMxklJRyRJVliVFh8siKYoCRTLgBYLEtQABLIC9d+6e6Tv1fV/3zIBS5Nntne6enu1+93v/9z6Nv+P1YHU+1hA/oKNhaBo6kJ5jsJ+cTz4X12rE8hqxZ8iLR78jXjGxPFDnoziW35efxOIz8R8gSq4Un8fi8zhOzkVEMck18eCaaHAMTzQup7f8pS/tVxGePrIkXLwnD5cyY0D0gMgh8bqWXiPpS86nNxSECWJHHkPeLZYXK6JGGJAcDxkxQnB6XjJMnZcMkIxQ58Tf/x8jtL9L6pKwhFDBgNHz+nXSJmGAknb6HUGkYsLw2uQ3ITF5xZr4TaSvpC4JGEh4SFQYi02dHxAdR9czIGGOYEz0K5igjR7cX52ThEsJJh+l+6lElTYoylIiU+1ImWSO7A++l2rBgCFKaooRStKJDshjQawgVGmAInjIBAhTTYjVfqoN4kd8T16njWpLqlXw5AgjzLdyI1VT+aBxSvzQBygCNMyUGVq6DT+Xx4lGSG0Qn42YAVqMpotr5RGR1HHxaBqRpinpxsoUxH4Qg5EwIBTniTFijUAQSyT+nfir/MgIMUpTBTs1yaRfaQIPJtIXLwN9INWBvY+osCBeSFlcY2i6JNCURGqDfbEJBqjzigmpgzN0HfyAnu9haRpZyyK0DKX6rkeo68SGQRQpCQdAEAlpapIZYRwNzEC+ExOkzi85VpoSjZwbmoV4peagiT8PVGaVzSc2POr0Ug3QB4wRxOkJgeJdEW0lRFr6qOSVRpiGjqlrkkBb0+h7HqtTBWb27yTsufTeXKW26WDoGt78dqJ6ExptQskEpdKCcMEMXxAdCa1QRKvPhvuCUMWcSDEiUfswNY23mII5qgjaW8xAOraBT2AgeUW0ehcEW6nUdQ1DHovPdAxDI6PraL6PFsZkshZhFLG2a5xb338vtak5iuOTbC2dYekHz+G/cp7Dn/wI7Wef59LfPINtGvihCnWmICCKMaOYQFOa4IUQCs2Khs8rzEESKJ2Mok4wQZxXBpf4HHECMO+vzCaheCj9odceEi8YoVRbk4SKd1tKPFYEi3NC0sl+1jDQfZ/N0IWdU5SLBVjdpLGxhbnvIJ3NJp6bZeL4abbmJokWxrl4bYOFdgf/xHGoFSk4Hp5uSPWXktZifC1Cj2N0SbSGL0SqKyaI5/Sk1BPilYdV4k32lfSV833H2M5YasAwlA2TnFHVlyovzEIQiSYlbuuxVGdL17ASFbd1A1MH2zDQAp9r24rU7jjIjTfspt5xcLWIxtmLOK0WdR2mxnfhvXCMWfcWoocfYe/dPrcevY0tA9wnf0r8yhtY+QK+H0q196IIIxRmIHKIGF040ySESjoEgcJvJNSLs8J/pKFVSF04V/GBSroQQk1+hIoIp5d4c+ngpMNL7H5E6rYOGaHqgnhdxzKE1HVswQRTxwwCNnZNcNdDd7Jbt9G7Lr1On4vNFv6ObVx+dYvOlWXyC4fYzGQ4+qEPsvDQe+SDds6eYvqTn2L6Pe/niU/9E1hexbKz+EGIERkqxIYROhFB4umNSGioYBDEumCCji9tXhEvmKByBCHQJIGQDlmTAhskNdfZfMqIRO3FDQTxgvCMJFxt9oB4wQgoWzoXQ49tdxzg7tkdUMyimTpeo4l19hIvHz/B5NwU3/vRT6jsP8rbPvk77HzoXfQ6DexcifUf/RC/vklp23Zu/OQ/5tzn/4xiFNM3dIwglo5XRpVQqL8IgYIZqb4rU0glLPVDE843ktLX02Qrza5Q1nNdmjpQf+F4klAnJa8PpW8map8xDbllTZ2spZGzDTJahDNe5NYD+8hNj6NlbQhC/J6LXi6RizUyhsk77jyM3+ty03sfIfYD7EIJzTAYf+8jeBcvEmYy7Dh4AOOeO7F8h0LGpGCLe4h7qXvahmK8Mr/k2RKBWYPcJM1LRnyajE5K281hKjh0gMrjq1xA2H0a5pS0h6ovPLw4Z5k6GeHxLR0bcHWNarUKpi2TnVj3CD2XRrPFjvEaT529yE0HdtF0fXzXJcplaC0uUpqZp7xwA4e+/DVcpyNDm+O71Io2kSmI0BPbT5410VoR+2QuKSRtKJegEqYkt5T7gmiVGSqjVyqgD+P/0BmqBEfFdcEhK9GAoc0bZAxl+0IKgvi8pbSglLMwfZ9Or49VLGIUSxjZLHalRM7UuGXfArl+n+WNBngO548dw84WWL14iW/824/zR7/7Mb72p38iszxB6EvXVnDigEreIpMxyFk6OUsjb2tkTRFtlCaIZ1N+SjxzLMNzmowNs9DRSJc4fT2JnUo1lNRlPE/j/Ajx0tYNoX5C9XUpcfkQQvKWOs7lTPYYMddW17E15Y/1bIHCWI2p7VN0uh3md8/x0Ntvo1CwOf7UEziXLrD/4Xdz9+/+c75/6hRf+eoXOPvjvyGbK/Dp//I5modvwW+sUhKEZwwsS8OyIGMqpztgQsII8cwqF1HmMFB56ehHcgYSE0gLn0ENkNiJJD5NdgZOT3n7rJS+JgnPmZDRAhkGY0vncDnHG6++RvOWmykaGr2MhZGdplYbJzs5zdapgnREO6bGOLfawxU+4vxZxuISj3/hS5jVCloUEgQe+xb2MPEnn+fVx7+O/4O/wm200QyNbKyjmZEqIYQbHNQKSWUo02ThHpOUOUnepECSTCCSWjZS4AxAj0HGJ/L2JPnRBHeVwxGqLzahipnQI8rZxNunyU7UMIMe5XKOvWuX+fpjX2Hx6hqG62GHARmR0Lgux0+d5ZUTr1OtVJmqZvnmj35EGIT015YZmxhnem4nUzsWCMOIVqNOrVLl9gd/nculKg4h2YwhyzhLaF2iBZlEMEJLxSZ8l0rLVVI3Wq5rmj7UAFKJDxAfUdwk4S+1I1G5JTaWmoNQfeGQmkcO0qsUmMqaxNUaRa+PefIF5sdKlHqrHPval3iiMsHumSnanS5/ffICHafLQ2+/lcWlazzwwAN8+zt/yx9+63F+79FHoVxm8eknyU5Okp2awum76JbFerNFD5OZrEi2lPfv9yNiWSTFRCbYslhS1aTIFFM/ltYlQjtGU35N/Dxc3RlbMtPTEe+22HSNnFR3pH0Jby/CXc4QDkgnL0KRFtA7chNdr8/M0kWmcxatOKBx533MmjHT518iX6uQMSK8yONU2+P3n18mWygwXytSK+eplkt88B/8Jrfe9yB/+K/+De3VNX7/i/9DZoq9ToduvU7fD4g8jzPn32TniSfZF7usOBFePyTwI3puhOuG9L2Yrh/TE+eCECcIccMIN4zphzFuDP0wxJUFU6SqR30kE0xj5YBjierL84l3FU5Gev04RJuawLNMFs5coDw1JvPQvQWD1fOv0rnjQaJyEcOM8E2Ngp3nxnKRyVmLn798hnNXtjAtmB4r88bKl/jX2Hz20S/yP//sz3n1pZe496GHaDo9rGYDt+/zg+98hyNXX6JVrvLUtWVuwqdoGXRig0yUpL9RKOuCINTwknpEFExmDJYoqcPUBIYZoi5MXQIX1+X+IyEwDS1JoSOdoTS/GL1SxGq3KOczdE2d7swM1e4q03mTerdL284ynfHwTAPL1rhY94gFABJ5BL5ONpunF0S8fOY8v/U7/5KP/cMP8YmPfoSf/uznLD62xOzcPI4bcunkcfZffoabaiV+72qey5sRh2YmuGPjKvcWc2yEIg/RJOFWFGOFYIaa3GS5rscEUYihiSxSACsCHFE0RoIJo8mPRE9EonEdmjPMBKXzE6Zhm+jdDlHWxsyabDMC1voePXGNbVCqVrDMGN3WsHImnTjgm2sZFi+vYpkWU9NjjI+La0xs08S0bf7rX3yFj/7Tz1AuZjH6Lf79Zz/L1nc+x2/6L/HwjZP8XwfOvHmFgg5nl5t8YSPkr0ObYsZQGpoUZGaSm6hQnsJw1+MTw0xQU0BvWicrNGiI6aURQnrW1CkaYNgmlX4Xo17nxUyRp8IMRmOdbXlo23mWG20KsUNk2xQyGs83dC60wWluYWdsMrYlUaFarcLs3HYmxmvcfPhGLi8v85+/+Bi3v+1mHn7fe+lqGnOzY3TReOpKnU7PhThgttbhkXcusLxnO0+vNRnLKuxhQLguJJvikkMneH3Kn4b9OEV53wpeKu5IYENwUKTBhvIHInvSTYODscdezeWw7fPO6Rxe6HGpspPeynkmC4bUjobr8Vx/nNWVZXRTJ1+wJRjq+wGe51OrVti1cyf1RpM9u+ckcvMf/tsX8B2HDatGFPu0wpCTWz6lrMGhXTrvuG8Xs5M2c9kNni7lOO34FCwdPQnPKTgjw+FA6qkGKF+XlgB6Wgek0lbqP8Ip+WVhP0ldkBRDunAelsFc1mRH3kKPfV4Pipzvhhy1NrGKBXJWxPMNi9ObLr12nWK5MMjBwzDEcRwWFy/gui6FfJ7FxUsUcjlOnj7L//rG4zx3fo31fsAVx+PcWptKNmL3XJlW22N9bQM0i/JUhmfW6uRNIZjEzpPSPc0CUzMeaEBKfazM/frmhaogEf4qLYRSeFsxQZfqpT6LJSQlzOKKD+adv8Eed4kbJgtEps6m4/FMI8+1q5cxbUvG7E7HIQhCmYwEfsjk5ATLy8ts1esUi0UuXbqG2/dw2i3OrTR46VqHUI/5+weqTGQtNhse7UaXKIyJvTZ2FOPUxunHofRP8tlTiYtnHIX83pIGa0naP0wORroEg+RohIvyH6f2ldxIVII91+Hq7BGC5UvcYbcIrTGKGZ1nr3qcWuvQrm9i2BaWZeL2XTzflzmFaRqsrq7R6/WYmpzk6NGb8T2fi5cu4c/N8fqFy5ysR+hbdQgc7hqvcXHLIZ83mB7LstEy6EcF4m0G6/VVxkwDR4+UhibZX8qQtPsg6UlhMuI0D3iLDxhtbKQmIQhPoW9pAio7FMnSFVcnMzNP9vQzTMyV6Ymb6XC6GbO6vkGv72LHMbadwfV8PC+gVMzJfN1zXAq5PK7b57nnnmN6coIdO+bZOV7lIw/dwzvf/nbW167xF199lPGgw+uLocwtqsU2G00BretM5EzMkiUJVc+aRLZkXyBGSpBJApD2PDSRJwhsTAZDFQbV3jBlHG0eDcDFpKmhmhuwGlr4rRaHczGxwAUNXcLXJ6816LR68jthGEvCTcum33MJwyLFYp5sNiM/M02TQEBpWw003SDfWefgnbegbaww7obct2eaTmuLcknjp+calGyTas5ivFZEt23qQY/JjHgmZdviPe1DDB47EaYEBRJg1JRxUPUkU/jg+s6v9ktsZ2RHVF6uZbGtVibbUji8+NyPYq6uNwh9XWZqgYAkBCAh0E1bZ32jJTWgVMxj2DqO41KvtxifqLF47jyn/YBvPfMif+/Gbfz33z7MJ26boNup8MDOLt+vaLy45rDihmz2Oox3Iua2V2TmJwWjSVx4JO9P4r188GHHWlMmkPTpRnsDKYEj5qHOJS1v2dNTWmIYBobj0nADapHGlCBeqLuu4/Z7+EFGfld4/Ug4UEOUrrEEVZaXN7iWcF8gEbVKmWtXr7JVbzI/N8dkYQbHsnnx4gZ376hKP7R/LM/+t+1idavH4maX17oeul2k0PHpuwkGnDhBJTjlu36hCErvG48kQQpDHFD/ltbpsF8g0XVZWcXohkE1cMhH0BzbRex2k4pSRYtOt6vgax1czyOXtaUWGKbOWKWEZWTI2XmpCd1+i82tOjcs7GajscXlpUssrjb5o+dc3tx0JAYh0uNW35d9h8PlIh/IF3nQD6V+qwZHCpUroGek/XydOSRkMEwC1dxB8ichVyCryZRAiiYLdRabwNmEv+h5IfsmS6ycfAGvvMCxdo5Ou4Wph7zjwDZJrNvrq6GGKMLzXIrFHJ1un2wxS6GQlaCe0+9K/L9YrpC1dT54/x1SI7Qw4OY9s5yOt9HtdKV/EU5Y2LHjh3iJsxYhVgl12BG6vuOczBAk9Ik3TfUSkpOjX5LHyYWDw+GXpbsUx6IWDyOyVob9mTZrrx2ntvNeXrMP8XKnShTbErb2BNjRc8nlshiGRbPVwDSh0+1hZXVqExUOHz6IbdsyTN5z4xyf/vC7+YPPfJLpapGM18XJjLPZiyRKpQWedJiyJTZ4tgT7TwYHJEaQbOI5U8RotBUvXtIEfoFTg4GEdEv67NHwXfgy0b0VzOi5AXvGKtxWanL5lSdZWdrizGULp1Mk7nWot9tEYUi71WVm2wTlSoWmqPkdh263T6lY4NSpU6xv1Jko59m/axtrjTb7d83ziQ+/n/V6EyMMKFomvU6b09UbOabNEIe+aoRI7F/4GcUA8VyS0ORZB3IbCHk4L6Cn59U0RTqeMsIQASAkbWrRnk5b+bG8kdrEhU4vYCqf46FdGfZYl4mbrzKeWeXtbztIMZel7/alJDbWW+SyGYqFkswKxdNeOP8mq6sblIpFdk+WJAYg0uStrS12zs+SrU6wcfYU7VaPS3vfRXbnbWTcPp4fE3d9tCC8TkDKVBMi035gPGTKqKDN0YPr1V29SxWS9puqvOKwvJHYH9lcN0CPTe7ZNcX0ZoNXJ36N/3hgHz/+4bf486//lFbfoeu0aXeyWJkMpp2n74Xous745DR5PWD/ju2sb9YlmlMuFdm5ew/vuPtuumdeg4few0Rxmm9+5fOMTcJzExPkWj7TV7pkva4aqJDaKVCf64kdzBIlvi7VAlPZxVA1xBfTwYOB6idaIM8n6q9QGIgCCP0Y04oIPWRf4Nk3lrhyx7t45D330l76Oe9+aDdH9uW4cGGd5aVNrq62eXPd5WozQs/k8FyXYtwib1icu3hZdojGClnGywVuyFd58M47Me64haU3L/Hi//4ChzIR4TWDy50+yxUb/94jlJ94nXy3oyZKxLMmHeWBH0iHrUZtHgXuDCLAUGVGfEDyHr6VCdLeIBT9uiAm8CKyOYs3r65zYf/tfPTD99O98gb57YcobF9g7oYlbr+nQXtjk/VLy6yu1Nls9Gn3Q+JINDosum5Ev++yWe9ixA45zeXJp79Ns77JeGmM1tljvHe+htuFXtfjgGFy8XyTVzhJcGQbwY9OE+uWmi0acYxSuOmkWcKMNKqZjIyOCOkrbH04jDQYLxFQkiA8iAlNZRJBGGMI0xBxPdTR232OmzXe99GHcFcvYk3fiVGahdAhaNpgrZCLdapul0xRZ4douIquUaGAkc1JoEU4y16zg9vt0djocOHVZc69+XM29h9iplbDaft0fRQgGoZMFgqMr7s0t/kyrOUSIalJsXRaJKVJ9QLUkJWi25TNATmVhZqqSkzgOu8/0ADFhCCI8AUmLxjScWmHFg3b4PnLa9z+mY9T7F2mr8+TK80TCwBVJEV2ETMeJ3IdDDtDHHeT5oRBrBlYuSx2sYBumOSrVdxOByu3SdT1yYdr7J3Ps7RzD6/84EmOTFapCwQ0QkYRbVeFoNsn9EICy5QDFXKoIo1ayRCVGJt56yiePlSLZJYm4VbKBDl/E0WDfyqSLpHnh45HvReytDDD60en+Xa8xdLuWQ4dmqC+cgW7PCVvpMUesXeVOHZUqzryiSNZMRAFLoHXVym2qDYNCyOTx8yXyJZKWNksRk4nX8qwsXiB/ftmuDA+Q6feJRSNGj/iSsbE2TdJ78RlqtkMrugoRZFMx4NYDUmJGkE+84hA0/xHT93fYO4ueVfjaWoaSzFBEK+GlYJewHq1zOpv3MTZXI/eqavMnHW4/+470Z1V/MAjcpeJ2qeIuqfkvgAvAmeFXmuDnuMS+gG1yQXGJ2dVYuMFhF6POAykXghHmMllsQSEVrBwug5mfY2Ju27l0lYH0/N5PReiPXwQ59J59mommTHRLhKor4DBBfYfyZkkpQmpSSfnZSqoiQZKmhSMjqGOaoFSJT/haiggqpxO/L69rL/8OjufWeGuusG+mTn2H9zB1tJlIEPotfDqxwl7S4S9Dfz2Mr31yzSXr9FeXcbZWCZn20zf9e+oTe2QnSbbKhD12vhOl6DfJ3B9Cb1lywZ20aC/do2FfbOcz1do7tvOy+Pw+pnX2JsrsP9ohcI2cZ0o8pOpsFA8txKa8gvXzxFHsfQByiGIBFFwxZDaoCo6IxJYmjgXSUxNcLOladQeOcKlp46z46TL+HSFtuuxPlHmcOjQXlsnN50h6LeIvDXMwCH0PXqNOhtLSxhxlhtu+wCBH5Arl4gjl+KNnyLyGhi5Gdrnv0x3/byMDH63x3Ijz2YnIJ+xeX2rR+nqEvn7b+CJi5cwN9f56D/7dco3vZ8Tf/VV8tEVci0Tmn4yNqdCohTcgHgl7XTa1EyGrJTaC4xP2oxyjOofxDJU+AJwdAO0+QrduE10okWpXKPjBWT8gKCUw5TSc9HbSzjrTYkce50WTrtLr9Eh7rrYWofa0Y/jrb1O1F1n49hjWJUxijsPsfz85+i6QnIuhh5x8XKHV15pEek2hgA9N65RbbTZfHOLmxyX9nyG1fOnaTQdavMVtq6K1puaExLCFKCM6BWqOcI0IgyHJmPBADVMLNvEcqpCMkFepEbQ1Mir8JbqnOf3qZkWOTtDzw+wdBO/H5CtFtFbXem1Gc/Iyi90Q/y+R329heH0OPjIHxC2LhB1lrj2k0fJbTtIfnyOyHMwqkfQjO/S3rok8UPRgxivGMxNepw7u4zrQEUkSFMzGPmQXdkuP/NXOfPyMlf8FQ6+7XbGrQxO0MUTUSqOcYXpDvxZEhlGZoqjNBOU6i9rZDVhKWAFQXiILjkoGSEGFk0Tb61L3/WJj+5i8+lzTE8WpZ1VRE+/40IzwEQMMRjSjl3HIXADtuoO5594jIXb7yfWLCo7DmOWZyks3CnhbX/1FbKTt8PSRekgdUs0O2Dn9gJT1QxxN6LqWizcfSNPuovUX17n0MFp+pUOzbUei88cZ2Zikq2tkH4/xAuU/YtnH5X8cGR2JA/QkqEo6QhVqS3HzFJjkf11wYQowopNzn//NQ59+GYo34S72CK+toIvgM98hUIvJGj32cyYLK/2MGMDQ9h7xpZ9/djMg5mnceVNipMB2fFZ9MkjaF6b1Ve/R6veoDhWk5NdvhfSbXu4jk8+0KmYNsVyVoxK090KmNk0CTsFDmUKWAWdS2e6bKx59PqiIy2ITQeq0zHZX1xQYV5X/iZTltfP3AsNUCiLEUSyNV5bNzj5teMcfO8+SjffSOvadhp2lzd6UK/uoLvm0b7aw2k4uJ0tbtmjc8MNR9j5yH8iuPi3hJ06yyePse+d/wgjVyYOe1Llth95F9krr7GxchZfM+n1fMmEwPExMclVTIKMxfrlLbR2yNKFLnZOx4sj6h2PZiug2QnoerFkgFJ/FcZHM97hYow4ZUA6MqImseUEhUR8YglmCqDRjwW8LFQmYrxis29qAmNxmWtbPVrZgHhdjHI22FhvE/R7LK/VKeXh1iPjEvE9d+483Uc/xu57P4Jd6nH4Q/+CbG0bsWGBboE9Tm72JqYq82wsn8PpiAaIQ6/pojui6QH2XIaNlk/r3BrVUKe54eFFIV4U44URXS+i60dyHkBOmCfeXzr2RP3TaDBSDsfyxOj6njREpMPHmij7NB1P18gI7D2nkZ+B8pE5HvztT2M2n+GLf/w17F2z3BY4vHa2wR03ltm+o4Sd1ek7AVubGxS1Crmdd3DuO39MXNpBePp5th+8l/LCHZz49mdp9DR028ILDfqdHk6zR9DxyIv2kw3GxDgvPLtIdLVBr1Ck5fjS2YkcRQxO98IR1R+ZJJfvyeh8imRHowyIE5hotHZOQ6MaR021QWyGbHubuYhGfpL2ytN4l99g30yBK2srHD20QEkTg1EBnbaH56k+WzmrceCB3+Lac3/Jiy88h8eLGHGHsZ0HKId96t2QVlzA7AZ4rS69tkvY9dG9GD1jYFYK1PUcL/3gBWZ1m5YfyOkPMT8sNSACV47RD0fjB6EvzW4TJoyuHjGHB0oTUiho0FRIIPAUaRXc7geRHEnZloXH//JZNk+eYWFhmuxah1OTTe6YrfHGmSs4mk+ghZg5g0Ihz+nnf8jK8hW0QpWsbhAFFvWV80RBj07HJwx69Ft9vI6L7/joomFiGUSxTmV+ju89dRptsUGYy9P1A5mhCuIF4V4q7VT13xLzJfHJwHTqBxC9QVk3y2mJYTdIOD6RLw+QdBECRBs91iVS0+z4rG8YjJ9dJLveZHJ6gimjROz4HPvmKawP7GGmlKe5UafrecQN6Ngu66tN7HweXQvlVFgU6bx67Fk0P6DvxAQyZIYSaRKMF+14kUzdcHSBlzZ7vPF/FjloV2j6gapLJOHIuR8Z55OVIwPVT7Q29fhyhjhJgeUZLUHN76vMxrKjMhiXET9vHZlTI/NiQq2UNxgfM5mZsZmeyuAHMb26z/qKR2PT403T5657Jtlb1dns92kJifZFVqFLWFv0FWVlKJ4piImDiEjMCvoC21M9hGLRYnpbme03zfLcisf3HnuZA0GeWLSiIz2pVJW0/bcyQL4ny2pGIppaXKUKIrH30+ZVpedvr2wXY4eDFpKYyR1dKKEGqNTYfDoVXsjqkhHZjLqu3wvZcjw2PdGhCdmMXfbuLXDr3hLjBQvfDXG7AX4/Uq1tCakl872ymaphmFAsWczMlalsr7IRGXz7J5d46SdL7Mjk5eSWFokJNpOiZmNqxsDeJRNSQgeExyOAjlpCk9qyYMTTjSvD7mHKhOGw1FALhitG0wVTYjZCLIdR/XXVb4xoBB7NwJe9+r4YmXN9zAzsmc0xP5WjWjApirHaZFhJTpyIkRtTIzZ1AlMntC2uNHxOLDY5f65O3AmZKOXlPWwMdX8MyrpNVrcGJbyQvvBPCtdU4TxdQCWKOJFbp70NMVH2s87KcNFU+rrvlyyeSmeFUk0YXRg5mCdKhiuE2jlRIInvxgE+oZRG2/NU01RMfFtiE1OearpcrFoS0vA8Aa2HdJ2QoBeS0TRKWRvLNGSWmtNMspopmSDehUkOchfBAEG8HA7S8MNQtuw00yASwspl2Fpbl1omBjWeXL/4y9cNxoMhievX7aZBUvQNxI0HkJIsoNQavpRRBd0mF5tU00WMWoRnhfQjxQyJLPVifCeirzoYgzHWmm4yaWqYleQeQnCayD1MbE1IXyyWUKaaJjUyy9M1nJ7DwXvvojo9yYljz7Ntzy5a9ToLh/eTr5R54/jL1NfX2X/bLTz5jYsjqPDI62fNq5L8XxMLqdJhgpHlJuJD6UhS5Dh5eIElKr+hGGNohqoiGa7eCMXs6sD60lVb6nuJO0xMadiQScc31JrKBLcUqp46s5HlsSKBEkRn8jmq0xPSJFeuXGVm17zEG51Oh+8untC+u3hilGRGJ+QGL+EdRTEyCB/Jow/Q40GKqRyLSpCUNHzRC4wj+nFET+4rmxQskVUiSpoZTLKxhR2L8+LHQItH1nVoApoR1agozES4ixCGJFaFpVWddHq6Rt91mdo1T7fT5sIbp9l5YB++7ys8QphfGPH4a89fZ+7pS/tlJ0dfD9TmkwiRyuj6JbTpaM1gxGbkunQ5bXqjtL0+0oC/bv4kZe5o72K4Ony4gjyJG4P1wkEYUKpVcbpduU3vmqfdaLF99w6+fOzHv5LG/wfFOu6BfdCBNQAAAABJRU5ErkJggg=="
+
+class RoundedButton(tk.Canvas):
+    """圆角按钮，支持悬停/点击动画"""
+
+    def __init__(self, parent, text="", command=None, bg="#3A1A1D", fg="#F0E6D3",
+                 hover_bg="#5A2A2E", hover_fg="#D4A853", pressed_bg="#D4A853",
+                 pressed_fg="#1A0A0A", font=("Microsoft YaHei UI", 9, "bold"),
+                 radius=8, padding=(16, 6), borderwidth=0, highlightthickness=0, **kw):
+        self._cmd = command
+        self._bg = bg
+        self._fg = fg
+        self._hover_bg = hover_bg
+        self._hover_fg = hover_fg
+        self._pressed_bg = pressed_bg
+        self._pressed_fg = pressed_fg
+        self._radius = radius
+        self._padding = padding
+        self._text = text
+        self._font = font
+        self._enabled = True
+
+        w = max(padding[0] * 2 + len(text) * 8, 60)
+        h = padding[1] * 2 + 14
+
+        super().__init__(parent, width=w, height=h, bg=parent["bg"],
+                         bd=borderwidth, highlightthickness=highlightthickness, **kw)
+
+        self._rect = self._round_rect(0, 0, w, h, radius, fill=bg, outline="")
+        self._label = self.create_text(w // 2, h // 2, text=text, fill=fg, font=font)
+
+        self.bind("<Enter>", self._on_enter)
+        self.bind("<Leave>", self._on_leave)
+        self.bind("<ButtonPress-1>", self._on_press)
+        self.bind("<ButtonRelease-1>", self._on_release)
+
+    def _round_rect(self, x1, y1, x2, y2, r, **kw):
+        points = [
+            x1 + r, y1, x2 - r, y1, x2, y1, x2, y1 + r,
+            x2, y2 - r, x2, y2, x2 - r, y2, x1 + r, y2,
+            x1, y2, x1, y2 - r, x1, y1 + r, x1, y1,
+        ]
+        return self.create_polygon(points, smooth=True, **kw)
+
+    def _on_enter(self, e):
+        if not self._enabled:
+            return
+        self.itemconfig(self._rect, fill=self._hover_bg, outline=self._hover_bg)
+        self.itemconfig(self._label, fill=self._hover_fg)
+        self.config(cursor="hand2")
+
+    def _on_leave(self, e):
+        if not self._enabled:
+            return
+        self.itemconfig(self._rect, fill=self._bg, outline="")
+        self.itemconfig(self._label, fill=self._fg)
+
+    def _on_press(self, e):
+        if not self._enabled:
+            return
+        self.itemconfig(self._rect, fill=self._pressed_bg, outline="")
+        self.itemconfig(self._label, fill=self._pressed_fg)
+
+    def _on_release(self, e):
+        if not self._enabled:
+            return
+        self.itemconfig(self._rect, fill=self._hover_bg, outline="")
+        self.itemconfig(self._label, fill=self._hover_fg)
+        if self._cmd:
+            self._cmd()
+
+    def set_enabled(self, enabled=True):
+        self._enabled = enabled
+        if enabled:
+            self.itemconfig(self._rect, fill=self._bg)
+            self.itemconfig(self._label, fill=self._fg)
+        else:
+            self.itemconfig(self._rect, fill="#2A1215")
+            self.itemconfig(self._label, fill="#5A4A4E")
+            self.config(cursor="")
+
+    def set_text(self, text):
+        self._text = text
+        self.itemconfig(self._label, text=text)
+
+
 class AutoClicker:
     def __init__(self, root):
         self.root = root
-        self.root.title("AutoClicker - 多步骤宏工具")
+        self.root.title("阴阳师痒痒鼠爬塔助手")
         self.root.geometry("920x820")
         self.root.resizable(True, True)
         self.root.minsize(780, 600)
+        set_window_icon(self.root)
 
         # 运行状态
         self._lock = threading.Lock()
@@ -279,8 +368,13 @@ class AutoClicker:
         # 拟人模式
         self.human_mode = tk.BooleanVar(value=False)
         self.wait_variance = tk.IntVar(value=30)  # 等待时间 ±N%
-        self.press_duration_min = tk.IntVar(value=30)   # 按压最短 ms
-        self.press_duration_max = tk.IntVar(value=120)  # 按压最长 ms
+        self.press_duration_min = tk.IntVar(value=50)   # 按压最短 ms
+        self.press_duration_max = tk.IntVar(value=180)  # 按压最长 ms
+
+        # 步骤间隔随机
+        self.step_gap_enabled = tk.BooleanVar(value=False)
+        self.step_gap_min = tk.IntVar(value=100)  # 步骤间隔最短 ms
+        self.step_gap_max = tk.IntVar(value=300)  # 步骤间隔最长 ms
 
         # 录制
         self.is_recording = False
@@ -305,7 +399,7 @@ class AutoClicker:
 
         # 配置
         self.configs = {}
-        self.config_file = "autoclicker_configs.json"
+        self.config_file = os.path.join(CONFIG_DIR, "autoclicker_configs.json")
         self.load_all_configs()
 
         self.apply_styles()
@@ -314,54 +408,101 @@ class AutoClicker:
         self.start_hotkey_listener()
 
     # ==================================================================
-    #  UI 构建
+    #  UI 构建（阴阳师游戏风格）
     # ==================================================================
+    def _card(self, parent, title=None, **pack_kw):
+        """创建一个卡片面板"""
+        C = self._colors
+        outer = tk.Frame(parent, bg=C["card"], bd=0, highlightthickness=1,
+                         highlightbackground=C["border"], highlightcolor=C["gold"])
+        outer.pack(fill=tk.BOTH, expand=pack_kw.pop("expand", False), **pack_kw)
+        if title:
+            bar = tk.Frame(outer, bg=C["card"])
+            bar.pack(fill=tk.X, padx=10, pady=(8, 2))
+            tk.Label(bar, text=title, bg=C["card"], fg=C["gold"],
+                     font=("Microsoft YaHei UI", 9, "bold"), anchor="w").pack(side=tk.LEFT)
+            # 金色下划线
+            tk.Frame(outer, bg=C["gold"], height=1).pack(fill=tk.X, padx=10)
+        inner = tk.Frame(outer, bg=C["card"])
+        inner.pack(fill=tk.BOTH, expand=True, padx=10, pady=(4, 10))
+        return inner
+
     def create_widgets(self):
-        main = ttk.Frame(self.root, padding="6")
-        main.pack(fill=tk.BOTH, expand=True)
+        C = self._colors
+        self.root.configure(bg=C["bg"])
 
-        self._build_step_list_ui(main)
-        self._build_loop_record_ui(main)
-        self._build_window_ui(main)
-        self._build_options_ui(main)
-        self._build_status_ui(main)
-        self._build_control_ui(main)
-        self._build_config_ui(main)
+        # 顶部标题
+        title_frame = tk.Frame(self.root, bg=C["bg"])
+        title_frame.pack(fill=tk.X, padx=16, pady=(10, 2))
+        tk.Label(title_frame, text="🎴 阴阳师痒痒鼠爬塔助手", bg=C["bg"], fg=C["gold"],
+                 font=("Microsoft YaHei UI", 13, "bold")).pack(side=tk.LEFT)
 
-        hint = ttk.Label(main, text="提示: F9 开始 | F10 停止 | F2 暂停录制 | 以管理员运行可解决模拟器点击无效问题",
-                         foreground=self._colors["dim"])
-        hint.pack(fill=tk.X, pady=3)
+        # 主容器（两列布局）
+        container = tk.Frame(self.root, bg=C["bg"])
+        container.pack(fill=tk.BOTH, expand=True, padx=12, pady=4)
+        container.grid_columnconfigure(0, weight=3)
+        container.grid_columnconfigure(1, weight=2)
+        container.grid_rowconfigure(0, weight=1)
+
+        # ---- 左列 ----
+        left = tk.Frame(container, bg=C["bg"])
+        left.grid(row=0, column=0, sticky="nsew", padx=(0, 6))
+        self._build_step_list_ui(left)
+
+        # ---- 右列 ----
+        right = tk.Frame(container, bg=C["bg"])
+        right.grid(row=0, column=1, sticky="nsew", padx=(6, 0))
+        self._build_loop_record_ui(right)
+        self._build_options_ui(right)
+        self._build_config_ui(right)
+
+        # ---- 底部全宽区 ----
+        bottom = tk.Frame(self.root, bg=C["bg"])
+        bottom.pack(fill=tk.X, padx=12, pady=4)
+        self._build_window_ui(bottom)
+        self._build_status_ui(bottom)
+        self._build_control_ui(bottom)
+
+        # 底部提示
+        tk.Label(self.root, text="F9 开始  |  F10 停止  |  F2 暂停录制  |  管理员运行可解决模拟器点击无效",
+                 bg=C["bg"], fg=C["dim"], font=("Microsoft YaHei UI", 8)).pack(pady=(0, 8))
 
     def _build_step_list_ui(self, parent):
-        frame = ttk.LabelFrame(parent, text="宏步骤列表", padding="4")
-        frame.pack(fill=tk.BOTH, expand=True, pady=2)
+        C = self._colors
+        card = self._card(parent, title="📋 宏步骤", expand=True)
+
+        # 步骤列表
+        list_frame = tk.Frame(card, bg=C["card"])
+        list_frame.pack(fill=tk.BOTH, expand=True)
 
         cols = ("#", "action", "detail")
-        self.step_tree = ttk.Treeview(frame, columns=cols, show="headings", height=5, selectmode="browse")
+        self.step_tree = ttk.Treeview(list_frame, columns=cols, show="headings", height=6, selectmode="browse")
         self.step_tree.heading("#", text="#", anchor="center")
         self.step_tree.heading("action", text="动作", anchor="center")
         self.step_tree.heading("detail", text="详情", anchor="w")
         self.step_tree.column("#", width=35, anchor="center", stretch=False)
         self.step_tree.column("action", width=80, anchor="center", stretch=False)
-        self.step_tree.column("detail", width=350, anchor="w")
+        self.step_tree.column("detail", width=280, anchor="w")
 
-        sb = ttk.Scrollbar(frame, orient="vertical", command=self.step_tree.yview)
+        sb = ttk.Scrollbar(list_frame, orient="vertical", command=self.step_tree.yview)
         self.step_tree.configure(yscrollcommand=sb.set)
-        self.step_tree.grid(row=0, column=0, sticky="nsew")
-        sb.grid(row=0, column=1, sticky="ns")
-        frame.grid_rowconfigure(0, weight=1)
-        frame.grid_columnconfigure(0, weight=1)
+        self.step_tree.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        sb.pack(side=tk.RIGHT, fill=tk.Y)
 
         self.step_tree.bind("<Button-3>", self._show_step_context_menu)
         self.step_tree.bind("<Double-1>", self._on_step_double_click)
 
-        # 执行日志（带滚动条）
-        C = self._colors
-        log_frame = ttk.Frame(frame)
-        log_frame.grid(row=1, column=0, columnspan=2, sticky="nsew", pady=(2, 2))
-        self.step_log = tk.Text(log_frame, height=10, bg=C["input"], fg=C["dim"],
-                                font=("Consolas", 10), state=tk.DISABLED,
-                                relief=tk.FLAT, borderwidth=1, highlightthickness=0)
+        # 日志区
+        log_label = tk.Label(card, text="执行日志", bg=C["card"], fg=C["dim"],
+                             font=("Microsoft YaHei UI", 8), anchor="w")
+        log_label.pack(fill=tk.X, pady=(6, 2))
+
+        log_frame = tk.Frame(card, bg=C["input"], bd=0, highlightthickness=1,
+                             highlightbackground=C["border"])
+        log_frame.pack(fill=tk.BOTH, expand=True, pady=(0, 6))
+        self.step_log = tk.Text(log_frame, height=8, bg=C["input"], fg=C["dim"],
+                                font=("Consolas", 9), state=tk.DISABLED,
+                                relief=tk.FLAT, borderwidth=0, highlightthickness=0)
         log_sb = ttk.Scrollbar(log_frame, orient="vertical", command=self.step_log.yview)
         self.step_log.configure(yscrollcommand=log_sb.set)
         self.step_log.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
@@ -370,80 +511,109 @@ class AutoClicker:
         self.step_log.tag_configure("success", foreground=C["success"])
         self.step_log.tag_configure("fail", foreground=C["danger"])
         self.step_log.tag_configure("warn", foreground=C["warn"])
-        self.step_log.tag_configure("running", foreground=C["accent"])
+        self.step_log.tag_configure("running", foreground=C["gold"])
 
-        # 按钮行（添加 + 编辑合并为一行）
-        btn_frame = ttk.Frame(frame)
-        btn_frame.grid(row=2, column=0, columnspan=2, sticky="ew", pady=(2, 0))
-        for text, cmd in [
+        # 添加步骤按钮行
+        add_frame = tk.Frame(card, bg=C["card"])
+        add_frame.pack(fill=tk.X, pady=(4, 0))
+
+        # 主要添加按钮（金色）
+        primary_actions = [
             ("+ 左键", lambda: self.add_click_step("left")),
             ("+ 右键", lambda: self.add_click_step("right")),
             ("+ 等待", self.add_wait_step),
             ("+ 按键", self.add_key_step),
-            ("+ 截图", self.capture_and_match),
-            ("+ 截图保存", self.add_capture_step),
+        ]
+        for text, cmd in primary_actions:
+            RoundedButton(add_frame, text=text, command=cmd,
+                         bg="#5A2A2E", fg=C["gold"], hover_bg=C["gold"], hover_fg="#1A0A0A",
+                         pressed_bg="#D4A853", pressed_fg="#1A0A0A",
+                         radius=8, padding=(12, 4)).pack(side=tk.LEFT, padx=3)
+
+        # 次要添加按钮
+        secondary_actions = [
+            ("+ 截图", self.capture_image),
+            ("📁 从文件夹选图", self.add_image_step),
             ("+ 条件", self.add_conditional_branch),
-            ("+ 图片", self.add_image_step),
-            ("|", None),
-            ("▲", self.move_step_up), ("▼", self.move_step_down),
-            ("✕", self.delete_step), ("清空", self.clear_all_steps),
-        ]:
-            if cmd is None:
-                ttk.Separator(btn_frame, orient="vertical").pack(side=tk.LEFT, fill=tk.Y, padx=4)
-            else:
-                ttk.Button(btn_frame, text=text, command=cmd).pack(side=tk.LEFT, padx=1)
+        ]
+        ttk.Separator(add_frame, orient="vertical").pack(side=tk.LEFT, fill=tk.Y, padx=6)
+        for text, cmd in secondary_actions:
+            RoundedButton(add_frame, text=text, command=cmd,
+                         bg=C["input"], fg=C["text"], hover_bg="#4A2A2E", hover_fg=C["gold"],
+                         radius=8, padding=(12, 4)).pack(side=tk.LEFT, padx=3)
+
+        # 编辑按钮（右对齐）
+        edit_frame = tk.Frame(card, bg=C["card"])
+        edit_frame.pack(fill=tk.X, pady=(4, 0))
+        for text, cmd in [("▲ 上移", self.move_step_up), ("▼ 下移", self.move_step_down),
+                          ("✕ 删除", self.delete_step), ("清空", self.clear_all_steps)]:
+            RoundedButton(edit_frame, text=text, command=cmd,
+                         bg=C["input"], fg=C["dim"], hover_bg="#4A2A2E", hover_fg=C["text"],
+                         radius=6, padding=(10, 3)).pack(side=tk.LEFT, padx=2)
 
     def _build_loop_record_ui(self, parent):
-        frame = ttk.Frame(parent)
-        frame.pack(fill=tk.X, pady=2)
+        C = self._colors
 
         # 循环
-        loop_frame = ttk.LabelFrame(frame, text="循环", padding="4")
-        loop_frame.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=(0, 4))
-        ttk.Label(loop_frame, text="次数:").pack(side=tk.LEFT, padx=2)
-        ttk.Entry(loop_frame, textvariable=self.loop_count, width=6).pack(side=tk.LEFT, padx=2)
-        ttk.Checkbutton(loop_frame, text="无限循环", variable=self.loop_infinite,
+        card = self._card(parent, title="🔄 循环设置")
+        row = tk.Frame(card, bg=C["card"])
+        row.pack(fill=tk.X)
+        tk.Label(row, text="次数", bg=C["card"], fg=C["text"], font=("Microsoft YaHei UI", 9)).pack(side=tk.LEFT)
+        ttk.Entry(row, textvariable=self.loop_count, width=5).pack(side=tk.LEFT, padx=6)
+        ttk.Checkbutton(row, text="无限循环", variable=self.loop_infinite,
                          command=self._on_infinite_toggle).pack(side=tk.LEFT, padx=8)
 
         # 录制
-        rec_frame = ttk.LabelFrame(frame, text="录制", padding="4")
-        rec_frame.pack(side=tk.LEFT, fill=tk.X, expand=True)
-        self.record_btn = ttk.Button(rec_frame, text="⏺ 录制", command=self.start_recording, style="Record.TButton")
-        self.record_btn.pack(side=tk.LEFT, padx=2)
-        self.record_pause_btn = ttk.Button(rec_frame, text="⏸ 暂停(F2)", command=self.toggle_record_pause, state=tk.DISABLED)
-        self.record_pause_btn.pack(side=tk.LEFT, padx=2)
-        self.record_stop_btn = ttk.Button(rec_frame, text="⏹ 停止(F10)", command=self.stop_recording, state=tk.DISABLED, style="RecordStop.TButton")
-        self.record_stop_btn.pack(side=tk.LEFT, padx=2)
-        self.record_status = ttk.Label(rec_frame, text="未录制", foreground=self._colors["dim"])
-        self.record_status.pack(side=tk.LEFT, padx=8)
+        card2 = self._card(parent, title="⏺ 录制回放")
+        btn_row = tk.Frame(card2, bg=C["card"])
+        btn_row.pack(fill=tk.X)
+        self.record_btn = RoundedButton(btn_row, text="⏺ 录制", command=self.start_recording,
+                                        bg="#6B3410", fg=C["gold"], hover_bg="#8B4513", hover_fg="#FFF",
+                                        radius=8, padding=(12, 4))
+        self.record_btn.pack(side=tk.LEFT, padx=3)
+        self.record_pause_btn = RoundedButton(btn_row, text="⏸ 暂停", command=self.toggle_record_pause,
+                                              bg=C["input"], fg=C["text"], hover_bg="#4A2A2E",
+                                              radius=8, padding=(12, 4))
+        self.record_pause_btn.pack(side=tk.LEFT, padx=3)
+        self.record_stop_btn = RoundedButton(btn_row, text="⏹ 停止", command=self.stop_recording,
+                                             bg="#8B2020", fg="#FFF", hover_bg="#C94A4A",
+                                             radius=8, padding=(12, 4))
+        self.record_stop_btn.pack(side=tk.LEFT, padx=3)
+        self.record_pause_btn.set_enabled(False)
+        self.record_stop_btn.set_enabled(False)
+        self.record_status = tk.Label(btn_row, text="● 未录制", bg=C["card"], fg=C["dim"],
+                                       font=("Microsoft YaHei UI", 8))
+        self.record_status.pack(side=tk.RIGHT, padx=8)
 
     def _build_window_ui(self, parent):
-        frame = ttk.LabelFrame(parent, text="窗口绑定", padding="4")
-        frame.pack(fill=tk.X, pady=2)
+        C = self._colors
+        card = self._card(parent, title="🪟 窗口绑定")
 
-        row1 = ttk.Frame(frame)
+        # 第一行：下拉框 + 按钮
+        row1 = tk.Frame(card, bg=C["card"])
         row1.pack(fill=tk.X, pady=2)
-        self.window_combo = ttk.Combobox(row1, width=40, state="readonly")
+        self.window_combo = ttk.Combobox(row1, width=30, state="readonly")
         self.window_combo.pack(side=tk.LEFT, padx=2)
         self.window_combo.bind("<<ComboboxSelected>>", self._on_combo_select)
-
         for text, cmd in [
-            ("确定选择", self.bind_selected_window),
-            ("探测子窗口", self.find_child_windows),
+            ("确定", self.bind_selected_window),
+            ("子窗口", self.find_child_windows),
             ("清除", self.clear_window_binding),
             ("刷新", self.list_all_windows),
         ]:
-            ttk.Button(row1, text=text, command=cmd).pack(side=tk.LEFT, padx=2)
-
-        # 绑定状态
-        self.bind_status_label = ttk.Label(row1, text="❌ 未绑定", foreground=self._colors["danger"])
+            RoundedButton(row1, text=text, command=cmd,
+                         bg=C["input"], fg=C["text"], hover_bg="#4A2A2E", hover_fg=C["gold"],
+                         radius=6, padding=(10, 3)).pack(side=tk.LEFT, padx=2)
+        self.bind_status_label = tk.Label(row1, text="● 未绑定", bg=C["card"], fg=C["danger"],
+                                           font=("Microsoft YaHei UI", 9, "bold"))
         self.bind_status_label.pack(side=tk.RIGHT, padx=8)
 
-        row2 = ttk.Frame(frame)
+        # 第二行：选项
+        row2 = tk.Frame(card, bg=C["card"])
         row2.pack(fill=tk.X, pady=2)
-        ttk.Checkbutton(row2, text="启用窗口绑定", variable=self.bind_to_window).pack(side=tk.LEFT, padx=4)
+        ttk.Checkbutton(row2, text="启用绑定", variable=self.bind_to_window).pack(side=tk.LEFT, padx=4)
         ttk.Separator(row2, orient="vertical").pack(side=tk.LEFT, fill=tk.Y, padx=6)
-        ttk.Label(row2, text="点击方式:").pack(side=tk.LEFT, padx=2)
+        tk.Label(row2, text="方式:", bg=C["card"], fg=C["text"], font=("Microsoft YaHei UI", 9)).pack(side=tk.LEFT)
         for text, val in [("PostMessage", "postmessage"), ("SendInput", "sendinput")]:
             ttk.Radiobutton(row2, text=text, variable=self.click_method, value=val).pack(side=tk.LEFT, padx=3)
         ttk.Separator(row2, orient="vertical").pack(side=tk.LEFT, fill=tk.Y, padx=6)
@@ -451,118 +621,206 @@ class AutoClicker:
                          command=self._on_game_mode_toggle).pack(side=tk.LEFT, padx=4)
 
         # 窗口信息
-        self.window_info = ttk.Label(frame, text="未选择窗口", foreground=self._colors["dim"])
-        self.window_info.pack(fill=tk.X, pady=2)
+        self.window_info = tk.Label(card, text="未选择窗口", bg=C["card"], fg=C["dim"],
+                                     font=("Microsoft YaHei UI", 8))
+        self.window_info.pack(fill=tk.X, pady=(2, 0))
+
+    def _on_human_mode_toggle(self):
+        """拟人模式总开关：一键控制随机偏移 + 拟人点击 + 步骤间隔随机"""
+        on = self.human_mode.get()
+        self.random_offset_enabled.set(on)
+        self.step_gap_enabled.set(on)
 
     def _build_options_ui(self, parent):
-        frame = ttk.LabelFrame(parent, text="选项", padding="4")
-        frame.pack(fill=tk.X, pady=2)
+        C = self._colors
+        card = self._card(parent, title="⚙️ 拟人设置")
 
-        row = ttk.Frame(frame)
+        # 第一行：总开关 + 显示标记
+        row = tk.Frame(card, bg=C["card"])
         row.pack(fill=tk.X)
-        ttk.Checkbutton(row, text="随机偏移", variable=self.random_offset_enabled).pack(side=tk.LEFT, padx=2)
-        ttk.Entry(row, textvariable=self.random_offset_px, width=3).pack(side=tk.LEFT)
-        ttk.Label(row, text="px").pack(side=tk.LEFT, padx=(0, 6))
-        ttk.Separator(row, orient="vertical").pack(side=tk.LEFT, fill=tk.Y, padx=4)
+        ttk.Checkbutton(row, text="拟人模式", variable=self.human_mode,
+                        command=self._on_human_mode_toggle).pack(side=tk.LEFT, padx=2)
+        tk.Label(row, text="一键模拟真人操作", bg=C["card"], fg=C["dim"],
+                 font=("Microsoft YaHei UI", 8)).pack(side=tk.LEFT, padx=4)
         self.show_click_markers = tk.BooleanVar(value=True)
-        ttk.Checkbutton(row, text="显示标记", variable=self.show_click_markers).pack(side=tk.LEFT, padx=2)
-        ttk.Button(row, text="清除标记", command=self._clear_click_markers).pack(side=tk.LEFT, padx=2)
-        ttk.Separator(row, orient="vertical").pack(side=tk.LEFT, fill=tk.Y, padx=4)
-        ttk.Checkbutton(row, text="拟人模式", variable=self.human_mode).pack(side=tk.LEFT, padx=2)
-        ttk.Label(row, text="波动±").pack(side=tk.LEFT)
-        ttk.Entry(row, textvariable=self.wait_variance, width=3).pack(side=tk.LEFT)
-        ttk.Label(row, text="%").pack(side=tk.LEFT, padx=(0, 6))
-        ttk.Label(row, text="按压").pack(side=tk.LEFT)
-        ttk.Entry(row, textvariable=self.press_duration_min, width=3).pack(side=tk.LEFT)
-        ttk.Label(row, text="-").pack(side=tk.LEFT)
-        ttk.Entry(row, textvariable=self.press_duration_max, width=3).pack(side=tk.LEFT)
-        ttk.Label(row, text="ms").pack(side=tk.LEFT)
+        ttk.Checkbutton(row, text="标记", variable=self.show_click_markers,
+                        command=self._toggle_click_markers).pack(side=tk.LEFT, padx=2)
+        RoundedButton(row, text="清除", command=self._clear_click_markers,
+                     bg=C["input"], fg=C["text"], hover_bg="#4A2A2E",
+                     radius=6, padding=(8, 2)).pack(side=tk.LEFT, padx=2)
+
+        # 第二行：参数（拟人模式下的细节调整）
+        row2 = tk.Frame(card, bg=C["card"])
+        row2.pack(fill=tk.X, pady=(4, 0))
+        tk.Label(row2, text="偏移", bg=C["card"], fg=C["dim"], font=("Microsoft YaHei UI", 8)).pack(side=tk.LEFT)
+        ttk.Entry(row2, textvariable=self.random_offset_px, width=3).pack(side=tk.LEFT)
+        tk.Label(row2, text="px  按压", bg=C["card"], fg=C["dim"], font=("Microsoft YaHei UI", 8)).pack(side=tk.LEFT)
+        ttk.Entry(row2, textvariable=self.press_duration_min, width=3).pack(side=tk.LEFT)
+        tk.Label(row2, text="-", bg=C["card"], fg=C["dim"], font=("Microsoft YaHei UI", 8)).pack(side=tk.LEFT)
+        ttk.Entry(row2, textvariable=self.press_duration_max, width=3).pack(side=tk.LEFT)
+        tk.Label(row2, text="ms  间隔", bg=C["card"], fg=C["dim"], font=("Microsoft YaHei UI", 8)).pack(side=tk.LEFT)
+        ttk.Entry(row2, textvariable=self.step_gap_min, width=3).pack(side=tk.LEFT)
+        tk.Label(row2, text="-", bg=C["card"], fg=C["dim"], font=("Microsoft YaHei UI", 8)).pack(side=tk.LEFT)
+        ttk.Entry(row2, textvariable=self.step_gap_max, width=3).pack(side=tk.LEFT)
+        tk.Label(row2, text="ms", bg=C["card"], fg=C["dim"], font=("Microsoft YaHei UI", 8)).pack(side=tk.LEFT, padx=2)
 
     def _build_status_ui(self, parent):
-        frame = ttk.LabelFrame(parent, text="运行状态", padding="4")
-        frame.pack(fill=tk.X, pady=2)
-        self.status_label = ttk.Label(frame, text="状态: 已停止")
+        C = self._colors
+        frame = tk.Frame(parent, bg=C["bg"])
+        frame.pack(fill=tk.X, pady=4)
+
+        self.status_label = tk.Label(frame, text="● 已停止", bg=C["bg"], fg=C["dim"],
+                                      font=("Microsoft YaHei UI", 9, "bold"))
         self.status_label.pack(side=tk.LEFT, padx=8)
-        self.step_label = ttk.Label(frame, text="步骤: -")
+        self.step_label = tk.Label(frame, text="步骤 -", bg=C["bg"], fg=C["text"],
+                                    font=("Microsoft YaHei UI", 9))
         self.step_label.pack(side=tk.LEFT, padx=8)
-        self.loop_label = ttk.Label(frame, text="循环: 0")
+        self.loop_label = tk.Label(frame, text="循环 0", bg=C["bg"], fg=C["text"],
+                                    font=("Microsoft YaHei UI", 9))
         self.loop_label.pack(side=tk.LEFT, padx=8)
-        self.time_label = ttk.Label(frame, text="用时: 00:00:00")
+        self.time_label = tk.Label(frame, text="00:00:00", bg=C["bg"], fg=C["text"],
+                                    font=("Consolas", 10))
         self.time_label.pack(side=tk.LEFT, padx=8)
-        self.progress_label = ttk.Label(frame, text="", foreground=self._colors["accent"])
+        self.progress_label = tk.Label(frame, text="", bg=C["bg"], fg=C["gold"],
+                                        font=("Microsoft YaHei UI", 9))
         self.progress_label.pack(side=tk.RIGHT, padx=8)
 
     def _build_control_ui(self, parent):
-        frame = ttk.Frame(parent)
+        frame = tk.Frame(parent, bg=self._colors["bg"])
         frame.pack(fill=tk.X, pady=4)
-        self.start_btn = ttk.Button(frame, text="▶  开始 (F9)", command=self.start, style="Start.TButton")
+        C = self._colors
+        self.start_btn = RoundedButton(frame, text="▶  开始 (F9)", command=self.start,
+                                       bg="#2E7D32", fg="#FFF", hover_bg="#388E3C", hover_fg="#FFF",
+                                       pressed_bg="#1B5E20", pressed_fg="#FFF",
+                                       font=("Microsoft YaHei UI", 11, "bold"),
+                                       radius=10, padding=(24, 10))
         self.start_btn.pack(side=tk.LEFT, padx=6, fill=tk.X, expand=True)
-        self.stop_btn = ttk.Button(frame, text="⏹  停止 (F10)", command=self.stop, state=tk.DISABLED, style="Stop.TButton")
+        self.stop_btn = RoundedButton(frame, text="⏹  停止 (F10)", command=self.stop,
+                                      bg="#B71C1C", fg="#FFF", hover_bg="#D32F2F", hover_fg="#FFF",
+                                      pressed_bg="#7F0000", pressed_fg="#FFF",
+                                      font=("Microsoft YaHei UI", 11, "bold"),
+                                      radius=10, padding=(24, 10))
         self.stop_btn.pack(side=tk.LEFT, padx=6, fill=tk.X, expand=True)
+        self.stop_btn.set_enabled(False)
 
     def _build_config_ui(self, parent):
-        frame = ttk.LabelFrame(parent, text="配置管理", padding="4")
-        frame.pack(fill=tk.X, pady=2)
+        C = self._colors
+        card = self._card(parent, title="💾 配置管理")
+
+        row1 = tk.Frame(card, bg=C["card"])
+        row1.pack(fill=tk.X)
+        tk.Label(row1, text="名称", bg=C["card"], fg=C["text"], font=("Microsoft YaHei UI", 9)).pack(side=tk.LEFT)
         self.config_name_var = tk.StringVar()
-        ttk.Label(frame, text="名称:").pack(side=tk.LEFT, padx=2)
-        ttk.Entry(frame, textvariable=self.config_name_var, width=14).pack(side=tk.LEFT, padx=2)
+        ttk.Entry(row1, textvariable=self.config_name_var, width=12).pack(side=tk.LEFT, padx=6)
         for text, cmd in [("保存", self.save_config), ("加载", self.load_config),
                           ("删除", self.delete_config), ("列出", self.list_configs)]:
-            ttk.Button(frame, text=text, command=cmd).pack(side=tk.LEFT, padx=2)
+            RoundedButton(row1, text=text, command=cmd,
+                         bg=C["input"], fg=C["text"], hover_bg="#4A2A2E", hover_fg=C["gold"],
+                         radius=6, padding=(10, 3)).pack(side=tk.LEFT, padx=2)
 
-        ttk.Separator(frame, orient="vertical").pack(side=tk.LEFT, fill=tk.Y, padx=6)
-        ttk.Button(frame, text="导出文件", command=self.export_to_file).pack(side=tk.LEFT, padx=2)
-        ttk.Button(frame, text="导入文件", command=self.import_from_file).pack(side=tk.LEFT, padx=2)
+        row2 = tk.Frame(card, bg=C["card"])
+        row2.pack(fill=tk.X, pady=(4, 0))
+        RoundedButton(row2, text="导出文件", command=self.export_to_file,
+                     bg=C["input"], fg=C["text"], hover_bg="#4A2A2E", hover_fg=C["gold"],
+                     radius=6, padding=(10, 3)).pack(side=tk.LEFT, padx=2)
+        RoundedButton(row2, text="导入文件", command=self.import_from_file,
+                     bg=C["input"], fg=C["text"], hover_bg="#4A2A2E", hover_fg=C["gold"],
+                     radius=6, padding=(10, 3)).pack(side=tk.LEFT, padx=2)
 
     def apply_styles(self):
         style = ttk.Style()
         style.theme_use("clam")
 
-        # ---- 色彩体系 ----
-        BG = "#0D1117"        # 主背景（GitHub Dark）
-        BG_CARD = "#161B22"   # 卡片/面板背景
-        BG_INPUT = "#21262D"  # 输入框/控件背景
-        BORDER = "#30363D"    # 边框
-        TEXT = "#E6EDF3"      # 主文字
-        TEXT_DIM = "#8B949E"  # 次要文字
-        ACCENT = "#58A6FF"    # 强调色（蓝）
-        SUCCESS = "#3FB950"   # 成功（绿）
-        DANGER = "#F85149"    # 危险（红）
-        WARN = "#D29922"      # 警告（黄）
-        PURPLE = "#BC8CFF"    # 紫色
+        # ---- 阴阳师配色体系 ----
+        BG = "#1A0A0A"
+        BG_CARD = "#2A1215"
+        BG_INPUT = "#3A1A1D"
+        BORDER = "#5A2A2E"
+        TEXT = "#F0E6D3"
+        TEXT_DIM = "#A08870"
+        GOLD = "#D4A853"
+        ACCENT = "#D4A853"
+        SUCCESS = "#4CAF50"
+        DANGER = "#C94A4A"
+        WARN = "#E8A838"
+        PURPLE = "#B07ACC"
+        BTN_BG = "#3A1A1D"
+        BTN_BORDER = "#6A3A3E"
 
         self.root.configure(bg=BG)
 
-        # ---- 全局字体 ----
+        # ---- 字体 ----
         FONT = ("Microsoft YaHei UI", 9)
         FONT_BOLD = ("Microsoft YaHei UI", 9, "bold")
         FONT_TITLE = ("Microsoft YaHei UI", 10, "bold")
         FONT_MONO = ("Consolas", 9)
+        FONT_BTN = ("Microsoft YaHei UI", 9)
 
         # ---- Frame ----
         style.configure("TFrame", background=BG)
+        style.configure("Card.TFrame", background=BG_CARD)
         style.configure("TLabel", background=BG, foreground=TEXT, font=FONT)
-        style.configure("TButton", background=BG_INPUT, foreground=TEXT, font=FONT,
-                        borderwidth=1, relief="flat", padding=(10, 4))
-        style.map("TButton",
-                  background=[("active", BORDER), ("pressed", ACCENT)],
-                  foreground=[("pressed", "#FFF")])
+        style.configure("Card.TLabel", background=BG_CARD, foreground=TEXT, font=FONT)
+        style.configure("Title.TLabel", background=BG, foreground=GOLD, font=FONT_TITLE)
+        style.configure("CardTitle.TLabel", background=BG_CARD, foreground=GOLD, font=FONT_BOLD)
+        style.configure("Dim.TLabel", background=BG_CARD, foreground=TEXT_DIM, font=FONT)
+        style.configure("Gold.TLabel", background=BG_CARD, foreground=GOLD, font=FONT)
 
-        # ---- LabelFrame ----
+        # ---- Button（金色描边风格）----
+        style.configure("TButton", background=BTN_BG, foreground=TEXT, font=FONT_BTN,
+                        borderwidth=1, relief="flat", padding=(8, 4))
+        style.map("TButton",
+                  background=[("active", "#4A2A2E"), ("pressed", GOLD)],
+                  foreground=[("active", GOLD), ("pressed", "#1A0A0A")])
+
+        style.configure("Gold.TButton", background=BTN_BG, foreground=GOLD,
+                        font=FONT_BOLD, borderwidth=1, relief="flat", padding=(10, 5))
+        style.map("Gold.TButton",
+                  background=[("active", "#4A2A2E"), ("pressed", GOLD)],
+                  foreground=[("active", "#FFF"), ("pressed", "#1A0A0A")])
+
+        style.configure("Small.TButton", background=BTN_BG, foreground=TEXT_DIM,
+                        font=FONT, borderwidth=1, relief="flat", padding=(6, 3))
+        style.map("Small.TButton",
+                  background=[("active", "#4A2A2E")],
+                  foreground=[("active", TEXT)])
+
+        # ---- Start / Stop（大按钮）----
+        style.configure("Start.TButton", background=SUCCESS, foreground="#FFF",
+                        font=FONT_BOLD, padding=(20, 8))
+        style.map("Start.TButton",
+                  background=[("active", "#388E3C"), ("pressed", "#2E7D32")])
+
+        style.configure("Stop.TButton", background=DANGER, foreground="#FFF",
+                        font=FONT_BOLD, padding=(20, 8))
+        style.map("Stop.TButton",
+                  background=[("active", "#D32F2F"), ("pressed", "#B71C1C")])
+
+        # ---- 录制按钮 ----
+        style.configure("Record.TButton", background="#8B4513", foreground=GOLD,
+                        font=FONT_BOLD, padding=(10, 4), borderwidth=1, relief="flat")
+        style.map("Record.TButton",
+                  background=[("active", "#A0522D"), ("pressed", "#6B3410")],
+                  foreground=[("active", "#FFF")])
+
+        style.configure("RecordStop.TButton", background=DANGER, foreground="#FFF",
+                        font=FONT_BOLD, padding=(10, 4))
+
+        # ---- LabelFrame（卡片）----
         style.configure("TLabelframe", background=BG_CARD, foreground=TEXT,
                         borderwidth=1, relief="flat", bordercolor=BORDER)
-        style.configure("TLabelframe.Label", background=BG_CARD, foreground=ACCENT,
+        style.configure("TLabelframe.Label", background=BG_CARD, foreground=GOLD,
                         font=FONT_BOLD)
 
-        # ---- Treeview（步骤列表）----
+        # ---- Treeview ----
         style.configure("Treeview", background=BG_INPUT, foreground=TEXT,
                         fieldbackground=BG_INPUT, font=FONT, rowheight=26,
                         borderwidth=0, relief="flat")
-        style.configure("Treeview.Heading", background=BG_CARD, foreground=TEXT_DIM,
+        style.configure("Treeview.Heading", background=BG_CARD, foreground=GOLD,
                         font=FONT_BOLD, borderwidth=0, relief="flat")
         style.map("Treeview",
-                  background=[("selected", ACCENT)],
-                  foreground=[("selected", "#FFF")])
+                  background=[("selected", "#5A2A2E")],
+                  foreground=[("selected", GOLD)])
 
         # ---- Radiobutton / Checkbutton ----
         style.configure("TRadiobutton", background=BG_CARD, foreground=TEXT, font=FONT)
@@ -579,30 +837,11 @@ class AutoClicker:
         # ---- Separator ----
         style.configure("TSeparator", background=BORDER)
 
-        # ---- 特殊按钮样式 ----
-        style.configure("Start.TButton", background=SUCCESS, foreground="#FFF",
-                        font=FONT_BOLD, padding=(16, 6))
-        style.map("Start.TButton",
-                  background=[("active", "#2EA043"), ("pressed", "#238636")])
-
-        style.configure("Stop.TButton", background=DANGER, foreground="#FFF",
-                        font=FONT_BOLD, padding=(16, 6))
-        style.map("Stop.TButton",
-                  background=[("active", "#DA3633"), ("pressed", "#B62324")])
-
-        style.configure("Record.TButton", background="#F0883E", foreground="#FFF",
-                        font=FONT_BOLD, padding=(10, 4))
-        style.map("Record.TButton",
-                  background=[("active", "#DB6D28"), ("pressed", "#BD561D")])
-
-        style.configure("RecordStop.TButton", background=DANGER, foreground="#FFF",
-                        font=FONT_BOLD, padding=(10, 4))
-
-        # 保存颜色引用供其他方法使用
+        # 保存颜色引用
         self._colors = {
             "bg": BG, "card": BG_CARD, "input": BG_INPUT, "border": BORDER,
             "text": TEXT, "dim": TEXT_DIM, "accent": ACCENT, "success": SUCCESS,
-            "danger": DANGER, "warn": WARN, "purple": PURPLE,
+            "danger": DANGER, "warn": WARN, "purple": PURPLE, "gold": GOLD,
         }
 
     # ==================================================================
@@ -666,6 +905,15 @@ class AutoClicker:
     #  点击标记
     # ==================================================================
 
+    def _toggle_click_markers(self):
+        """勾选/取消"显示标记"时，立即对所有已有步骤生效"""
+        if self.show_click_markers.get():
+            for i, step in enumerate(self.steps):
+                if step.action in ("left_click", "right_click"):
+                    self._show_click_marker(step.params.get("x", 0), step.params.get("y", 0))
+        else:
+            self._clear_click_markers()
+
     def _show_click_marker(self, x, y):
         """在屏幕坐标 (x, y) 显示带编号的圆圈标记（鼠标穿透，不影响图片识别）"""
         if not self.show_click_markers.get():
@@ -685,13 +933,15 @@ class AutoClicker:
         win.attributes("-topmost", True)
         win.attributes("-transparentcolor", "#010101")
         win.geometry(f"{size}x{size}+{ox}+{oy}")
+        win.configure(bg="#010101")
 
         canvas = tk.Canvas(win, width=size, height=size, bg="#010101", highlightthickness=0)
         canvas.pack()
 
         cx, cy = size // 2, size // 2
-        canvas.create_oval(cx - r, cy - r, cx + r, cy + r, outline="#00FF00", width=2)
-        canvas.create_text(cx, cy, text=str(num), fill="#00FF00",
+        canvas.create_oval(cx - r, cy - r, cx + r, cy + r, outline="#FFD700", width=3)
+        canvas.create_oval(cx - 3, cy - 3, cx + 3, cy + 3, fill="#FFD700", outline="")
+        canvas.create_text(cx, cy, text=str(num), fill="#FFD700",
                            font=("Arial", 13, "bold"))
 
         # 设置鼠标穿透
@@ -1293,12 +1543,12 @@ class AutoClicker:
         }
         return cfg
 
-    def capture_and_match(self):
-        """截图 → 保存 → 立即识别"""
+    def capture_image(self):
+        """截图 → 保存 → 选择用途（识图点击 / 运行时截图保存）"""
         if not PYAUTOGUI_AVAILABLE:
             messagebox.showwarning("警告", "需要安装 pyautogui")
             return
-        save_dir = os.path.join(SCRIPT_DIR, "screenshots")
+        save_dir = SCREENSHOTS_DIR
         os.makedirs(save_dir, exist_ok=True)
         # 先问一次范围
         set_scope = messagebox.askyesno("框选范围", "是否先限定截图范围？\n\n是 → 先框选一个大范围\n否 → 全屏拖拽截图")
@@ -1308,115 +1558,6 @@ class AutoClicker:
         messagebox.showinfo("截图", "点击确定后，3 秒内请准备好。\n\n"
                            "按住鼠标左键拖动选择区域，松开完成截图。")
         self.root.after(3000, lambda: self._do_capture(save_dir, scope))
-
-    def add_capture_step(self):
-        """截图选择区域 → 保存为文件 → 添加截图保存步骤"""
-        if not PYAUTOGUI_AVAILABLE:
-            messagebox.showwarning("警告", "需要安装 pyautogui")
-            return
-        save_dir = os.path.join(SCRIPT_DIR, "screenshots")
-        os.makedirs(save_dir, exist_ok=True)
-        # 先问一次范围
-        set_scope = messagebox.askyesno("框选范围", "是否先限定截图范围？\n\n是 → 先框选一个大范围\n否 → 全屏拖拽截图")
-        scope = None
-        if set_scope:
-            scope = self._select_region_on_screen()
-        messagebox.showinfo("截图保存", "点击确定后，3 秒内请准备好。\n\n"
-                           "按住鼠标拖动选择区域，松开后截图自动保存。")
-        self.root.after(3000, lambda: self._do_capture_save(save_dir, scope))
-
-    def _do_capture_save(self, save_dir, scope=None):
-        """执行区域截图，保存并添加截图保存步骤。scope 为预选的搜索区域（可选）。"""
-        # 解析为当前绝对坐标（用于界面绘制和约束）
-        scope = self._resolve_region(scope) if scope else None
-
-        # 在范围内精确截图
-        self.root.withdraw()
-        time.sleep(0.3)
-
-        overlay = tk.Toplevel()
-        overlay.attributes("-fullscreen", True)
-        overlay.attributes("-alpha", 0.3)
-        overlay.attributes("-topmost", True)
-        overlay.overrideredirect(True)
-        overlay.configure(bg="gray")
-        overlay.focus_force()
-
-        canvas = tk.Canvas(overlay, bg="gray", highlightthickness=0, cursor="cross")
-        canvas.pack(fill=tk.BOTH, expand=True)
-
-        # 显示范围边框
-        if scope:
-            sx, sy, sw, sh = scope["x"], scope["y"], scope["w"], scope["h"]
-            canvas.create_rectangle(sx, sy, sx + sw, sy + sh,
-                                     outline="#FFD700", width=3, dash=(8, 4))
-            canvas.create_text(
-                overlay.winfo_screenwidth() // 2, 30,
-                text=f"在黄色范围内拖拽截图  |  ESC 取消",
-                fill="white", font=("Arial", 14))
-        else:
-            canvas.create_text(
-                overlay.winfo_screenwidth() // 2, 30,
-                text="按住鼠标拖动选择区域  |  ESC 取消",
-                fill="white", font=("Arial", 14))
-
-        state = {"sx": 0, "sy": 0, "rect": None}
-
-        def on_press(e):
-            state["sx"], state["sy"] = e.x, e.y
-            if state["rect"]:
-                canvas.delete(state["rect"])
-            state["rect"] = canvas.create_rectangle(e.x, e.y, e.x, e.y,
-                                                     outline="#00FF00", width=2, dash=(6, 3))
-
-        def on_drag(e):
-            if state["rect"]:
-                canvas.coords(state["rect"], state["sx"], state["sy"], e.x, e.y)
-
-        def on_release(e):
-            x1, y1 = min(state["sx"], e.x), min(state["sy"], e.y)
-            x2, y2 = max(state["sx"], e.x), max(state["sy"], e.y)
-            if x2 - x1 < 5 or y2 - y1 < 5:
-                overlay.destroy()
-                self.root.deiconify()
-                return
-
-            # 如果有范围限制，裁剪到范围内
-            if scope:
-                sx, sy, sw, sh = scope["x"], scope["y"], scope["w"], scope["h"]
-                x1 = max(x1, sx)
-                y1 = max(y1, sy)
-                x2 = min(x2, sx + sw)
-                y2 = min(y2, sy + sh)
-                if x2 - x1 < 5 or y2 - y1 < 5:
-                    overlay.destroy()
-                    self.root.deiconify()
-                    return
-
-            overlay.destroy()
-
-            shot = pyautogui.screenshot(region=(x1, y1, x2 - x1, y2 - y1))
-            ts = time.strftime("%Y%m%d_%H%M%S")
-            filepath = os.path.join(save_dir, f"capture_{ts}.png")
-            shot.save(filepath)
-
-            self.root.deiconify()
-            self.steps.append(MacroStep("capture_save", {
-                "path": filepath,
-                "region": {"x": x1, "y": y1, "w": x2 - x1, "h": y2 - y1},
-            }))
-            self._refresh_step_list()
-            messagebox.showinfo("截图保存", f"已保存: {filepath}\n"
-                               f"区域: ({x1},{y1}) - ({x2},{y2})  {x2-x1}x{y2-y1}")
-
-        def on_esc(e):
-            overlay.destroy()
-            self.root.deiconify()
-
-        overlay.bind("<ButtonPress-1>", on_press)
-        overlay.bind("<B1-Motion>", on_drag)
-        overlay.bind("<ButtonRelease-1>", on_release)
-        overlay.bind("<Escape>", on_esc)
 
     def _do_capture(self, save_dir, scope=None):
         """执行区域截图（截图+识别用）。scope 为预选的搜索区域（可选）。"""
@@ -1479,10 +1620,21 @@ class AutoClicker:
             shot.save(filepath)
 
             self.root.deiconify()
-            messagebox.showinfo("截图完成",
-                               f"已保存: {filepath}\n"
-                               f"区域: ({x1},{y1}) - ({x2},{y2})  {x2-x1}x{y2-y1}")
-            self._match_image_and_add_step(filepath, scope)
+            use_as_match = messagebox.askyesno(
+                "截图完成",
+                f"已保存: {os.path.basename(filepath)}\n"
+                f"区域: ({x1},{y1}) - ({x2},{y2})  {x2-x1}x{y2-y1}\n\n"
+                f"这张截图怎么用？\n\n"
+                f"是 → 用作「识图点击」步骤（屏幕上找到它再点击）\n"
+                f"否 → 添加为「运行时截图保存」步骤（执行时自动截图）")
+            if use_as_match:
+                self._match_image_and_add_step(filepath, scope)
+            else:
+                self.steps.append(MacroStep("capture_save", {
+                    "path": filepath,
+                    "region": {"x": x1, "y": y1, "w": x2 - x1, "h": y2 - y1},
+                }))
+                self._refresh_step_list()
 
         def on_esc(e):
             overlay.destroy()
@@ -1789,13 +1941,13 @@ class AutoClicker:
         if self.is_recording:
             return
 
-        self.record_btn.config(state=tk.DISABLED)
+        self.record_btn.set_enabled(False)
         self._start_countdown(3)
 
     def _start_countdown(self, seconds):
         """录制前倒计时"""
         if seconds > 0:
-            self.record_status.config(text=f"倒计时 {seconds} 秒...", foreground=self._colors["warn"])
+            self.record_status.config(text=f"倒计时 {seconds} 秒...", fg=self._colors["warn"])
             self.root.after(1000, lambda: self._start_countdown(seconds - 1))
             return
 
@@ -1805,10 +1957,10 @@ class AutoClicker:
         self._record_events = []
         self._record_pause_offset = 0
         self._record_start_time = time.time()
-        self.record_status.config(text="● 录制中...", foreground=self._colors["danger"])
-        self.record_btn.config(state=tk.DISABLED)
-        self.record_pause_btn.config(state=tk.NORMAL)
-        self.record_stop_btn.config(state=tk.NORMAL)
+        self.record_status.config(text="● 录制中...", fg=self._colors["danger"])
+        self.record_btn.set_enabled(False)
+        self.record_pause_btn.set_enabled(True)
+        self.record_stop_btn.set_enabled(True)
 
         def on_click(x, y, button, pressed):
             if not (pressed and self.is_recording):
@@ -1851,14 +2003,14 @@ class AutoClicker:
             # 恢复
             self._record_pause_offset += time.time() - self._record_pause_point
             self.is_record_paused = False
-            self.record_status.config(text="● 录制中...", foreground=self._colors["danger"])
-            self.record_pause_btn.config(text="⏸ 暂停(F2)")
+            self.record_status.config(text="● 录制中...", fg=self._colors["danger"])
+            self.record_pause_btn.set_text("⏸ 暂停")
         else:
             # 暂停
             self._record_pause_point = time.time()
             self.is_record_paused = True
-            self.record_status.config(text="⏸ 已暂停", foreground=self._colors["warn"])
-            self.record_pause_btn.config(text="▶ 恢复(F2)")
+            self.record_status.config(text="⏸ 已暂停", fg=self._colors["warn"])
+            self.record_pause_btn.set_text("▶ 恢复")
 
     def stop_recording(self):
         if not self.is_recording:
@@ -1871,10 +2023,11 @@ class AutoClicker:
         if self._kb_listener_recorder:
             self._kb_listener_recorder.stop()
 
-        self.record_status.config(text="录制完成", foreground=self._colors["success"])
-        self.record_btn.config(state=tk.NORMAL)
-        self.record_pause_btn.config(state=tk.DISABLED, text="⏸ 暂停(F2)")
-        self.record_stop_btn.config(state=tk.DISABLED)
+        self.record_status.config(text="录制完成", fg=self._colors["success"])
+        self.record_btn.set_enabled(True)
+        self.record_pause_btn.set_enabled(False)
+        self.record_pause_btn.set_text("⏸ 暂停")
+        self.record_stop_btn.set_enabled(False)
 
         # 生成步骤
         if not self._record_events:
@@ -1952,7 +2105,7 @@ class AutoClicker:
         self.target_hwnd = hwnd
         self.pending_hwnd = hwnd
         title = win32gui.GetWindowText(hwnd)
-        self.bind_status_label.config(text=f"✅ 已绑定: {title[:30]}", foreground=self._colors["success"])
+        self.bind_status_label.config(text=f"✅ 已绑定: {title[:30]}", fg=self._colors["success"])
         self._show_window_info(hwnd, "已绑定")
         self._highlight_rect(hwnd)
 
@@ -1995,7 +2148,7 @@ class AutoClicker:
                     self.target_hwnd = children[idx]["hwnd"]
                     self.bind_status_label.config(
                         text=f"✅ 子窗口: {children[idx]['class'][:20]}",
-                        foreground=self._colors["success"])
+                        fg=self._colors["success"])
             except (ValueError, IndexError):
                 pass
 
@@ -2047,7 +2200,7 @@ class AutoClicker:
     def clear_window_binding(self):
         self.target_hwnd = None
         self.pending_hwnd = None
-        self.bind_status_label.config(text="❌ 未绑定", foreground=self._colors["danger"])
+        self.bind_status_label.config(text="❌ 未绑定", fg=self._colors["danger"])
         self.window_info.config(text="未选择窗口")
 
     def _on_game_mode_toggle(self):
@@ -2091,6 +2244,14 @@ class AutoClicker:
         """拟人按压时长：随机 30-120ms"""
         lo = max(10, self.press_duration_min.get())
         hi = max(lo + 10, self.press_duration_max.get())
+        return random.randint(lo, hi) / 1000.0
+
+    def _random_step_gap(self):
+        """步骤间随机间隔：每次执行前随机停顿，模拟真人操作节奏"""
+        if not self.step_gap_enabled.get():
+            return 0.0
+        lo = max(0, self.step_gap_min.get())
+        hi = max(lo, self.step_gap_max.get())
         return random.randint(lo, hi) / 1000.0
 
     def _is_bound_window(self):
@@ -2175,16 +2336,16 @@ class AutoClicker:
             time.sleep(0.02)
             if click_type in ("left", "double"):
                 user32.mouse_event(MOUSEEVENTF_LEFTDOWN, 0, 0, 0, 0)
-                time.sleep(0.01)
+                time.sleep(self._random_press_duration())
                 user32.mouse_event(MOUSEEVENTF_LEFTUP, 0, 0, 0, 0)
                 if click_type == "double":
                     time.sleep(0.05)
                     user32.mouse_event(MOUSEEVENTF_LEFTDOWN, 0, 0, 0, 0)
-                    time.sleep(0.01)
+                    time.sleep(self._random_press_duration())
                     user32.mouse_event(MOUSEEVENTF_LEFTUP, 0, 0, 0, 0)
             elif click_type == "right":
                 user32.mouse_event(MOUSEEVENTF_RIGHTDOWN, 0, 0, 0, 0)
-                time.sleep(0.01)
+                time.sleep(self._random_press_duration())
                 user32.mouse_event(MOUSEEVENTF_RIGHTUP, 0, 0, 0, 0)
             return
         except Exception:
@@ -2211,20 +2372,20 @@ class AutoClicker:
         if click_type in ("left", "double"):
             stroke.state = interception.INTERCEPTION_MOUSE_LEFT_BUTTON_DOWN
             interception.lib.interception_send(ctx, dev, ctypes.byref(stroke), 1)
-            time.sleep(random.uniform(0.03, 0.08))
+            time.sleep(self._random_press_duration())
             stroke.state = interception.INTERCEPTION_MOUSE_LEFT_BUTTON_UP
             interception.lib.interception_send(ctx, dev, ctypes.byref(stroke), 1)
             if click_type == "double":
                 time.sleep(0.05)
                 stroke.state = interception.INTERCEPTION_MOUSE_LEFT_BUTTON_DOWN
                 interception.lib.interception_send(ctx, dev, ctypes.byref(stroke), 1)
-                time.sleep(0.02)
+                time.sleep(self._random_press_duration())
                 stroke.state = interception.INTERCEPTION_MOUSE_LEFT_BUTTON_UP
                 interception.lib.interception_send(ctx, dev, ctypes.byref(stroke), 1)
         elif click_type == "right":
             stroke.state = interception.INTERCEPTION_MOUSE_RIGHT_BUTTON_DOWN
             interception.lib.interception_send(ctx, dev, ctypes.byref(stroke), 1)
-            time.sleep(0.02)
+            time.sleep(self._random_press_duration())
             stroke.state = interception.INTERCEPTION_MOUSE_RIGHT_BUTTON_UP
             interception.lib.interception_send(ctx, dev, ctypes.byref(stroke), 1)
 
@@ -2237,27 +2398,35 @@ class AutoClicker:
             win32gui.SetForegroundWindow(self.target_hwnd)
             time.sleep(0.02)
 
-        if self.human_mode.get():
-            # 拟人模式：分开发送按下和松开，中间加随机延迟
-            _send_input_array([_make_move_input(x, y)])
-            flags = {
-                "left": (MOUSEEVENTF_LEFTDOWN, MOUSEEVENTF_LEFTUP),
-                "right": (MOUSEEVENTF_RIGHTDOWN, MOUSEEVENTF_RIGHTUP),
-            }
-            down_f, up_f = flags.get(click_type, flags["left"])
-            down = SENDINPUT()
-            down.type = INPUT_MOUSE
-            down.mi.dwFlags = down_f
-            _send_input_array([down])
+        # 移动到目标位置
+        _send_input_array([_make_move_input(x, y)])
+
+        # 按下 → 随机按压时长 → 松开
+        flags = {
+            "left": (MOUSEEVENTF_LEFTDOWN, MOUSEEVENTF_LEFTUP),
+            "right": (MOUSEEVENTF_RIGHTDOWN, MOUSEEVENTF_RIGHTUP),
+        }
+        down_f, up_f = flags.get(click_type, flags["left"])
+        down = SENDINPUT()
+        down.type = INPUT_MOUSE
+        down.mi.dwFlags = down_f
+        _send_input_array([down])
+        time.sleep(self._random_press_duration())
+        up = SENDINPUT()
+        up.type = INPUT_MOUSE
+        up.mi.dwFlags = up_f
+        _send_input_array([up])
+        if click_type == "double":
+            time.sleep(0.05)
+            down2 = SENDINPUT()
+            down2.type = INPUT_MOUSE
+            down2.mi.dwFlags = down_f
+            _send_input_array([down2])
             time.sleep(self._random_press_duration())
-            up = SENDINPUT()
-            up.type = INPUT_MOUSE
-            up.mi.dwFlags = up_f
-            _send_input_array([up])
-        else:
-            inputs = [_make_move_input(x, y)]
-            inputs.extend(_make_button_inputs(click_type))
-            _send_input_array(inputs)
+            up2 = SENDINPUT()
+            up2.type = INPUT_MOUSE
+            up2.mi.dwFlags = up_f
+            _send_input_array([up2])
 
     def _postmessage_click(self, x, y, click_type):
         if not self.bind_to_window.get() or not self.target_hwnd:
@@ -2275,16 +2444,16 @@ class AutoClicker:
         lParam = win32api.MAKELONG(cx, cy)
         if click_type in ("left", "double"):
             win32api.PostMessage(self.target_hwnd, win32con.WM_LBUTTONDOWN, win32con.MK_LBUTTON, lParam)
-            time.sleep(0.01)
+            time.sleep(self._random_press_duration())
             win32api.PostMessage(self.target_hwnd, win32con.WM_LBUTTONUP, 0, lParam)
             if click_type == "double":
                 time.sleep(0.05)
                 win32api.PostMessage(self.target_hwnd, win32con.WM_LBUTTONDOWN, win32con.MK_LBUTTON, lParam)
-                time.sleep(0.01)
+                time.sleep(self._random_press_duration())
                 win32api.PostMessage(self.target_hwnd, win32con.WM_LBUTTONUP, 0, lParam)
         elif click_type == "right":
             win32api.PostMessage(self.target_hwnd, win32con.WM_RBUTTONDOWN, win32con.MK_RBUTTON, lParam)
-            time.sleep(0.01)
+            time.sleep(self._random_press_duration())
             win32api.PostMessage(self.target_hwnd, win32con.WM_RBUTTONUP, 0, lParam)
 
     def _fallback_click(self, x, y, click_type):
@@ -2696,6 +2865,13 @@ class AutoClicker:
                         deadline = time.time() + post_delay / 1000.0
                         while time.time() < deadline and not self.stop_event.is_set():
                             time.sleep(0.1)
+                    # 步骤间随机间隔（模拟真人节奏）
+                    gap = self._random_step_gap()
+                    if gap > 0:
+                        self._log(f"  步骤{i + 1}: 间隔 {int(gap * 1000)}ms", "info")
+                        deadline = time.time() + gap
+                        while time.time() < deadline and not self.stop_event.is_set():
+                            time.sleep(0.05)
 
                 loop_idx += 1
 
@@ -2714,9 +2890,9 @@ class AutoClicker:
 
     def _reset_ui(self):
         self.is_running = False
-        self.status_label.config(text="状态: 已停止")
-        self.start_btn.config(state=tk.NORMAL)
-        self.stop_btn.config(state=tk.DISABLED)
+        self.status_label.config(text="● 已停止", fg=self._colors["dim"])
+        self.start_btn.set_enabled(True)
+        self.stop_btn.set_enabled(False)
 
     def start(self):
         if self.is_running:
@@ -2729,9 +2905,9 @@ class AutoClicker:
         self.is_running = True
         self.start_time = time.time()
         self.stop_event.clear()
-        self.status_label.config(text="● 运行中")
-        self.start_btn.config(state=tk.DISABLED)
-        self.stop_btn.config(state=tk.NORMAL)
+        self.status_label.config(text="● 运行中", fg=self._colors["success"])
+        self.start_btn.set_enabled(False)
+        self.stop_btn.set_enabled(True)
 
         self.worker_thread = threading.Thread(target=self._worker, daemon=True)
         self.worker_thread.start()
@@ -2783,6 +2959,9 @@ class AutoClicker:
             "wait_variance": self.wait_variance.get(),
             "press_duration_min": self.press_duration_min.get(),
             "press_duration_max": self.press_duration_max.get(),
+            "step_gap_enabled": self.step_gap_enabled.get(),
+            "step_gap_min": self.step_gap_min.get(),
+            "step_gap_max": self.step_gap_max.get(),
             "steps": [s.to_dict() for s in self.steps],
         }
 
@@ -2793,8 +2972,16 @@ class AutoClicker:
         self.random_offset_px.set(cfg.get("random_offset_px", 3))
         self.human_mode.set(cfg.get("human_mode", False))
         self.wait_variance.set(cfg.get("wait_variance", 30))
-        self.press_duration_min.set(cfg.get("press_duration_min", 30))
-        self.press_duration_max.set(cfg.get("press_duration_max", 120))
+        self.press_duration_min.set(cfg.get("press_duration_min", 50))
+        self.press_duration_max.set(cfg.get("press_duration_max", 180))
+        self.step_gap_enabled.set(cfg.get("step_gap_enabled", False))
+        self.step_gap_min.set(cfg.get("step_gap_min", 100))
+        self.step_gap_max.set(cfg.get("step_gap_max", 300))
+        # 三合一：拟人模式总开关同步其他两个
+        self.random_offset_enabled.set(cfg.get("random_offset", False))
+        if self.human_mode.get():
+            self.random_offset_enabled.set(True)
+            self.step_gap_enabled.set(True)
         self.steps = [MacroStep.from_dict(d) for d in cfg.get("steps", [])]
         self._refresh_step_list()
 
@@ -2865,7 +3052,7 @@ class AutoClicker:
 
     def _fix_image_paths(self, data):
         """修复导入配置中的图片路径（文件存在但路径不匹配时自动修正）"""
-        screenshots_dir = os.path.join(SCRIPT_DIR, "screenshots")
+        screenshots_dir = SCREENSHOTS_DIR
         for step_data in data.get("steps", []):
             params = step_data.get("params", {})
             self._fix_single_path(params, "image", screenshots_dir)

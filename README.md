@@ -106,12 +106,18 @@ claude-code-config/
 ├── .claude/settings.json  # Claude Code 配置文件
 ├── tools/                 # 独立工具
 │   ├── README.md
-│   └── autoclicker/       # 多步骤宏点击工具
+│   ├── autoclicker/       # 多步骤宏点击工具
+│   │   ├── README.md
+│   │   ├── autoclicker.py
+│   │   ├── app_icon.ico
+│   │   ├── autoclicker_configs.json
+│   │   └── dist/ 阴阳师痒痒鼠爬塔助手.exe
+│   └── health-reminder/   # 桌面桌宠健康提醒
 │       ├── README.md
-│       ├── autoclicker.py
-│       ├── app_icon.ico
-│       ├── autoclicker_configs.json
-│       └── dist/ 阴阳师痒痒鼠爬塔助手.exe
+│       ├── health_reminder.py
+│       ├── icon.ico
+│       ├── preview.gif
+│       └── pet_assets/
 ├── skills/                # Claude Code 技能（预留）
 │   └── README.md
 ├── projects/              # 较大项目
@@ -140,6 +146,12 @@ Spring Boot + 纯静态 HTML/JS 前端，物业管理系统毕业设计项目。
 Windows 桌面自动化点击工具，支持多步骤宏编排、录制回放、图片识别定位与游戏级底层输入模拟。阴阳师风格 UI，含打包好的单文件 EXE，开箱即用。
 
 详见 [tools/autoclicker/README.md](tools/autoclicker/README.md)
+
+### [健康提醒 — 桌面桌宠健康助手](tools/health-reminder/)
+
+Windows 桌面健康提醒工具：到点后桌宠做动作 + 气泡提醒起身活动、远眺护眼、喝水补水；支持托盘运行、免打扰时段、开机自启，桌宠帧动画由视频抠像生成。
+
+详见 [tools/health-reminder/README.md](tools/health-reminder/README.md)
 
 ## License
 

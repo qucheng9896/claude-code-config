@@ -112,12 +112,18 @@ claude-code-config/
 │   │   ├── app_icon.ico
 │   │   ├── autoclicker_configs.json
 │   │   └── dist/ 阴阳师痒痒鼠爬塔助手.exe
-│   └── health-reminder/   # 桌面桌宠健康提醒
+│   ├── health-reminder/   # 桌面桌宠健康提醒
+│   │   ├── README.md
+│   │   ├── health_reminder.py
+│   │   ├── icon.ico
+│   │   ├── preview.gif
+│   │   └── pet_assets/
+│   └── xiaoli-todo/       # 桌面待办便签（PaperTodo 定制版）
 │       ├── README.md
-│       ├── health_reminder.py
-│       ├── icon.ico
-│       ├── preview.gif
-│       └── pet_assets/
+│       ├── PaperTodo.csproj
+│       ├── src/
+│       ├── plugins/
+│       └── vendor/
 ├── skills/                # Claude Code 技能（预留）
 │   └── README.md
 ├── projects/              # 较大项目
@@ -152,6 +158,12 @@ Windows 桌面自动化点击工具，支持多步骤宏编排、录制回放、
 Windows 桌面健康提醒工具：到点后桌宠做动作 + 气泡提醒起身活动、远眺护眼、喝水补水；支持托盘运行、免打扰时段、开机自启，桌宠帧动画由视频抠像生成。
 
 详见 [tools/health-reminder/README.md](tools/health-reminder/README.md)
+
+### [小李待办 — 桌面待办便签（PaperTodo 定制版）](tools/xiaoli-todo/)
+
+基于开源项目 PaperTodo 定制的 Windows 桌面待办便签：桌面纸片即待办与笔记，定制了每日自动备份、待办创建/完成时间记录、托盘「日期总结」窗口（按日期回顾、导出、删除备份）等实用功能。
+
+详见 [tools/xiaoli-todo/README.md](tools/xiaoli-todo/README.md)
 
 ## License
 

@@ -74,3 +74,13 @@ Thumbs.db
 application-local.properties
 application-prod.properties
 
+
+# 数据备份输出目录
+backups/
+
+# ==================== 毕设内容（本地保留，不上传公开仓库）====================
+# 原因：论文与毕设代码尚未答辩通过。文件仍在本地磁盘，只是 git 不再跟踪。
+论文/
+projects/smart-property/
+启动物业系统.bat
+停止物业系统.bat

@@ -104,66 +104,45 @@ claude-code-config/
 ├── LICENSE                # MIT 许可证
 ├── setup.sh               # Claude Code 一键安装脚本
 ├── .claude/settings.json  # Claude Code 配置文件
-├── tools/                 # 独立工具
-│   ├── README.md
-│   ├── autoclicker/       # 多步骤宏点击工具
-│   │   ├── README.md
-│   │   ├── autoclicker.py
-│   │   ├── app_icon.ico
-│   │   ├── autoclicker_configs.json
-│   │   └── dist/ 阴阳师痒痒鼠爬塔助手.exe
-│   ├── health-reminder/   # 桌面桌宠健康提醒
-│   │   ├── README.md
-│   │   ├── health_reminder.py
-│   │   ├── icon.ico
-│   │   ├── preview.gif
-│   │   └── pet_assets/
-│   └── xiaoli-todo/       # 桌面待办便签（PaperTodo 定制版）
-│       ├── README.md
-│       ├── PaperTodo.csproj
-│       ├── src/
-│       ├── plugins/
-│       └── vendor/
-├── skills/                # Claude Code 技能（预留）
+├── skills/                # Claude Code 技能
 │   └── README.md
-├── projects/              # 较大项目
-│   ├── README.md
-│   └── smart-property/    # 智慧物业毕业设计
-│       ├── CLAUDE.md
-│       ├── CHANGELOG.md
-│       ├── pom.xml
-│       ├── 开发进度.md
-│       ├── 设计文档.md
-│       ├── 毕设设计文档_核心章节.md
-│       ├── src/
-│       └── versions/
+└── projects/              # 其他项目入口
+    └── README.md
 ```
 
-## 仓库内其他项目
+> 说明：本仓库只维护 Claude Code 中文增强配置包。
+> 独立工具已迁移到各自的仓库（见下），毕设项目已移出本仓库。
 
-### [智慧物业 — 物业管理系统毕业设计](projects/smart-property/)
+## 相关仓库
 
-Spring Boot + 纯静态 HTML/JS 前端，物业管理系统毕业设计项目。包含 15 个功能模块、完整的 CRUD 操作、JWT 认证、AI 催缴提醒等功能。
+| 仓库 | 说明 |
+|------|------|
+| [autoclicker](https://github.com/qucheng9896/autoclicker) | 多步骤宏点击工具（Python） |
+| [health-reminder](https://github.com/qucheng9896/health-reminder) | 桌面桌宠健康提醒（Python） |
+| [xiaoli-todo](https://github.com/qucheng9896/xiaoli-todo) | 桌面待办便签（PaperTodo 定制版，C#/WPF） |
 
-详见 [projects/smart-property/CLAUDE.md](projects/smart-property/CLAUDE.md)
 
-### [AutoClicker — 多步骤宏工具](tools/autoclicker/)
+## 其他项目
+
+以下项目已迁移到各自独立的仓库维护，本仓库不再包含它们的代码。
+
+### [AutoClicker — 多步骤宏工具](https://github.com/qucheng9896/autoclicker)
 
 Windows 桌面自动化点击工具，支持多步骤宏编排、录制回放、图片识别定位与游戏级底层输入模拟。阴阳师风格 UI，含打包好的单文件 EXE，开箱即用。
 
-详见 [tools/autoclicker/README.md](tools/autoclicker/README.md)
+详见 [autoclicker 仓库](https://github.com/qucheng9896/autoclicker)
 
-### [健康提醒 — 桌面桌宠健康助手](tools/health-reminder/)
+### [健康提醒 — 桌面桌宠健康助手](https://github.com/qucheng9896/health-reminder)
 
 Windows 桌面健康提醒工具：到点后桌宠做动作 + 气泡提醒起身活动、远眺护眼、喝水补水；支持托盘运行、免打扰时段、开机自启，桌宠帧动画由视频抠像生成。
 
-详见 [tools/health-reminder/README.md](tools/health-reminder/README.md)
+详见 [health-reminder 仓库](https://github.com/qucheng9896/health-reminder)
 
-### [小李待办 — 桌面待办便签（PaperTodo 定制版）](tools/xiaoli-todo/)
+### [小李待办 — 桌面待办便签（PaperTodo 定制版）](https://github.com/qucheng9896/xiaoli-todo)
 
 基于开源项目 PaperTodo 定制的 Windows 桌面待办便签：桌面纸片即待办与笔记，定制了每日自动备份、待办创建/完成时间记录、托盘「日期总结」窗口（按日期回顾、导出、删除备份）等实用功能。
 
-详见 [tools/xiaoli-todo/README.md](tools/xiaoli-todo/README.md)
+详见 [xiaoli-todo 仓库](https://github.com/qucheng9896/xiaoli-todo)
 
 ## License
 
